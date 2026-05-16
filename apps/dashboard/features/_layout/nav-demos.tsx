@@ -80,7 +80,7 @@ export function NavDemos() {
               className="group/btn text-foreground/80 capitalize"
             >
               <a href={`/#${project.slug}`}>
-                <ClapperboardIcon />
+                <ClapperboardIcon className="text-foreground/70" />
                 <span>{project.label}</span>
               </a>
             </SidebarMenuButton>

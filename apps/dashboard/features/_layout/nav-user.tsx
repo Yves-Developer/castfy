@@ -21,12 +21,15 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar";
 import {
-  BellIcon,
   CreditCardIcon,
   EllipsisVerticalIcon,
   LogOutIcon,
+  MoonIcon,
+  SunIcon,
   UserCircleIcon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function NavUser({
   user,
@@ -38,6 +41,12 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <SidebarMenu>
@@ -91,9 +100,16 @@ export function NavUser({
                 <CreditCardIcon />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
+              <DropdownMenuItem
+                className="capitalize"
+                onClick={() =>
+                  setTheme(resolvedTheme === "dark" ? "light" : "dark")
+                }
+              >
+                {mounted &&
+                  (resolvedTheme === "dark" ? <MoonIcon /> : <SunIcon />)}
+                {mounted && <span className="capitalize">{resolvedTheme}</span>}{" "}
+                theme
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

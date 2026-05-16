@@ -15,7 +15,9 @@ export default function Lyout(props: LayoutProps<"/">) {
       }
     >
       <AppSidebar variant="sidebar" />
-      <SidebarInset>{props.children}</SidebarInset>
+      <SidebarInset>
+        <main className="relative h-full min-h-screen">{props.children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
