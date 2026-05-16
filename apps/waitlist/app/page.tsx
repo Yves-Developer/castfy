@@ -6,7 +6,7 @@ export default function Home() {
       <Button>waitlist</Button>
       <div>
         <Card>
-          <CardTitle>Men</CardTitle>
+          <CardTitle>waitlist</CardTitle>
         </Card>
       </div>
       <div className="font-mono text-muted-foreground text-xs">
