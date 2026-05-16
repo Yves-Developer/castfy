@@ -19,19 +19,19 @@ export interface TFeature {
 export function HomeFeatures() {
   const features: TFeature[] = [
     {
-      title: "Record your calls with ease",
+      title: "Record your demo with ease",
       description:
         "Crystal-clear audio capture with automatic transcription. Never worry about missing details again.",
       icon: AudioLines,
     },
     {
-      title: "Take notes as you talk",
+      title: "Edit and organize on the fly",
       description:
         "Add highlights, action items, and reminders without interrupting the flow of conversation.",
       icon: NotebookPen,
     },
     {
-      title: "Find any call in seconds",
+      title: "Find any demo in seconds",
       description:
         "Search transcripts, replay key moments, and export notes to your team—all in seconds.",
       icon: Sparkle,
