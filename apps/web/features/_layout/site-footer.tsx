@@ -1,5 +1,6 @@
 import { Button } from "@workspace/ui/components/button";
 import { Logo } from "@/components/logo";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
 
@@ -48,25 +49,7 @@ export function SiteFooter() {
           &copy; {new Date().getFullYear()} {siteConfig.name}
         </p>
 
-        <p className="inline-flex items-center gap-1">
-          <span>Built by</span>
-          <a
-            aria-label="x/twitter"
-            className="inline-flex items-center gap-1 text-foreground/80 hover:text-foreground hover:underline"
-            href={"https://x.com/yves"}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <img
-              alt="shaban"
-              className="size-4 rounded-full"
-              height="auto"
-              src="https://github.com/Yves-Developer.png"
-              width="auto"
-            />
-            Yves
-          </a>
-        </p>
+        <ThemeSwitcher />
       </div>
     </footer>
   );
