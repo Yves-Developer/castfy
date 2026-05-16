@@ -1,17 +1,4 @@
-import { Button } from "@workspace/ui/components/button";
-import { Card, CardTitle } from "@workspace/ui/components/card";
+import { WaitlistSection } from "@/components/waitlist";
 export default function Home() {
-  return (
-    <div className="p-20">
-      <Button>waitlist</Button>
-      <div>
-        <Card>
-          <CardTitle>waitlist</CardTitle>
-        </Card>
-      </div>
-      <div className="font-mono text-muted-foreground text-xs">
-        (Press <kbd>d</kbd> to toggle dark mode)
-      </div>
-    </div>
-  );
+  return <WaitlistSection />;
 }
