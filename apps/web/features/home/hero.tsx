@@ -22,16 +22,16 @@ export function HomeHero() {
         </p>
       </div>
       <div className="flex flex-col items-center gap-4 md:flex-row">
-        <Button asChild className="roundedfull text-base" size="xl">
-          <Link href="/contact-sales">Sign up</Link>
+        <Button asChild className="rounded-full text-base" size="xl">
+          <Link href="/contact-sales">Sign Up</Link>
         </Button>
         <Button
           asChild
-          className="roundedfull text-base"
+          className="rounded-full text-base"
           size="xl"
           variant={"secondary"}
         >
-          <Link href="/about">Request demo</Link>
+          <Link href="/about">Request Demo</Link>
         </Button>
       </div>
     </section>

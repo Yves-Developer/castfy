@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function HomeThumbnail() {
   return (
     <div>
-      <div className="relative border-y">
+      <div className="relative">
         <Image
           alt="Hero"
           className="h-auto w-full max-w-7xl rounded-xl lg:rounded-[2.5rem]"

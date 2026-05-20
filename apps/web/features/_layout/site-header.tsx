@@ -20,7 +20,7 @@ export function SiteHeader() {
       )}
     >
       <nav className="container flex h-14 w-full items-center justify-between md:h-12">
-        <Link className="font-plus-jakarta-sans font-semibold text-xl" href="/">
+        <Link className="font-semibold text-xl" href="/">
           {siteConfig.name}
         </Link>
         <div className="hidden items-center gap-9 md:flex">
@@ -38,10 +38,12 @@ export function SiteHeader() {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <Button size="sm" variant="outline">
+          <Button className="rounded-full" size="sm" variant="outline">
             Log in
           </Button>
-          <Button size="sm">Sign up</Button>
+          <Button className="rounded-full" size="sm">
+            Sign up
+          </Button>
         </div>
         <MobileNav />
       </nav>

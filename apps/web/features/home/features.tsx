@@ -39,26 +39,15 @@ export function HomeFeatures() {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center gap-8 p-4">
-      <motion.h1
-        className="text-center font-aleo 4xl:text-6xl text-3xl md:text-4xl"
-        initial={{ opacity: 0, y: 30 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        viewport={{ once: true, margin: "-100px" }}
-        whileInView={{ opacity: 1, y: 0 }}
-      >
-        One app for all your conversations
-      </motion.h1>
-      <motion.p
-        className="4xl:max-w-6xl max-w-2xl text-center 4xl:text-3xl text-lg text-muted-foreground"
-        initial={{ opacity: 0, y: 30 }}
-        transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-        viewport={{ once: true, margin: "-100px" }}
-        whileInView={{ opacity: 1, y: 0 }}
-      >
-        Whether it&apos;s client meetings, interviews, or team calls—capture,
-        organize, and review every conversation in one place.
-      </motion.p>
+    <div className="flex flex-col items-center justify-center gap-10">
+      <div className="flex flex-col gap-2">
+        <h3 className="text-center font-medium text-3xl md:text-4xl">
+          Every demo tells story
+        </h3>
+        <p className="max-w-xl text-center text-muted-foreground text-xl">
+          Real-time data that turns link activity into decisions
+        </p>
+      </div>
       <section className="flex flex-wrap items-stretch justify-center gap-4 max-md:pt-8 md:gap-8">
         {features.map((feature, index) => (
           <motion.div
