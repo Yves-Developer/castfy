@@ -1,64 +1,86 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-/**
- * Connects to the Demosmith MCP server, starts a silent session, and extracts the snapshot.
- */
-export async function extractSnapshot(url: string): Promise<string> {
-  const transport = new StdioClientTransport({
-    command: 'npx',
-    args: ['demosmith-mcp'],
-  });
+export class DemosmithSession {
+  private client: Client;
+  private transport: StdioClientTransport;
+  private isStarted = false;
 
-  const client = new Client(
-    { name: 'playground-app', version: '1.0.0' },
-    { capabilities: {} }
-  );
+  constructor() {
+    this.transport = new StdioClientTransport({
+      command: 'npx',
+      args: ['demosmith-mcp'],
+    });
 
-  await client.connect(transport);
+    this.client = new Client(
+      { name: 'playground-app', version: '1.0.0' },
+      { capabilities: {} }
+    );
+  }
 
-  try {
-    // 1. Start the session silently (headless, no video)
-    console.log('[Scraper] Calling demosmith_start...');
-    const startResult = await client.callTool({
+  async connect() {
+    await this.client.connect(this.transport);
+  }
+
+  async start(url: string, title: string = 'Agentic Session') {
+    console.log(`[Scraper] Starting MCP session for ${url}`);
+    const result = await this.client.callTool({
       name: 'demosmith_start',
-      arguments: {
-        url,
-        title: 'Temporary Snapshot Session',
-        headless: true,
-        video: false,
-        trace: false,
-      }
+      arguments: { url, title, headless: true, video: false, trace: false }
     });
-    
-    if (startResult.isError) {
-      throw new Error(`Failed to start session: ${JSON.stringify(startResult)}`);
+    if (result.isError) throw new Error(`Start failed: ${JSON.stringify(result)}`);
+    this.isStarted = true;
+  }
+
+  async snapshot(): Promise<string> {
+    console.log(`[Scraper] Taking snapshot...`);
+    const result = await this.client.callTool({ name: 'demosmith_snapshot', arguments: {} });
+    if (result.isError) throw new Error(`Snapshot failed: ${JSON.stringify(result)}`);
+    return (result.content[0] as any)?.text || '';
+  }
+
+  async click(ref: string) {
+    console.log(`[Scraper] Clicking ref: ${ref}`);
+    const result = await this.client.callTool({ name: 'demosmith_click', arguments: { ref } });
+    if (result.isError) throw new Error(`Click failed: ${JSON.stringify(result)}`);
+  }
+
+  async fill(ref: string, value: string) {
+    console.log(`[Scraper] Filling ref: ${ref} with value: ${value}`);
+    const result = await this.client.callTool({ name: 'demosmith_fill', arguments: { ref, value } });
+    if (result.isError) throw new Error(`Fill failed: ${JSON.stringify(result)}`);
+  }
+
+  async navigate(url: string) {
+    console.log(`[Scraper] Navigating to: ${url}`);
+    const result = await this.client.callTool({ name: 'demosmith_navigate', arguments: { url } });
+    if (result.isError) throw new Error(`Navigate failed: ${JSON.stringify(result)}`);
+  }
+
+  async wait(ms: number) {
+    console.log(`[Scraper] Waiting ${ms}ms...`);
+    const result = await this.client.callTool({ name: 'demosmith_wait', arguments: { ms } });
+    if (result.isError) throw new Error(`Wait failed: ${JSON.stringify(result)}`);
+  }
+
+  async close() {
+    if (this.isStarted) {
+      console.log(`[Scraper] Ending session...`);
+      await this.client.callTool({ name: 'demosmith_end', arguments: {} }).catch(() => {});
     }
+    await this.client.close();
+  }
+}
 
-    // 2. Take the snapshot
-    console.log('[Scraper] Calling demosmith_snapshot...');
-    const snapshotResult = await client.callTool({
-      name: 'demosmith_snapshot',
-      arguments: {}
-    });
-
-    if (snapshotResult.isError) {
-      throw new Error(`Failed to take snapshot: ${JSON.stringify(snapshotResult)}`);
-    }
-
-    // Extract the text output from the tool result
-    const snapshotText = (snapshotResult.content[0] as any)?.text || '';
-    
-    // 3. End the session quickly to free up resources
-    console.log('[Scraper] Ending session...');
-    await client.callTool({
-      name: 'demosmith_end',
-      arguments: {}
-    });
-
-    return snapshotText;
+// Keep the old function for backward compatibility with the Scrape Only tab
+export async function extractSnapshot(url: string): Promise<string> {
+  const session = new DemosmithSession();
+  await session.connect();
+  try {
+    await session.start(url);
+    const snapshot = await session.snapshot();
+    return snapshot;
   } finally {
-    // Ensure the MCP client is closed
-    await client.close();
+    await session.close();
   }
 }
