@@ -1,5 +1,5 @@
 import { Button } from "@workspace/ui/components/button";
-import { Logo } from "@/components/logo";
+import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
@@ -14,12 +14,12 @@ const socialLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="mx-auto mt-20 mb-8 w-full max-w-6xl *:px-4 md:mt-30 *:md:px-6">
+    <footer className="* container mt-20 mb-8 w-full">
       <div className="flex flex-col gap-6 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo className="h-4.5" />
-          </div>
+          <Link className="font-semibold text-xl" href="/">
+            {siteConfig.name}
+          </Link>
           <div className="flex items-center">
             {socialLinks.map(({ href, label, icon }) => (
               <Button asChild key={label} size="icon-sm" variant="ghost">
