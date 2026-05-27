@@ -5,7 +5,7 @@ export default function NewDemo() {
   return (
     <>
       <AppSiteHeader>
-        <span>New demo</span>
+        <span className="text-sm">New demo</span>
       </AppSiteHeader>
 
       <div className="container mx-auto flex h-full w-full max-w-2xl flex-col justify-center gap-5">

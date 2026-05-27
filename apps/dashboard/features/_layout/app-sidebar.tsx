@@ -20,6 +20,7 @@ import {
   ListVideoIcon,
   SendIcon,
   SettingsIcon,
+  SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
@@ -42,6 +43,11 @@ const data = {
       title: "Overview",
       url: "/",
       icon: LayoutDashboard,
+    },
+    {
+      title: "Playground",
+      url: "/playground",
+      icon: SparklesIcon,
     },
     {
       title: "My demos",

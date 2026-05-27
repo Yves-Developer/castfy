@@ -71,7 +71,7 @@ export function AnalyticCards() {
             </CardHeader>
 
             <CardFooter className="border-0 bg-transparent">
-              <p className="line-clamp-1 flex gap-2 font-medium text-sm">
+              <p className="fontmedium line-clamp-1 flex gap-2 text-sm">
                 {card.description}
               </p>
             </CardFooter>
