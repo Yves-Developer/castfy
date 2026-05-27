@@ -13,17 +13,21 @@ import {
 } from "@workspace/ui/components/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
 import {
-  CreditCardIcon,
-  HelpCircle,
+  ChartPieIcon,
+  CircleHelpIcon,
+  FilmIcon,
   LayoutDashboard,
-  Settings,
-  Sparkles,
+  ListVideoIcon,
+  SendIcon,
+  SettingsIcon,
+  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type * as React from "react";
 import { siteConfig } from "@/config/site";
-import { NavDemos } from "./nav-demos";
 import { NavMain } from "./nav-main";
+import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 
 const data = {
@@ -35,51 +39,60 @@ const data = {
 
   navMain: [
     {
-      title: "Dashboard",
-      url: "#",
+      title: "Overview",
+      url: "/",
       icon: LayoutDashboard,
     },
     {
-      title: "Subscriptions",
-      url: "#",
-      icon: CreditCardIcon,
-    },
-
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
+      title: "My demos",
+      url: "/demos",
+      icon: ListVideoIcon,
     },
     {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircle,
+      title: "Trash",
+      url: "/trash",
+      icon: Trash2Icon,
     },
   ],
 
   navSecondary: [
     {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
+      title: "Templates",
+      url: "/templates",
+      icon: FilmIcon,
     },
     {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircle,
+      title: "Billing",
+      url: "/billing",
+      icon: ChartPieIcon,
+    },
+    {
+      title: "Support",
+      url: "/support",
+      icon: CircleHelpIcon,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: SettingsIcon,
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <AppSidebarHeader />
 
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDemos />
-        {/* <NavSecondary className="mt-auto" items={data.navSecondary} /> */}
+        <NavMain items={data.navMain} pathname={pathname} />
+        {/* <NavDemos /> */}
+        <NavSecondary
+          className="mt-auto"
+          items={data.navSecondary}
+          pathname={pathname}
+        />
       </SidebarContent>
 
       <SidebarFooter>
@@ -106,7 +119,7 @@ function AppSidebarHeader() {
             )}
           >
             <Link href="/">
-              <Sparkles className="size-5" />
+              <SendIcon className="size-5" />
               <span className="sr-only text-base">{siteConfig.name}</span>
             </Link>
           </SidebarMenuButton>

@@ -14,10 +14,8 @@ export default function Lyout(props: LayoutProps<"/">) {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="sidebar" />
-      <SidebarInset>
-        <main className="relative h-full min-h-screen">{props.children}</main>
-      </SidebarInset>
+      <AppSidebar />
+      <SidebarInset>{props.children}</SidebarInset>
     </SidebarProvider>
   );
 }

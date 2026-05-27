@@ -13,9 +13,12 @@ import {
   type LucideProps,
   SearchIcon,
 } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 export function NavMain({
   items,
+  pathname,
 }: {
   items: {
     title: string;
@@ -24,6 +27,7 @@ export function NavMain({
       Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
     >;
   }[];
+  pathname: string;
 }) {
   return (
     <SidebarGroup>
@@ -35,7 +39,7 @@ export function NavMain({
               tooltip="Quick Create"
             >
               <CircleFadingPlusIcon />
-              <span>New project</span>
+              <span>New demo</span>
             </SidebarMenuButton>
             <Button
               className="size-8 group-data-[collapsible=icon]:opacity-0"
@@ -50,9 +54,15 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
+              <SidebarMenuButton
+                asChild
+                isActive={item.url === pathname}
+                tooltip={item.title}
+              >
+                <Link href={item.url as Route}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
