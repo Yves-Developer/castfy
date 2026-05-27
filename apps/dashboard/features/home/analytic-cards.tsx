@@ -58,7 +58,7 @@ export function AnalyticCards() {
             <CardHeader>
               <CardDescription>{card.title}</CardDescription>
 
-              <CardTitle className="font-semibold @[250px]/card:text-3xl text-2xl tabular-nums">
+              <CardTitle className="font-semibold text-2xl tabular-nums">
                 {card.value}
               </CardTitle>
 

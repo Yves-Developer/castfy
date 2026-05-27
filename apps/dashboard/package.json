@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tanstack/react-form": "^1.32.0",
+    "@tanstack/react-table": "^8.21.3",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
