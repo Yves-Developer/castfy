@@ -16,5 +16,5 @@ export const fontVariables = cn(
   GeistSans.variable,
   GeistMono.variable,
   fontInter.variable,
-  fontRoboto.variable
+  fontRoboto.variable,
 );

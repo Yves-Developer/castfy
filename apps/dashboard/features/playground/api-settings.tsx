@@ -1,3 +1,4 @@
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,
@@ -5,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Button } from "@workspace/ui/components/button";
 
 export type AIProvider = "anthropic" | "openai" | "gemini";
 
@@ -21,7 +21,8 @@ export function ApiSettings({ provider, setProvider }: ApiSettingsProps) {
         <CardTitle>AI Provider</CardTitle>
         <CardDescription>
           Select the model you want to use for generating the automation script.
-          (Make sure the corresponding API key is set in your backend .env file).
+          (Make sure the corresponding API key is set in your backend .env
+          file).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -30,7 +31,7 @@ export function ApiSettings({ provider, setProvider }: ApiSettingsProps) {
             variant={provider === "anthropic" ? "default" : "outline"}
             onClick={() => setProvider("anthropic")}
           >
-            Claude 3.5 Sonnet
+            Claude 4.5 Sonnet
           </Button>
           <Button
             variant={provider === "openai" ? "default" : "outline"}

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ApiSettings, type AIProvider } from "@/features/playground/api-settings";
+import {
+  type AIProvider,
+  ApiSettings,
+} from "@/features/playground/api-settings";
 import { ExperimentTabs } from "@/features/playground/experiment-tabs";
 
 export default function PlaygroundPage() {
@@ -12,7 +15,8 @@ export default function PlaygroundPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Playground</h1>
         <p className="text-muted-foreground mt-2">
-          Test the core Demosmith logic, inspect accessibility trees, and debug LLM generation in isolation.
+          Test the core Castfy0 logic, inspect accessibility trees, and debug
+          LLM generation in isolation.
         </p>
       </div>
 

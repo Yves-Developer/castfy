@@ -21,5 +21,5 @@ export const fontVariables = cn(
   GeistMono.variable,
   fontInter.variable,
   fontRoboto.variable,
-  fontPlusJakartaSans.variable
+  fontPlusJakartaSans.variable,
 );
