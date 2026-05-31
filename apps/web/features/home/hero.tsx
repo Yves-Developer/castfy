@@ -1,8 +1,7 @@
 "use client";
+import { AspectRatio } from "@workspace/ui/components/aspect-ratio";
 import { Button } from "@workspace/ui/components/button";
-import Image from "next/image";
 import Link from "next/link";
-import cover from "@/public/cover.avif";
 
 export function HomeHero() {
   return (
@@ -35,15 +34,21 @@ export function HomeHero() {
           <Link href="/about">Request Demo</Link>
         </Button>
       </div>
-      <div className="relative w-full">
-        <Image
-          alt="Hero"
-          className="h-full w-full object-cover"
-          height={800}
-          priority
-          src={cover}
-          // width={1200}
-        />
+      <div className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-lg">
+        <AspectRatio className="bg-muted" ratio={16 / 9}>
+          <video
+            autoPlay
+            className="aspect-video h-full w-full object-cover"
+            loop
+            playsInline
+            src="https://screen.studio/videos/hero/hero-demo.mp4"
+          >
+            <track
+              kind="captions"
+              src="https://screen.studio/videos/hero/hero-demo.mp4"
+            />
+          </video>
+        </AspectRatio>
       </div>
     </section>
   );

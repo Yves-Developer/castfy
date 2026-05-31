@@ -2,6 +2,7 @@
 import { Button } from "@workspace/ui/components/button";
 import { useScroll } from "@workspace/ui/hooks/use-scroll";
 import { cn } from "@workspace/ui/lib/utils";
+import { MousePointer2Icon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks } from "@/config/data";
@@ -20,7 +21,11 @@ export function SiteHeader() {
       )}
     >
       <nav className="container flex h-14 w-full items-center justify-between md:h-12">
-        <Link className="font-semibold text-xl" href="/">
+        <Link
+          className="flex items-center gap-1 font-semibold text-xl"
+          href="/"
+        >
+          <MousePointer2Icon className="rotate-90 fill-foreground" />
           {siteConfig.name}
         </Link>
         <div className="hidden items-center gap-9 md:flex">
