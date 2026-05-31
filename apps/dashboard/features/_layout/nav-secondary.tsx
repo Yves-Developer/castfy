@@ -8,10 +8,13 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar";
 import type { LucideProps } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import type * as React from "react";
 
 export function NavSecondary({
   items,
+  pathname,
   ...props
 }: {
   items: {
@@ -21,6 +24,7 @@ export function NavSecondary({
       Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
     >;
   }[];
+  pathname: string;
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
     <SidebarGroup {...props}>
@@ -28,11 +32,11 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
+              <SidebarMenuButton asChild isActive={item.url === pathname}>
+                <Link href={item.url as Route}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

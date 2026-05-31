@@ -13,6 +13,8 @@ export async function subscribe(formData: TWaitlistFormSchema) {
       return { success: false, error: "Missing configuration" };
     }
 
+    await resend.contacts.create({ email });
+
     const response = await resend.contacts.segments.add({
       email,
       segmentId,

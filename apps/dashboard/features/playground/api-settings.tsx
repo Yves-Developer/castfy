@@ -28,20 +28,20 @@ export function ApiSettings({ provider, setProvider }: ApiSettingsProps) {
       <CardContent>
         <div className="flex gap-4">
           <Button
-            variant={provider === "anthropic" ? "default" : "outline"}
             onClick={() => setProvider("anthropic")}
+            variant={provider === "anthropic" ? "default" : "outline"}
           >
             Claude 4.5 Sonnet
           </Button>
           <Button
-            variant={provider === "openai" ? "default" : "outline"}
             onClick={() => setProvider("openai")}
+            variant={provider === "openai" ? "default" : "outline"}
           >
             GPT-4o
           </Button>
           <Button
-            variant={provider === "gemini" ? "default" : "outline"}
             onClick={() => setProvider("gemini")}
+            variant={provider === "gemini" ? "default" : "outline"}
           >
             Gemini 2.5 Pro
           </Button>

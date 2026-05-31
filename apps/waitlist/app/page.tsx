@@ -11,7 +11,7 @@ export default function Home() {
       />
       <WaitlistSection />
       <HomeLines />
-      <div className="absolute right-4 bottom-4">
+      <div className="absolute right-4 bottom-4 z-10">
         <ModeSwitcher />
       </div>
     </>
