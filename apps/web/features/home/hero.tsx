@@ -34,7 +34,7 @@ export function HomeHero() {
           <Link href="/about">Request Demo</Link>
         </Button>
       </div>
-      <div className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-lg">
+      <div className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-lg">
         <AspectRatio className="bg-muted" ratio={16 / 9}>
           <video
             autoPlay

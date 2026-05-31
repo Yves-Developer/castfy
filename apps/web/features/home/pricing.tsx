@@ -29,9 +29,6 @@ export function Pricing() {
             <span className="my-3 block font-semibold text-2xl">$0 / mo</span>
 
             <CardDescription className="text-sm">Per editor</CardDescription>
-            <Button asChild className="mt-4 w-full" variant="outline">
-              <Link href="">Get Started</Link>
-            </Button>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -50,6 +47,16 @@ export function Pricing() {
               ))}
             </ul>
           </CardContent>
+          <div className="mt-auto px-4">
+            <Button
+              asChild
+              className="w-full rounded-full"
+              size="lg"
+              variant="outline"
+            >
+              <Link href="">Get Started</Link>
+            </Button>
+          </div>
         </Card>
 
         <Card className="relative">
@@ -59,10 +66,6 @@ export function Pricing() {
             <span className="my-3 block font-semibold text-2xl">$19 / mo</span>
 
             <CardDescription className="text-sm">Per editor</CardDescription>
-
-            <Button asChild className="mt-4 w-full">
-              <Link href="">Get Started</Link>
-            </Button>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -77,9 +80,6 @@ export function Pricing() {
                 "Single User Access",
                 "Access to Basic Templates",
                 "Mobile App Access",
-                "1 Custom Report Per Month",
-                "Monthly Product Updates",
-                "Standard Security Features",
               ].map((item, index) => (
                 <li className="flex items-center gap-2" key={index}>
                   <Check className="size-3" />
@@ -88,6 +88,11 @@ export function Pricing() {
               ))}
             </ul>
           </CardContent>
+          <div className="mt-auto px-4 pt-6">
+            <Button asChild className="w-full rounded-full" size="lg">
+              <Link href="">Get Started</Link>
+            </Button>
+          </div>
         </Card>
 
         <Card className="flex flex-col">
@@ -97,10 +102,6 @@ export function Pricing() {
             <span className="my-3 block font-semibold text-2xl">$29 / mo</span>
 
             <CardDescription className="text-sm">Per editor</CardDescription>
-
-            <Button asChild className="mt-4 w-full" variant="outline">
-              <Link href="">Get Started</Link>
-            </Button>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -119,6 +120,16 @@ export function Pricing() {
               ))}
             </ul>
           </CardContent>
+          <div className="mt-auto px-4">
+            <Button
+              asChild
+              className="w-full rounded-full"
+              size="lg"
+              variant="outline"
+            >
+              <Link href="">Get Started</Link>
+            </Button>
+          </div>
         </Card>
       </div>
     </section>
