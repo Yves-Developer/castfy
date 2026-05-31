@@ -1,4 +1,3 @@
-import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -218,9 +217,7 @@ export async function runAgent(
   outputDir: string,
   headless: boolean,
   _onStep: (step: AgentStep) => void,
-  _onStatus: (status: string) => void,
-  video = true,
-  trace = true
+  _onStatus: (status: string) => void
 ): Promise<AgentResult> {
   const steps: AgentStep[] = [];
 
@@ -259,8 +256,8 @@ export async function runAgent(
         url: startUrl,
         title: "Agent Recorded Demo",
         headless,
-        video,
-        trace,
+        video: true,
+        trace: true,
         outputDir,
       },
     });
@@ -743,89 +740,4 @@ Rules for Demo Quality:
     // Make sure to clean up the client connection
     await client.close();
   }
-}
-
-export async function runScrape(
-  startUrl: string
-): Promise<{ snapshot: string }> {
-  console.log(`[Scraper] Starting browser session for: ${startUrl}`);
-  const transport = new StdioClientTransport({
-    command: "pnpm",
-    args: ["exec", "castfy0-mcp"],
-  });
-  const client = new Client(
-    { name: "playground-scraper", version: "1.0.0" },
-    { capabilities: {} }
-  );
-  await client.connect(transport);
-
-  try {
-    const startResult = await client.callTool({
-      name: "castfy0_start",
-      arguments: {
-        url: startUrl,
-        title: "Scrape Session",
-        headless: true,
-        video: false,
-        trace: false,
-      },
-    });
-
-    if (startResult.isError) {
-      throw new Error(
-        `Failed to start Castfy0: ${JSON.stringify(startResult)}`
-      );
-    }
-
-    // Wait a brief moment for hydration
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    await client
-      .callTool({
-        name: "castfy0_wait",
-        arguments: {
-          condition: "networkidle",
-          timeout: 4000,
-          description: "Wait for page load and hydration",
-        },
-      })
-      .catch(() => {});
-
-    const snapshotResult = await callCastfy0Tool(
-      client,
-      "castfy0_snapshot",
-      {}
-    );
-    const snapshotText = formatSnapshot(snapshotResult);
-
-    await client
-      .callTool({ name: "castfy0_end", arguments: {} })
-      .catch(() => {});
-
-    return { snapshot: snapshotText };
-  } finally {
-    await client.close();
-  }
-}
-
-export async function runMap(
-  startUrl: string,
-  promptGoal: string,
-  _provider: string
-): Promise<{ steps: AgentStep[] }> {
-  const timestamp = Date.now();
-  const outputDir = path.join(process.cwd(), "output", `map-${timestamp}`);
-  const result = await runAgent(
-    startUrl,
-    promptGoal,
-    outputDir,
-    true, // headless
-    () => {}, // onStep
-    () => {}, // onStatus
-    false, // video
-    false // trace
-  );
-  if (result.error) {
-    throw new Error(result.error);
-  }
-  return { steps: result.steps };
 }

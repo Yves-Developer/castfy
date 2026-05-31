@@ -20,7 +20,6 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field";
 import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import {
   AlertTriangle,
@@ -37,9 +36,7 @@ import {
   Type,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import * as z from "zod";
-import type { AIProvider } from "./api-settings";
 
 const formSchema = z.object({
   demoTitle: z.string().min(5, "Demo title must be at least 5 characters."),
@@ -57,22 +54,10 @@ interface AgentStep {
 }
 
 interface ExperimentTabsProps {
-  provider: AIProvider;
+  provider: string;
 }
 
 export function ExperimentTabs({ provider }: ExperimentTabsProps) {
-  // Tab state
-  const [activeTab, setActiveTab] = useState<"scrape" | "map" | "full">(
-    "scrape",
-  );
-
-  // Scrape/Map test states
-  const [url, setUrl] = useState("");
-  const [promptGoal, setPromptGoal] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string>("");
-
-  // Full generation (SSE) states
   const [status, setStatus] = useState<
     "idle" | "generating" | "completed" | "error"
   >("idle");
@@ -80,48 +65,6 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
   const [currentStatusMessage, setCurrentStatusMessage] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-  const handleTest = async () => {
-    if (!url) {
-      toast.error("Please enter a URL");
-      return;
-    }
-    if (activeTab === "map" && !promptGoal) {
-      toast.error("Please enter a Goal/Prompt for the AI Agent.");
-      return;
-    }
-
-    setLoading(true);
-    setResult("Processing...");
-
-    try {
-      const endpoint =
-        activeTab === "scrape"
-          ? "http://localhost:4000/api/test/scrape"
-          : "http://localhost:4000/api/test/map";
-
-      const payload =
-        activeTab === "scrape" ? { url } : { url, provider, promptGoal };
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Unknown error occurred");
-      }
-
-      setResult(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      setResult(`Error: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const runGeneration = async (webUrl: string, aiPrompt: string) => {
     try {
@@ -253,411 +196,298 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8 space-y-6">
-      {/* Tabs Switcher at the top */}
-      <div className="flex gap-4 border-b pb-4">
-        <Button
-          onClick={() => setActiveTab("scrape")}
-          variant={activeTab === "scrape" ? "default" : "ghost"}
-          className="rounded-full"
-        >
-          1. Scrape Only
-        </Button>
-        <Button
-          onClick={() => setActiveTab("map")}
-          variant={activeTab === "map" ? "default" : "ghost"}
-          className="rounded-full"
-        >
-          2. Agentic Map Only
-        </Button>
-        <Button
-          onClick={() => setActiveTab("full")}
-          variant={activeTab === "full" ? "default" : "ghost"}
-          className="rounded-full"
-        >
-          3. Full Video
-        </Button>
-      </div>
-
-      {/* Scrape / Map panel */}
-      {activeTab !== "full" && (
+    <div className="w-full max-w-2xl mx-auto mt-8">
+      {status === "idle" && (
         <Card className="border shadow-md">
           <CardHeader>
-            <CardTitle>
-              {activeTab === "scrape" && "Test: Accessibility Snapshot"}
-              {activeTab === "map" && "Test: AI Agent Explorer"}
-            </CardTitle>
+            <CardTitle>Record Product Demo</CardTitle>
             <CardDescription>
-              {activeTab === "scrape" &&
-                "Fetches the raw accessibility DOM tree using Castfy0. No API key required."}
-              {activeTab === "map" &&
-                "The AI Agent will open a browser, click around the site, and generate a step-by-step path map."}
+              Provide your URL and instructions. The AI agent will record the
+              browser interaction live.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="url">Start URL</Label>
-              <Input
-                id="url"
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://vendyy.store"
-                value={url}
-              />
-            </div>
-
-            {activeTab === "map" && (
-              <div className="space-y-2">
-                <Label htmlFor="prompt">Goal / Instructions</Label>
-                <Input
-                  id="prompt"
-                  onChange={(e) => setPromptGoal(e.target.value)}
-                  placeholder="e.g. Navigate to Products, add the blue shirt to cart, and go to checkout."
-                  value={promptGoal}
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label>Output Result</Label>
-              <Textarea
-                className="min-h-75 bg-muted font-mono text-sm"
-                placeholder="Results will appear here..."
-                readOnly
-                value={result}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end pt-4 border-t bg-slate-50/50">
-            <Button
-              disabled={loading || !url}
-              onClick={handleTest}
-              className="rounded-full px-6"
+          <CardContent>
+            <form
+              id="playground-demo-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Running Test...
-                </>
-              ) : (
-                "Execute Test"
-              )}
+              <FieldGroup>
+                <form.Field
+                  children={(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>Demo Title</FieldLabel>
+                        <Input
+                          aria-invalid={isInvalid}
+                          autoComplete="off"
+                          id={field.name}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="My saas demo"
+                          value={field.state.value}
+                        />
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
+                      </Field>
+                    );
+                  }}
+                  name="demoTitle"
+                />
+                <form.Field
+                  children={(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>Web URL</FieldLabel>
+                        <Input
+                          aria-invalid={isInvalid}
+                          autoComplete="off"
+                          id={field.name}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="https://my-saas-demo.com"
+                          value={field.state.value}
+                        />
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
+                      </Field>
+                    );
+                  }}
+                  name="webUrl"
+                />
+                <form.Field
+                  children={(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>AI Prompt</FieldLabel>
+                        <Textarea
+                          aria-invalid={isInvalid}
+                          className="min-h-24 resize-none"
+                          id={field.name}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Provide a detailed goal for the AI agent (e.g. Navigate to checkout)..."
+                          rows={6}
+                          value={field.state.value}
+                        />
+                        <FieldDescription>
+                          Provide a detailed prompt for the AI to generate a
+                          best results.
+                        </FieldDescription>
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
+                      </Field>
+                    );
+                  }}
+                  name="aiPrompt"
+                />
+              </FieldGroup>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
+            <Button
+              className="rounded-full px-6"
+              form="playground-demo-form"
+              size="lg"
+              type="submit"
+            >
+              Generate Demo
             </Button>
           </CardFooter>
         </Card>
       )}
 
-      {/* Full Demo E2E panel */}
-      {activeTab === "full" && (
-        <>
-          {status === "idle" && (
-            <Card className="border shadow-md">
-              <CardHeader>
-                <CardTitle>Record Product Demo</CardTitle>
-                <CardDescription>
-                  Provide your URL and instructions. The AI agent will record
-                  the browser interaction live.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form
-                  id="playground-demo-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    form.handleSubmit();
-                  }}
-                >
-                  <FieldGroup>
-                    <form.Field
-                      name="demoTitle"
-                      children={(field) => {
-                        const isInvalid =
-                          field.state.meta.isTouched &&
-                          !field.state.meta.isValid;
-                        return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor={field.name}>
-                              Demo Title
-                            </FieldLabel>
-                            <Input
-                              aria-invalid={isInvalid}
-                              autoComplete="off"
-                              id={field.name}
-                              name={field.name}
-                              onBlur={field.handleBlur}
-                              onChange={(e) =>
-                                field.handleChange(e.target.value)
-                              }
-                              placeholder="My saas demo"
-                              value={field.state.value}
-                            />
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
-                        );
-                      }}
-                    />
-                    <form.Field
-                      name="webUrl"
-                      children={(field) => {
-                        const isInvalid =
-                          field.state.meta.isTouched &&
-                          !field.state.meta.isValid;
-                        return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor={field.name}>
-                              Web URL
-                            </FieldLabel>
-                            <Input
-                              aria-invalid={isInvalid}
-                              autoComplete="off"
-                              id={field.name}
-                              name={field.name}
-                              onBlur={field.handleBlur}
-                              onChange={(e) =>
-                                field.handleChange(e.target.value)
-                              }
-                              placeholder="https://my-saas-demo.com"
-                              value={field.state.value}
-                            />
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
-                        );
-                      }}
-                    />
-                    <form.Field
-                      name="aiPrompt"
-                      children={(field) => {
-                        const isInvalid =
-                          field.state.meta.isTouched &&
-                          !field.state.meta.isValid;
-                        return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor={field.name}>
-                              AI Prompt
-                            </FieldLabel>
-                            <Textarea
-                              aria-invalid={isInvalid}
-                              className="min-h-24 resize-none"
-                              id={field.name}
-                              name={field.name}
-                              onBlur={field.handleBlur}
-                              onChange={(e) =>
-                                field.handleChange(e.target.value)
-                              }
-                              placeholder="Provide a detailed goal for the AI agent (e.g. Navigate to checkout)..."
-                              rows={6}
-                              value={field.state.value}
-                            />
-                            <FieldDescription>
-                              Provide a detailed prompt for the AI to generate
-                              the best results.
-                            </FieldDescription>
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
-                        );
-                      }}
-                    />
-                  </FieldGroup>
-                </form>
-              </CardContent>
-              <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
-                <Button
-                  className="rounded-full px-6"
-                  form="playground-demo-form"
-                  size="lg"
-                  type="submit"
-                >
-                  Generate Demo
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-
-          {status !== "idle" && (
-            <Card className="border shadow-md">
-              <CardHeader className="border-b bg-slate-50/50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>
-                      {status === "generating" && "Recording Demo Video..."}
-                      {status === "completed" && "Demo Recording Completed!"}
-                      {status === "error" && "Generation Failed"}
-                    </CardTitle>
-                    <CardDescription className="mt-1.5 flex items-center gap-2">
-                      {status === "generating" && (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          <span className="font-medium text-slate-700">
-                            {currentStatusMessage}
-                          </span>
-                        </>
-                      )}
-                      {status === "completed" &&
-                        "Deliverables have been successfully saved."}
-                      {status === "error" &&
-                        "An error occurred during execution."}
-                    </CardDescription>
-                  </div>
-                  {status === "completed" && (
-                    <Badge
-                      variant="outline"
-                      className="bg-green-50 text-green-700 border-green-200"
-                    >
-                      Completed
-                    </Badge>
-                  )}
+      {status !== "idle" && (
+        <Card className="border shadow-md">
+          <CardHeader className="border-b bg-slate-50/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>
+                  {status === "generating" && "Recording Demo Video..."}
+                  {status === "completed" && "Demo Recording Completed!"}
+                  {status === "error" && "Generation Failed"}
+                </CardTitle>
+                <CardDescription className="mt-1.5 flex items-center gap-2">
                   {status === "generating" && (
-                    <Badge
-                      variant="outline"
-                      className="bg-blue-50 text-blue-700 border-blue-200 animate-pulse"
-                    >
-                      Recording
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6 pt-6">
-                {/* Real-time Steps Timeline */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
-                    Agent Actions
-                  </h3>
-
-                  {steps.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-slate-50/30">
-                      <Loader2 className="h-6 w-6 animate-spin text-slate-400 mb-2" />
-                      <span className="text-sm text-slate-500 font-medium">
-                        Waiting for first action...
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="font-medium text-slate-700">
+                        {currentStatusMessage}
                       </span>
-                    </div>
-                  ) : (
-                    <div className="relative border-l border-slate-200 ml-3 pl-6 space-y-4">
-                      {steps.map((step, idx) => (
-                        <div
-                          // biome-ignore lint/suspicious/noArrayIndexKey: steps are read-only and order is stable
-                          key={`${step.action}-${idx}`}
-                          className="relative group"
-                        >
-                          {/* Timeline Dot/Icon wrapper */}
-                          <span className="absolute -left-[37px] top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
-                            {getStepIcon(step.action)}
-                          </span>
+                    </>
+                  )}
+                  {status === "completed" &&
+                    "Deliverables have been successfully saved."}
+                  {status === "error" && "An error occurred during execution."}
+                </CardDescription>
+              </div>
+              {status === "completed" && (
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200"
+                >
+                  Completed
+                </Badge>
+              )}
+              {status === "generating" && (
+                <Badge
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 border-blue-200 animate-pulse"
+                >
+                  Recording
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
 
-                          {/* Timeline content block */}
-                          <div className="flex flex-col gap-1 p-3 rounded-lg border bg-white shadow-sm group-hover:border-slate-300 transition-colors">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                                Step {idx + 1}: {step.action}
+          <CardContent className="space-y-6 pt-6">
+            {/* Real-time Steps Timeline */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
+                Agent Actions
+              </h3>
+
+              {steps.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-slate-50/30">
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-400 mb-2" />
+                  <span className="text-sm text-slate-500 font-medium">
+                    Waiting for first action...
+                  </span>
+                </div>
+              ) : (
+                <div className="relative border-l border-slate-200 ml-3 pl-6 space-y-4">
+                  {steps.map((step, idx) => (
+                    <div
+                      // biome-ignore lint/suspicious/noArrayIndexKey: steps are read-only and order is stable
+                      key={`${step.action}-${idx}`}
+                      className="relative group"
+                    >
+                      {/* Timeline Dot/Icon wrapper */}
+                      <span className="absolute -left-[37px] top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
+                        {getStepIcon(step.action)}
+                      </span>
+
+                      {/* Timeline content block */}
+                      <div className="flex flex-col gap-1 p-3 rounded-lg border bg-white shadow-sm group-hover:border-slate-300 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            Step {idx + 1}: {step.action}
+                          </span>
+                          {step.status === "error" ? (
+                            <Badge
+                              variant="destructive"
+                              className="text-[10px] px-1.5 py-0"
+                            >
+                              Error
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 bg-slate-100 text-slate-600 border-slate-200"
+                            >
+                              Success
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                          {step.description}
+                        </p>
+                        {(step.ref || step.value) && (
+                          <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100">
+                            {step.ref && (
+                              <span>
+                                <strong className="text-slate-600 font-semibold">
+                                  Ref:
+                                </strong>{" "}
+                                {step.ref}
                               </span>
-                              {step.status === "error" ? (
-                                <Badge
-                                  variant="destructive"
-                                  className="text-[10px] px-1.5 py-0"
-                                >
-                                  Error
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px] px-1.5 py-0 bg-slate-100 text-slate-600 border-slate-200"
-                                >
-                                  Success
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                              {step.description}
-                            </p>
-                            {(step.ref || step.value) && (
-                              <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100">
-                                {step.ref && (
-                                  <span>
-                                    <strong className="text-slate-600 font-semibold">
-                                      Ref:
-                                    </strong>{" "}
-                                    {step.ref}
-                                  </span>
-                                )}
-                                {step.value && (
-                                  <span>
-                                    <strong className="text-slate-600 font-semibold">
-                                      Val:
-                                    </strong>{" "}
-                                    {step.value}
-                                  </span>
-                                )}
-                              </div>
                             )}
-                            {step.error && (
-                              <p className="text-xs text-red-500 font-mono mt-1 p-2 rounded bg-red-50/50 border border-red-100">
-                                Error: {step.error}
-                              </p>
+                            {step.value && (
+                              <span>
+                                <strong className="text-slate-600 font-semibold">
+                                  Val:
+                                </strong>{" "}
+                                {step.value}
+                              </span>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        )}
+                        {step.error && (
+                          <p className="text-xs text-red-500 font-mono mt-1 p-2 rounded bg-red-50/50 border border-red-100">
+                            Error: {step.error}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
+              )}
+            </div>
 
-                {/* Error Message display */}
-                {status === "error" && (
-                  <div className="flex gap-3 p-4 rounded-lg border border-red-200 bg-red-50/50 text-red-700">
-                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-semibold text-sm">Execution Error</h4>
-                      <p className="text-xs font-mono mt-1">{errorMessage}</p>
-                    </div>
-                  </div>
-                )}
+            {/* Error Message display */}
+            {status === "error" && (
+              <div className="flex gap-3 p-4 rounded-lg border border-red-200 bg-red-50/50 text-red-700">
+                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm">Execution Error</h4>
+                  <p className="text-xs font-mono mt-1">{errorMessage}</p>
+                </div>
+              </div>
+            )}
 
-                {/* Video Player Display */}
-                {status === "completed" && videoUrl && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
-                      Recorded Video
-                    </h3>
-                    <div className="overflow-hidden rounded-xl border bg-black shadow-lg">
-                      {/* biome-ignore lint/a11y/useMediaCaption: no captions for recorded demo video */}
-                      <video
-                        src={videoUrl}
-                        controls
-                        autoPlay
-                        className="w-full aspect-video object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
-              </CardContent>
+            {/* Video Player Display */}
+            {status === "completed" && videoUrl && (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
+                  Recorded Video
+                </h3>
+                <div className="overflow-hidden rounded-xl border bg-black shadow-lg">
+                  {/* biome-ignore lint/a11y/useMediaCaption: no captions for recorded demo video */}
+                  <video
+                    src={videoUrl}
+                    controls
+                    autoPlay
+                    className="w-full aspect-video object-contain"
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
 
-              <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
-                {(status === "completed" || status === "error") && (
-                  <Button
-                    onClick={() => {
-                      setStatus("idle");
-                      setSteps([]);
-                      setVideoUrl("");
-                      setErrorMessage("");
-                      setCurrentStatusMessage("");
-                      form.reset();
-                    }}
-                    className="rounded-full gap-2 px-6"
-                    size="lg"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Record Another Demo
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          )}
-        </>
+          <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
+            {(status === "completed" || status === "error") && (
+              <Button
+                onClick={() => {
+                  setStatus("idle");
+                  setSteps([]);
+                  setVideoUrl("");
+                  setErrorMessage("");
+                  setCurrentStatusMessage("");
+                  form.reset();
+                }}
+                className="rounded-full gap-2 px-6"
+                size="lg"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Record Another Demo
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
       )}
     </div>
   );
