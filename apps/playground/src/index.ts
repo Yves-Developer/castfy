@@ -1,8 +1,8 @@
 import "dotenv/config";
-import path from "node:path";
 import cors from "cors";
 import express from "express";
-import { runAgent, runMap, runScrape } from "./core/agent.js";
+import path from "path";
+import { runAgent } from "./core/agent.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -13,49 +13,8 @@ app.use(express.json());
 // Serve output files statically under /output
 app.use("/output", express.static(path.join(process.cwd(), "output")));
 
-app.get("/ping", (_req, res) => {
+app.get("/ping", (req, res) => {
   res.json({ status: "ok", message: "Playground Backend is running!" });
-});
-
-// Modular Test: Scrape Only
-app.post("/api/test/scrape", async (req, res) => {
-  try {
-    const { url } = req.body;
-    if (!url) {
-      return res.status(400).json({ error: "URL is required" });
-    }
-
-    console.log(`[Phase 1 Test] Extracting snapshot for ${url}...`);
-    const result = await runScrape(url);
-    res.json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: message });
-  }
-});
-
-// Modular Test: Map Only
-app.post("/api/test/map", async (req, res) => {
-  try {
-    const { url, provider, promptGoal } = req.body;
-    if (!url) {
-      return res.status(400).json({ error: "URL is required" });
-    }
-    if (!promptGoal) {
-      return res
-        .status(400)
-        .json({ error: "promptGoal is required for the agentic loop" });
-    }
-
-    console.log(
-      `[Phase 1 Test] Generating map with provider: ${provider || "anthropic"}...`
-    );
-    const result = await runMap(url, promptGoal, provider);
-    res.json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: message });
-  }
 });
 
 // Full E2E Live Video Generation (SSE Streaming)
@@ -85,12 +44,11 @@ app.post("/api/generate", async (req, res) => {
   // Send an initial comment to flush buffer and establish connection
   res.write(":\n\n");
 
-  const sendEvent = (event: string, data: unknown) => {
+  const sendEvent = (event: string, data: any) => {
     console.log(`[SSE Server] Sending event: ${event}`);
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-    const expressRes = res as unknown as { flush?: () => void };
-    if (typeof expressRes.flush === "function") {
-      expressRes.flush();
+    if (typeof (res as any).flush === "function") {
+      (res as any).flush();
     }
   };
 
@@ -127,11 +85,9 @@ app.post("/api/generate", async (req, res) => {
       steps: result.steps,
     });
     res.end();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in /api/generate:", error);
-    const message =
-      error instanceof Error ? error.message : "Internal Server Error";
-    sendEvent("error", { message });
+    sendEvent("error", { message: error.message || "Internal Server Error" });
     res.end();
   }
 });
