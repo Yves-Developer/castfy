@@ -40,7 +40,7 @@ export function DataTable<TData, TValue>({
   "use no memo";
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -85,7 +85,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -103,7 +103,7 @@ export function DataTable<TData, TValue>({
                     <TableCell className="p-3" key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
