@@ -121,7 +121,7 @@ function AppSidebarHeader() {
             asChild
             className={cn(
               "w-fit data-[slot=sidebar-menu-button]:p-1.5!",
-              !isExpanded && "group-hover/header:hidden"
+              !isExpanded && "group-hover/header:hidden",
             )}
           >
             <Link href="/">
@@ -135,7 +135,7 @@ function AppSidebarHeader() {
             asChild
             className={cn(
               "w-fit cursor-e-resize text-muted-foreground data-[slot=sidebar-menu-button]:p-1.5!",
-              !isExpanded && "hidden lg:group-hover/header:flex"
+              !isExpanded && "hidden lg:group-hover/header:flex",
             )}
           >
             <SidebarTrigger />

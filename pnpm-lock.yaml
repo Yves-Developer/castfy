@@ -93,12 +93,12 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.5.0
         version: 1.29.0(zod@3.25.76)
+      '@yves-developer/castfy0-mcp':
+        specifier: ^0.1.2
+        version: 0.1.2
       cors:
         specifier: ^2.8.5
         version: 2.8.6
-      demosmith-mcp:
-        specifier: latest
-        version: 0.1.1
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -127,6 +127,9 @@ importers:
       eslint:
         specifier: ^9.39.2
         version: 9.39.2(jiti@2.6.1)
+      playwright:
+        specifier: ^1.58.0
+        version: 1.60.0
       tsx:
         specifier: ^4.19.2
         version: 4.21.0
@@ -2265,6 +2268,10 @@ packages:
   '@types/validate-npm-package-name@4.0.2':
     resolution: {integrity: sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw==}
 
+  '@yves-developer/castfy0-mcp@0.1.2':
+    resolution: {integrity: sha512-1Z3ONSaVinSnDWNCPSwr92xchmpenxMLapwQ9uf4PNv7xVHRiHDZeNJJLlQC4Ux1cGMHv2AZE5zMqGvOMrojMQ==, tarball: https://npm.pkg.github.com/download/@yves-developer/castfy0-mcp/0.1.2/7bb55090b9bee2be1f6e1e34d94e62f3adfbfa2a}
+    hasBin: true
+
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
     engines: {node: '>=6.5'}
@@ -2696,10 +2703,6 @@ packages:
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
-
-  demosmith-mcp@0.1.1:
-    resolution: {integrity: sha512-hmI5Sh2MMkxdkWTOfThIdjpbBPAUgZE4n1E8OXGNLG2ie+VmNUV9cACGWXitavbQxagW68VCEDqjXMW0JIN3nA==}
-    hasBin: true
 
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
@@ -6662,6 +6665,16 @@ snapshots:
 
   '@types/validate-npm-package-name@4.0.2': {}
 
+  '@yves-developer/castfy0-mcp@0.1.2':
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
+      ffmpeg-static: 5.3.0
+      playwright: 1.60.0
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - supports-color
+
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
@@ -7072,16 +7085,6 @@ snapshots:
       slash: 3.0.0
 
   delayed-stream@1.0.0: {}
-
-  demosmith-mcp@0.1.1:
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
-      ffmpeg-static: 5.3.0
-      playwright: 1.60.0
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - '@cfworker/json-schema'
-      - supports-color
 
   depd@2.0.0: {}
 

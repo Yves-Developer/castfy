@@ -17,7 +17,7 @@ export function SiteHeader() {
     <header
       className={cn(
         "sticky top-0 z-50 border-transparent border-b bg-background",
-        scrolled && "border-border"
+        scrolled && "border-border",
       )}
     >
       <nav className="container flex h-14 w-full items-center justify-between md:h-12">
@@ -33,7 +33,7 @@ export function SiteHeader() {
             <Link
               className={cn(
                 "font-medium text-muted-foreground text-sm hover:text-foreground",
-                pathname === link.href && "text-foreground"
+                pathname === link.href && "text-foreground",
               )}
               href={link.href}
               key={link.label}

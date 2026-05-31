@@ -26,7 +26,7 @@ function ThemeOption({
         "relative flex size-8 cursor-default items-center justify-center rounded-full transition-all [&_svg]:size-4",
         isActive
           ? "text-zinc-950 dark:text-zinc-50"
-          : "text-zinc-400 hover:text-zinc-950 dark:text-zinc-500 dark:hover:text-zinc-50"
+          : "text-zinc-400 hover:text-zinc-950 dark:text-zinc-500 dark:hover:text-zinc-50",
       )}
       onClick={() => onClick(value)}
       type="button"
@@ -151,7 +151,7 @@ export function ModeSwitcher({ className }: { className?: string }) {
     <Button
       className={cn(
         "group/toggle extend-touch-target size-8 cursor-pointer",
-        className
+        className,
       )}
       onClick={toggleTheme}
       size="icon"
