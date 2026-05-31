@@ -38,12 +38,10 @@ export function SiteHeader() {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <Button className="rounded-full" size="sm" variant="outline">
+          <Button className="rounded-full" variant="outline">
             Log in
           </Button>
-          <Button className="rounded-full" size="sm">
-            Sign up
-          </Button>
+          <Button className="rounded-full">Sign up</Button>
         </div>
         <MobileNav />
       </nav>
