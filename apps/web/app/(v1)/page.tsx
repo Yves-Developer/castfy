@@ -1,4 +1,3 @@
-import { Cta } from "@/features/_layout/cta";
 import { HomeFaqs } from "@/features/home/faqs";
 import { HomeHero } from "@/features/home/hero";
 import { HowItWorks } from "@/features/home/how-it-works";
@@ -11,15 +10,9 @@ export default function Home() {
       <HomeHero />
       <HowItWorks />
       <UsaeCase />
-
       <Pricing />
       <HomeFaqs />
       <HomeTestimonials />
-      <Cta
-        desc="Turn your url into demo today."
-        link={{ href: "/", label: "Get started" }}
-        title="Get started with Castfy"
-      />
     </div>
   );
 }
