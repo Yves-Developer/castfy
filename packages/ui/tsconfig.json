@@ -7,6 +7,6 @@
     },
     "strictNullChecks": true
   },
-  "include": ["."],
+  "include": [".", "../../apps/web/components/carousel.tsx"],
   "exclude": ["node_modules", "dist"]
 }
