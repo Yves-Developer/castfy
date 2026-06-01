@@ -1,25 +1,22 @@
-import { Cta } from "@/features/_layout/cta";
-import { HomeFaqs } from "@/features/home/faqs";
-import { HomeHero } from "@/features/home/hero";
-import { HowItWorks } from "@/features/home/how-it-works";
-import { Pricing } from "@/features/home/pricing";
-import { HomeTestimonials } from "@/features/home/testimonials";
-import { UsaeCase } from "@/features/home/use-case";
+import { HomeCta } from "@/features/home/cta";
+import { FAQSection } from "@/features/home/faq-section";
+import { Hero } from "@/features/home/hero";
+import HowItWork from "@/features/home/how-it-work";
+import { PricingSection } from "@/features/home/pricing-section";
+import { TestimonialsSection } from "@/features/home/testimonials-section";
+import { UseCases } from "@/features/home/usecases";
 export default function Home() {
   return (
     <div className="flex flex-col @md:gap-30 gap-20">
-      <HomeHero />
-      <HowItWorks />
-      <UsaeCase />
+      <Hero />
+      <HowItWork />
+      <UseCases />
+      <PricingSection />
 
-      <Pricing />
-      <HomeFaqs />
-      <HomeTestimonials />
-      <Cta
-        desc="Turn your url into demo today."
-        link={{ href: "/", label: "Get started" }}
-        title="Get started with Castfy"
-      />
+      <FAQSection />
+
+      <TestimonialsSection />
+      <HomeCta />
     </div>
   );
 }

@@ -1,17 +1,15 @@
-import { Suspense } from "react";
-import { SiteFooter } from "@/features/_layout/site-footer";
-import { SiteHeader } from "@/features/_layout/site-header";
+import { Cta } from "@/features/_layout/cta";
+import { Footer } from "@/features/_layout/footer";
+import { Header } from "@/features/_layout/header";
 
 export default function AppLayout(props: LayoutProps<"/">) {
   return (
-    <div className="relative z-10 flex min-h-svh flex-col">
-      <Suspense>
-        <SiteHeader />
-      </Suspense>
-      <main className="@container container mx-auto flex flex-1 flex-col pt-16 xl:max-w-360">
+    <div className="relative flex min-h-svh flex-col">
+      <Header />
+      <main className="@container  flex flex-1 flex-col pt-16 xl:max-w-360 container mx-auto  overflow-hidden md:overflow-visible">
         {props.children}
       </main>
-      <SiteFooter />
+      <Footer />
     </div>
   );
 }

@@ -8,22 +8,18 @@ import { fontVariables } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name}: Websites Design & Development Solutions`,
+    default: `${siteConfig.name} — Turn your url into demo`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   authors: [
     {
-      name: "Lecon",
-      url: "https://founder.rathon-rw.com",
-    },
-    {
       name: "Rathon",
       url: "https://rathon-rw.com",
     },
   ],
-  creator: "Lecon",
+  creator: "Lecon & Evye",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -41,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Web Design, Development & Digital Solutions`,
+    title: `${siteConfig.name} — Turn your url into demo`,
     description: siteConfig.description,
     images: [`${siteConfig.ogImage}`],
     creator: "@lecon",
@@ -50,6 +46,20 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   metadataBase: new URL(siteConfig.url),
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: siteConfig.name,
+  url: siteConfig.url,
+  logo: `${siteConfig.url}/favicon.ico`,
+  sameAs: [
+    "https://x.com/castfy",
+    "https://github.com/castfy",
+    "https://linkedin.com/company/castfy",
+  ],
+  description: siteConfig.description,
 };
 export default function RootLayout({
   children,
@@ -62,7 +72,17 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">
+      <head>
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: for now
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+          type="application/ld+json"
+        />
+      </head>
+
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>

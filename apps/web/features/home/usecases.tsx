@@ -1,31 +1,40 @@
+"use client";
+
 import { AspectRatio } from "@workspace/ui/components/aspect-ratio";
 import { CardDescription, CardTitle } from "@workspace/ui/components/card";
 import Link from "next/link";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/carousel";
 import { usaCases } from "@/config/data";
 import type { TUseCase } from "@/types";
-export function UsaeCase() {
+
+export function UseCases() {
   return (
-    <section className="flex flex-col gap-10">
-      <div className="space-y-2">
-        <p className="font-semibold text-muted-foreground text-sm tracking-wide">
-          USE CASES
-        </p>
-        <p className="font-medium text-3xl md:text-4xl">
-          Your url is turned into demo in minutes.
-        </p>
-      </div>
-      <Carousel>
-        <CarouselContent>
-          {usaCases.map((project) => (
-            <CarouselItem className="basis-1/2" key={project.title}>
-              <UseCaseCard project={project} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        {/* <CarouselPrevious />
+    <section
+      className="bg-background py-12 sm:py-16 border-y lg:py-24"
+      id="use-cases"
+    >
+      <div className="max-w-350 mx-auto">
+        <div className="text-center space-y-4 mb-10 sm:mb-12">
+          <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
+            Use Cases
+          </h2>
+          <p className="hidden sm:block font-sans text-base text-muted-foreground leading-normal max-w-2xl mx-auto px-4">
+            Your url is turned into demo in minutes.
+          </p>
+        </div>
+
+        <Carousel>
+          <CarouselContent>
+            {usaCases.map((project) => (
+              <CarouselItem className="basis-1/2" key={project.title}>
+                <UseCaseCard project={project} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {/* <CarouselPrevious />
         <CarouselNext /> */}
-      </Carousel>
+        </Carousel>
+      </div>
     </section>
   );
 }
@@ -50,9 +59,7 @@ export function UseCaseCard({ project }: { project: TUseCase }) {
         </AspectRatio>
 
         <div>
-          <CardTitle className="font-medium text-xl lg:text-2xl">
-            {project.title}
-          </CardTitle>
+          <CardTitle>{project.title}</CardTitle>
           <CardDescription>
             <span className="capitalize">{project.type}</span> .{" "}
             {project.description}
