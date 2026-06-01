@@ -72,13 +72,16 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
     >
-      <script
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: for now
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
-        type="application/ld+json"
-      />
+      <head>
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: for now
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+          type="application/ld+json"
+        />
+      </head>
+
       <body>
         <Providers>{children}</Providers>
       </body>

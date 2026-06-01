@@ -1,15 +1,15 @@
 import { HomeFaqs } from "@/features/home/faqs";
-import { HomeHero } from "@/features/home/hero";
-import { HowItWorks } from "@/features/home/how-it-works";
+import { Hero } from "@/features/home/hero";
+import HowItWork from "@/features/home/how-it-work";
 import { Pricing } from "@/features/home/pricing";
 import { HomeTestimonials } from "@/features/home/testimonials";
-import { UsaeCase } from "@/features/home/use-case";
+import { UseCases } from "@/features/home/usecases";
 export default function Home() {
   return (
     <div className="flex flex-col @md:gap-30 gap-20">
-      <HomeHero />
-      <HowItWorks />
-      <UsaeCase />
+      <Hero />
+      <HowItWork />
+      <UseCases />
       <Pricing />
       <HomeFaqs />
       <HomeTestimonials />
