@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
-    "@workspace/typescript-config": "workspace:*",
+    "@castfy/tsconfig": "workspace:*",
     "turbo": "^2.8.17",
     "typescript": "5.9.3",
     "ultracite": "7.7.0"

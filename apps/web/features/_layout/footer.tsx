@@ -151,7 +151,7 @@ export function Footer() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <Link
             className="hidden items-center gap-2 transition-opacity hover:opacity-80 md:flex"
-            href="https://midday.openstatus.dev/"
+            href="https://castfy.openstatus.dev/"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -186,7 +186,7 @@ export function Footer() {
             "select-none font-sans text-[200px] leading-none sm:text-[508px]",
             "text-secondary",
             "[WebkitTextStroke:1px_var(--muted-foreground)]",
-            "[textStroke:1px_var(--muted-foreground)]"
+            "[textStroke:1px_var(--muted-foreground)]",
           )}
           style={{
             WebkitTextStroke: "1px var(--muted-foreground)",

@@ -10,7 +10,7 @@ import type { TUseCase } from "@/types";
 export function UseCases() {
   return (
     <section className="bg-background py-12 sm:py-16 border-y lg:py-24">
-      <div className="max-w-[1400px] mx-auto">
+      <div className="max-w-350 mx-auto">
         <div className="text-center space-y-4 mb-10 sm:mb-12">
           <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
             Use Cases
@@ -56,9 +56,7 @@ export function UseCaseCard({ project }: { project: TUseCase }) {
         </AspectRatio>
 
         <div>
-          <CardTitle className="font-medium text-xl lg:text-2xl">
-            {project.title}
-          </CardTitle>
+          <CardTitle>{project.title}</CardTitle>
           <CardDescription>
             <span className="capitalize">{project.type}</span> .{" "}
             {project.description}

@@ -1,7 +1,8 @@
-import { HomeFaqs } from "@/features/home/faqs";
+import { HomeCta } from "@/features/home/cta";
+import { FAQSection } from "@/features/home/faq-section";
 import { Hero } from "@/features/home/hero";
 import HowItWork from "@/features/home/how-it-work";
-import { Pricing } from "@/features/home/pricing";
+import { PricingSection } from "@/features/home/pricing-section";
 import { TestimonialsSection } from "@/features/home/testimonials-section";
 import { UseCases } from "@/features/home/usecases";
 export default function Home() {
@@ -10,9 +11,12 @@ export default function Home() {
       <Hero />
       <HowItWork />
       <UseCases />
-      <Pricing />
-      <HomeFaqs />
+      <PricingSection />
+
+      <FAQSection />
+
       <TestimonialsSection />
+      <HomeCta />
     </div>
   );
 }

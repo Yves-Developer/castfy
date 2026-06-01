@@ -5,7 +5,7 @@ import { useState } from "react";
 export default function HowItWork() {
   const [activeFeature, setActiveFeature] = useState(0);
   return (
-    <section className="max-w-[1400px] mx-auto">
+    <section className="max-w-350 mx-auto">
       {/* Mobile: Stacked features */}
       <div className="grid grid-cols-1 gap-12 sm:gap-16 lg:hidden">
         <div className="hidden lg:block text-center mb-2">
@@ -27,7 +27,7 @@ export default function HowItWork() {
               </p>
             </div>
             <div className="w-full border border-border overflow-hidden p-1 sm:p-3 relative">
-              <div className="w-full h-[520px] sm:h-[620px] relative overflow-hidden flex items-center justify-center z-10">
+              <div className="w-full h-130 sm:h-155 relative overflow-hidden flex items-center justify-center z-10">
                 <div className="w-full h-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
                   <Image
                     src={feature.illustration}
@@ -48,7 +48,7 @@ export default function HowItWork() {
       <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 lg:h[740px]">
         <div className="flex gap-6">
           {/* Timeline */}
-          <div className="flex flex-col justify-center items-center flex-shrink-0 relative">
+          <div className="flex flex-col justify-center items-center shrink-0 relative">
             <div className="flex flex-col justify-center space-y-5 lg:space-y-6 mt-2 lg:mt-3">
               <div
                 className="flex items-center justify-center relative mb-4 lg:mb-6"
@@ -132,11 +132,11 @@ export default function HowItWork() {
           </div>
         </div>
 
-        <div className="flex items-center justify-center p-6 lg:p-8 border border-border h-full overflow-hidden relative bg-background">
+        <div className="flex items-center rounded-lg justify-center p-6 lg:p-8 border border-border h-full overflow-hidden relative bg-background">
           <div
             key={activeFeature}
             // className="w-[400px] h-[500px] sm:w-[520px]  lg:w-[600px]  relative overflow-hidden z-10 flex items-center justify-center animate-[fadeInScale_0.4s_ease-out_forwards]"
-            className="w-[400px] h-[500px] sm:w-[520px]  lg:w-[600px]  relative overflow-hidden z-10 flex items-center justify-center animate-[fadeInScale_0.4s_ease-out_forwards]"
+            className="w-100 h-125 sm:w-130   lg:w-150  relative overflow-hidden z-10 flex items-center justify-center animate-[fadeInScale_0.4s_ease-out_forwards]"
             style={{ transformOrigin: "center" }}
           >
             <div className="w-full h-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
@@ -145,7 +145,7 @@ export default function HowItWork() {
                 alt={features[activeFeature]?.title ?? "Feature"}
                 width={600}
                 height={450}
-                className="w-full h-full object-contain"
+                className="w-full h-full  object-contain"
                 loading="lazy"
               />
             </div>

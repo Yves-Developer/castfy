@@ -1,26 +1,21 @@
-import type { TUseCase } from "@/types";
+import type { Testimonial, TUseCase } from "@/types";
 
 export const navLinks = [
   {
-    label: "Home",
-    href: "/",
-  },
-  {
     label: "Features",
-    href: "#",
-  },
-
-  {
-    label: "Pricing",
-    href: "#",
+    href: "/features",
   },
   {
-    label: "Explore",
-    href: "#",
+    label: "Story",
+    href: "/story",
+  },
+  {
+    label: "Download",
+    href: "/download",
   },
   {
     label: "Contact us",
-    href: "#",
+    href: "/contact",
   },
 ];
 
@@ -95,124 +90,52 @@ export const homeFaqs = [
   },
 ];
 
-export const testimonials = [
+export const defaultTestimonials: Testimonial[] = [
   {
+    name: "Paweł Michalski",
+    title: "",
+    company: "VC Leaders",
+    country: "Poland",
+    image: "/stories/pawel.jpeg",
     content:
-      "Rathon is a solution to this technological era where businesses and services are explored as they are on everyone's screen.",
-    name: "Brother Theoneste",
-    source: {
-      label: "DOS Academie Dela Salle",
-      link: "https://google.com",
-    },
+      "Invoice reconciliation used to take a full day each month and was always stressful. With Midday, that work is mostly gone and we finally have a clear financial overview.",
+    fullContent:
+      "Company\nVC Leaders is an educational platform helping venture capitalists build better VC firms.\n\nChallenge\nMonthly invoice reconciliation was slow and painful. Missing invoices, manual checks, and no time left to properly categorize or analyze spending. The process regularly took more than a full day.\n\nImpact\nMidday reduced invoice reconciliation time by 1–2 man-days per month and made financial visibility much clearer through dashboards.\n\nFavorite features\nClear financial overview, accounts payable tracking, invoice reconciliation, and a clean, intuitive interface.",
   },
   {
+    name: "Facu Montanaro",
+    title: "",
+    company: "Kundo Studio",
+    country: "Argentina",
+    image: "/stories/facu.jpeg",
     content:
-      "My experience with Rathon has been amazing! I would definitely recommend Rathon to anyone looking for a reliable and user-friendly solution.",
-    name: "amizero sano",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/110209208831346703219/reviews?hl=en-GB",
-    },
+      "Managing invoicing, projects, and finances across tools slowed my daily work. Midday brought everything into one place and made my workflow much simpler.",
+    fullContent:
+      "Company\nKundo Studio helps startups and founders with fundraising, product launches, and growth through design and meaningful experiences.\n\nChallenge\nManaging invoicing, projects, and finances across multiple tools made daily work slower and more complex. Existing tools felt fragmented and hard to use.\n\nImpact\nMidday centralized invoicing, time tracking, and project information into one place, significantly simplifying day-to-day operations.\n\nFavorite features\nInvoicing and time tracking. Both became core parts of Facu's daily workflow and replaced multiple separate tools.",
   },
   {
+    name: "Richard Poelderl",
+    title: "",
+    company: "Conduct",
+    country: "Germany",
+    image: "/stories/richard.jpeg",
     content:
-      "Thank you for doing such a great job at providing a scalable solution to the Developers and Tech enthusiasts Industry. Rathon really stands out!!! :)",
-    name: "Iradukunda Edmond",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/110609377278284413495/reviews?hl=en-GB",
-    },
+      "My previous accounting setup was fragmented and didn't support my bank. Midday made invoicing easier and sharing clean data with my tax advisor straightforward.",
+    fullContent:
+      "Company\nRichard works with companies that want to focus product development on building great products while outsourcing growth and marketing execution.\n\nChallenge\nHis accounting tool didn't support his bank, required manual formatting of exports, and forced him to juggle multiple financial tools.\n\nImpact\nMidday replaced bank invoicing and made it easier to work with his tax advisor by exporting clean CSV files that integrate with accounting software. This significantly reduced friction while keeping control in one system.\n\nFavorite features\nInvoicing, CSV exports for tax advisors, and bank sync to track subscriptions and expenses.",
   },
   {
+    name: "Guy Solan",
+    title: "",
+    company: "Thetis Medical",
+    country: "United Kingdom",
+    image: "/stories/guy.jpeg",
     content:
-      "Rathon is a very useful website. I found it easy to navigate, well organized and reliable so I would definitely recommend it to others.",
-    name: "Marie sandrine",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/111565246005627651638/reviews?hl=en-GB",
-    },
-  },
-  {
-    content:
-      "If you're serious about growing your brand online, checkout Rathon, They are good at what they do.",
-    name: "Niyomuremyi Elissa",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/117759473414493495143/reviews?hl=en-GB",
-    },
-  },
-  {
-    content:
-      "It's such an excellent tool with modern website designs with incredible loading websites speed in real time and at an affordable cost!",
-    name: "#30",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/105238957892712121834/reviews?hl=en-GB",
-    },
-  },
-  {
-    content:
-      "For those that seek a very strong platform,this are the guyz to do it for you ,they did a good job for me and kept maintaining my platform 🎉🎉hope they can help u too.",
-    name: "Munezero Kelly",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/101141520077893998073/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "Great service! They ship much faster than expected.",
-    name: "Gatete Elias",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/110637651699439501803/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "Great service! They ship much faster than expected.",
-    name: "Gatete Elias",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/110637651699439501803/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "User friendly, and facilitates easy handling on any device.",
-    name: "Mugisha Safari heroique",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/107434565740525504134/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "Interactive platform with enhanced user-friendly features.",
-    name: "ABIZERA SHEMA Emmanuel",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/107434565740525504134/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "Great website. Great content. Great design.",
-    name: "MUKIZA Fred",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/110987726644688919246/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "You are the best in designing websites.",
-    name: "adrien TUGIZIMANA",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/115945996061743279731/reviews?hl=en-GB",
-    },
-  },
-  {
-    content: "Tyshiii give my guy a raise🤩🙏🏽",
-    name: "Aubin Durant",
-    source: {
-      label: "Google",
-      link: "https://www.google.com/maps/contrib/111170830247538134852/reviews?hl=en-GB",
-    },
+      "Without Midday, I had no real visibility into our cash and relied entirely on my accountant. It gave me clarity without having to learn complex accounting tools.",
+    fullContent:
+      "Company\nThetis Medical is a medical device company.\n\nChallenge\nWithout Midday, I had no real visibility into our cash and relied entirely on my accountant.\n\nImpact\nMidday gave me clarity without having to learn complex accounting tools.\n\nFavorite features\nFinancial visibility and cash flow tracking.",
+    video:
+      "https://customer-oh6t55xltlgrfayh.cloudflarestream.com/5b86803383964d52ee6834fd289f4f4e/manifest/video.m3u8",
+    videoPoster: "https://cdn.midday.ai/guy-cover.png",
   },
 ];
