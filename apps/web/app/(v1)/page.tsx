@@ -2,7 +2,7 @@ import { HomeFaqs } from "@/features/home/faqs";
 import { Hero } from "@/features/home/hero";
 import HowItWork from "@/features/home/how-it-work";
 import { Pricing } from "@/features/home/pricing";
-import { HomeTestimonials } from "@/features/home/testimonials";
+import { TestimonialsSection } from "@/features/home/testimonials-section";
 import { UseCases } from "@/features/home/usecases";
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
       <UseCases />
       <Pricing />
       <HomeFaqs />
-      <HomeTestimonials />
+      <TestimonialsSection />
     </div>
   );
 }
