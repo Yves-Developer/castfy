@@ -31,7 +31,7 @@ export function ApiSettings({ provider, setProvider }: ApiSettingsProps) {
             onClick={() => setProvider("anthropic")}
             variant={provider === "anthropic" ? "default" : "outline"}
           >
-            Claude 3.5 Sonnet
+            Claude 4.5 Sonnet
           </Button>
           <Button
             onClick={() => setProvider("openai")}

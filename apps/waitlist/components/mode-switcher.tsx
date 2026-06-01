@@ -36,7 +36,7 @@ export function ModeSwitcher({ className }: { className?: string }) {
     <Button
       className={cn(
         "group/toggle extend-touch-target size-8 cursor-pointer",
-        className
+        className,
       )}
       onClick={toggleTheme}
       size="icon"

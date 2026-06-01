@@ -20,8 +20,8 @@ export default function PlaygroundPage() {
         <div>
           <h1 className="font-medium text-2xl tracking-tight">Playground</h1>
           <p className="mt-2 text-muted-foreground">
-            Test the core Demosmith logic, inspect accessibility trees, and
-            debug LLM generation in isolation.
+            Test the core Castfy0 logic, inspect accessibility trees, and debug
+            LLM generation in isolation.
           </p>
         </div>
 

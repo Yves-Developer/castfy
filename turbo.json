@@ -1,9 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": ["NODE_AUTH_TOKEN"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["NODE_AUTH_TOKEN"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
