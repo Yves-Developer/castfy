@@ -2,20 +2,24 @@ import type { Testimonial, TUseCase } from "@/types";
 
 export const navLinks = [
   {
+    label: "Home",
+    href: "/",
+  },
+  {
     label: "Features",
-    href: "/features",
+    href: "/#features",
   },
   {
-    label: "Story",
-    href: "/story",
+    label: "Pricing",
+    href: "/#pricing",
   },
   {
-    label: "Download",
-    href: "/download",
+    label: "Use Cases",
+    href: "/#use-cases",
   },
   {
-    label: "Contact us",
-    href: "/contact",
+    label: "Faqs",
+    href: "/#faqs",
   },
 ];
 

@@ -5,7 +5,7 @@ import { PlanCards } from "@workspace/ui/components/plan-cards";
 
 export function PricingSection() {
   return (
-    <section className="max-w-350  w-full mx-auto">
+    <section className="max-w-350  w-full mx-auto" id="pricing">
       <div className="text-center space-y-4 mb-12">
         <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
           Pricing that matches how you run your business

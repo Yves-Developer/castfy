@@ -83,7 +83,7 @@ export function FAQSection() {
   };
 
   return (
-    <section className="max-w-350 w-full mx-auto">
+    <section className="max-w-350 w-full mx-auto" id="faqs">
       <div className="text-center space-y-4 mb-12">
         <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
           Frequently asked questions

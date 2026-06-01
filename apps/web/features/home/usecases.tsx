@@ -9,7 +9,10 @@ import type { TUseCase } from "@/types";
 
 export function UseCases() {
   return (
-    <section className="bg-background py-12 sm:py-16 border-y lg:py-24">
+    <section
+      className="bg-background py-12 sm:py-16 border-y lg:py-24"
+      id="use-cases"
+    >
       <div className="max-w-350 mx-auto">
         <div className="text-center space-y-4 mb-10 sm:mb-12">
           <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
