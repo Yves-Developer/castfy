@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
+import { usePathname } from "next/navigation";
 
 interface HeaderProps {
   hideMenuItems?: boolean;
@@ -18,6 +19,7 @@ export function Header({
   hideMenuItems = false,
 }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -56,16 +58,18 @@ export function Header({
           </Link>
 
           {!hideMenuItems && (
+            <>
             <div className="hidden items-center gap-6 xl:flex">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
-                  className="text-muted-foreground text-sm transition-colors hover:text-foreground"
+                  className={cn("text-muted-foreground text-sm transition-colors hover:text-foreground", pathname === link.href && "text-foreground")}
                   href={link.href}
                 >
                   {link.label}
                 </Link>
               ))}
+              </div>
 
               <div className="border-border border-l pl-4">
                 <Link
@@ -75,7 +79,7 @@ export function Header({
                   Sign in
                 </Link>
               </div>
-            </div>
+              </>
           )}
 
           <div className="flex items-center xl:hidden">

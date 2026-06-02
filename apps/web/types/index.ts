@@ -12,8 +12,12 @@ export interface Testimonial {
   company: string;
   country: string;
   content: string;
-  fullContent: string;
   image?: string;
-  video?: string;
-  videoPoster?: string;
+ 
+}
+
+
+export interface FAQItem {
+  question: string;
+  answer: string;
 }

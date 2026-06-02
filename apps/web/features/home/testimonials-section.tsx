@@ -37,8 +37,7 @@ export function TestimonialsSection({
   }, [testimonials.length]);
 
   return (
-    <section className="bg-background border-t">
-      <div className="max-w-350 mx-auto py-12 sm:py-16 lg:py-24">
+    <section >
         {customHeader ? (
           customHeader
         ) : (
@@ -228,7 +227,6 @@ export function TestimonialsSection({
             </div>
           </div>
         </div>
-      </div>
     </section>
   );
 }
