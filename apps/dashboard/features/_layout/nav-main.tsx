@@ -37,9 +37,12 @@ export function NavMain({
             <SidebarMenuButton
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
               tooltip="Quick Create"
+              asChild
             >
-              <CircleFadingPlusIcon />
-              <span>New demo</span>
+              <Link href="/new">
+                <CircleFadingPlusIcon />
+                New demo
+              </Link>
             </SidebarMenuButton>
             <Button
               className="size-8 group-data-[collapsible=icon]:opacity-0"

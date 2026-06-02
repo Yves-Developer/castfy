@@ -10,6 +10,15 @@
     "ignoreUnknown": true,
     "includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
   },
+  "css": {
+    "parser": {
+      "allowWrongLineComments": true,
+      "css": "css2021"
+    },
+    "linter": {
+      "enabled": false
+    }
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",

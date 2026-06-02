@@ -4,10 +4,10 @@ import { cn } from "@workspace/ui/lib/utils";
 import { MousePointer2Icon } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
-import { usePathname } from "next/navigation";
 
 interface HeaderProps {
   hideMenuItems?: boolean;
@@ -59,16 +59,19 @@ export function Header({
 
           {!hideMenuItems && (
             <>
-            <div className="hidden items-center gap-6 xl:flex">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  className={cn("text-muted-foreground text-sm transition-colors hover:text-foreground", pathname === link.href && "text-foreground")}
-                  href={link.href}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              <div className="hidden items-center gap-6 xl:flex">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    className={cn(
+                      "text-muted-foreground text-sm transition-colors hover:text-foreground",
+                      pathname === link.href && "text-foreground",
+                    )}
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
 
               <div className="border-border border-l pl-4">
@@ -79,7 +82,7 @@ export function Header({
                   Sign in
                 </Link>
               </div>
-              </>
+            </>
           )}
 
           <div className="flex items-center xl:hidden">

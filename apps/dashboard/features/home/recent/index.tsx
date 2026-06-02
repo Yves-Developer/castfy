@@ -5,7 +5,11 @@ import { recentDemos } from "./data";
 export default function RecentDemos() {
   return (
     <div className="min-h-[50vh]">
-      <DataTable columns={recentDemosColumns} data={recentDemos}>
+      <DataTable
+        columns={recentDemosColumns}
+        data={recentDemos}
+        searchPlaceholder="Search demos..."
+      >
         <h3 className="font-medium text-lg">Recent demos</h3>
       </DataTable>
     </div>

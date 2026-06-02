@@ -1,11 +1,7 @@
 "use client";
 
-import { faqs } from "@/config/data";
 import { useState } from "react";
-
-
-
-
+import { faqs } from "@/config/data";
 
 export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -15,7 +11,7 @@ export function FAQSection() {
   };
 
   return (
-    <section  className="py-12 container sm:py-16 border-y lg:py-24" id="faqs">
+    <section className="py-12 container sm:py-16 border-y lg:py-24" id="faqs">
       <div className="text-center space-y-4 mb-12">
         <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
           Frequently asked questions
