@@ -1,12 +1,9 @@
 {
   "extends": "@castfy/tsconfig/react-library.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "jsx": "react-jsx",
     "paths": {
-      "@workspace/ui/*": ["./src/*"]
-    },
-    "strictNullChecks": true
+      "@/*": ["./src/*"]
+    }
   },
   "include": [".", "../../apps/web/components/carousel.tsx"],
   "exclude": ["node_modules", "dist"]

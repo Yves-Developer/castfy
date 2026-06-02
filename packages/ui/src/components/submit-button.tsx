@@ -1,6 +1,6 @@
-import { cn } from "@workspace/ui/lib/utils";
-import { Button, type ButtonProps } from "@workspace/ui/components/button";
-import { Spinner } from "@workspace/ui/components/spinner";
+import { Button, type ButtonProps } from "@castfy/ui/components/button";
+import { Spinner } from "@castfy/ui/components/spinner";
+import { cn } from "@castfy/ui/lib/utils";
 
 export function SubmitButton({
   children,

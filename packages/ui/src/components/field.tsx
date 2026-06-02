@@ -1,8 +1,9 @@
+/** biome-ignore-all lint/a11y/useSemanticElements: for now */
 "use client";
 
-import { Label } from "@workspace/ui/components/label";
-import { Separator } from "@workspace/ui/components/separator";
-import { cn } from "@workspace/ui/lib/utils";
+import { Label } from "@castfy/ui/components/label";
+import { Separator } from "@castfy/ui/components/separator";
+import { cn } from "@castfy/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 
@@ -193,7 +194,7 @@ function FieldError({
       ...new Map(errors.map((error) => [error?.message, error])).values(),
     ];
 
-    if (uniqueErrors?.length == 1) {
+    if (uniqueErrors?.length === 1) {
       return uniqueErrors[0]?.message;
     }
 
