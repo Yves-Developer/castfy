@@ -26,6 +26,9 @@ importers:
 
   apps/dashboard:
     dependencies:
+      '@castfy/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.76.0(react@19.2.4))
@@ -35,9 +38,6 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@workspace/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.4)
@@ -151,12 +151,12 @@ importers:
 
   apps/waitlist:
     dependencies:
+      '@castfy/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.76.0(react@19.2.4))
-      '@workspace/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       geist:
         specifier: ^1.7.0
         version: 1.7.0(next@16.2.6(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
@@ -218,7 +218,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@workspace/ui':
+      '@castfy/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       embla-carousel-react:

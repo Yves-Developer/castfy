@@ -4,8 +4,8 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-} from "@workspace/ui/components/accordion";
-import { Button } from "@workspace/ui/components/button";
+} from "@castfy/ui/components/accordion";
+import { Button } from "@castfy/ui/components/button";
 import { useState } from "react";
 
 type Props = {

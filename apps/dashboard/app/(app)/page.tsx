@@ -1,9 +1,9 @@
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
+import { CircleFadingPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { AppSiteHeader } from "@/features/_layout/app-header";
 import { AnalyticCards } from "@/features/home/analytic-cards";
 import RecentDemos from "@/features/home/recent";
-import { CircleFadingPlusIcon } from "lucide-react";
 export default function Home() {
   return (
     <>
@@ -16,8 +16,8 @@ export default function Home() {
             variant={"outline"}
           >
             <Link href="/new">
-            <CircleFadingPlusIcon />
-             Add New
+              <CircleFadingPlusIcon />
+              Add New
             </Link>
           </Button>
         </div>

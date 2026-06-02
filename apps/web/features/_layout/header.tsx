@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import { MousePointer2Icon } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";

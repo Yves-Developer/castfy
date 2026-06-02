@@ -11,11 +11,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@workspace/ui/components",
-    "utils": "@workspace/ui/lib/utils",
-    "hooks": "@workspace/ui/hooks",
-    "lib": "@workspace/ui/lib",
-    "ui": "@workspace/ui/components"
+    "components": "@castfy/ui/components",
+    "utils": "@castfy/ui/lib/utils",
+    "hooks": "@castfy/ui/hooks",
+    "lib": "@castfy/ui/lib",
+    "ui": "@castfy/ui/components"
   },
   "rtl": false,
   "menuColor": "default",

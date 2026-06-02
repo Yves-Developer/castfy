@@ -10,7 +10,7 @@
     "format": "biome format --write"
   },
   "dependencies": {
-    "@workspace/ui": "workspace:*",
+    "@castfy/ui": "workspace:*",
     "embla-carousel-react": "^8.6.0",
     "geist": "^1.7.0",
     "lucide-react": "^1.16.0",

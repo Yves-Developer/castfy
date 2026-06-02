@@ -1,7 +1,7 @@
 "use client";
 
-import { AspectRatio } from "@workspace/ui/components/aspect-ratio";
-import { CardDescription, CardTitle } from "@workspace/ui/components/card";
+import { AspectRatio } from "@castfy/ui/components/aspect-ratio";
+import { CardDescription, CardTitle } from "@castfy/ui/components/card";
 import { PauseIcon, PlayIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import {

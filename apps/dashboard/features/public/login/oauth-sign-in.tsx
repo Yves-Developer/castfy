@@ -1,12 +1,10 @@
 "use client";
 
-import { SubmitButton } from "@workspace/ui/components/submit-button";
-import { type OAuthProvider, useOAuthSignIn } from "@/hooks/use-oauth-sign-in";
-import { cn } from "@workspace/ui/lib/utils";
-import { FcGoogle } from "react-icons/fc";
+import { SubmitButton } from "@castfy/ui/components/submit-button";
+import { FaApple, FaGithub } from "react-icons/fa";
 import { FaMicrosoft } from "react-icons/fa6";
-import { FaApple } from "react-icons/fa";
-import { FaGithub } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { type OAuthProvider, useOAuthSignIn } from "@/hooks/use-oauth-sign-in";
 
 type Props = {
   provider: OAuthProvider;
@@ -23,7 +21,6 @@ const iconMap = {
 export function OAuthSignIn({ provider, showLastUsed = false }: Props) {
   const { handleSignIn, isLoading, config } = useOAuthSignIn(provider);
   const Icon = iconMap[config.icon];
-
 
   return (
     <div className="relative w-full">

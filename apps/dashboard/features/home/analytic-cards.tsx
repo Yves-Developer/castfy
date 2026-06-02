@@ -1,4 +1,4 @@
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@castfy/ui/components/badge";
 import {
   Card,
   CardAction,
@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@castfy/ui/components/card";
 import { Clock3Icon, DownloadIcon, SparklesIcon } from "lucide-react";
 
 export const analyticCards = [

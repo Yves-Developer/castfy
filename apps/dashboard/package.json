@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-form": "^1.32.0",
     "@tanstack/react-table": "^8.21.3",
-    "@workspace/ui": "workspace:*",
+    "@castfy/ui": "workspace:*",
     "lucide-react": "^1.16.0",
     "motion": "^12.38.0",
     "next": "16.2.6",

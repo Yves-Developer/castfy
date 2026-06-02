@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/button";
-import { PlanCards } from "@workspace/ui/components/plan-cards";
+import { Button } from "@castfy/ui/components/button";
+import { PlanCards } from "@castfy/ui/components/plan-cards";
 
 export function PricingSection() {
   return (

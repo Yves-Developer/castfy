@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@workspace/ui/components/sidebar";
+} from "@castfy/ui/components/sidebar";
 import {
   CircleFadingPlusIcon,
   type LucideProps,

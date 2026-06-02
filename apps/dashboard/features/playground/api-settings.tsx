@@ -1,11 +1,11 @@
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@castfy/ui/components/card";
 
 export type AIProvider = "anthropic" | "openai" | "gemini";
 

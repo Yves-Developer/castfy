@@ -1,4 +1,4 @@
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 
 export function HomeCta() {
   return (

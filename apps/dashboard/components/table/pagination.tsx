@@ -1,13 +1,13 @@
-import type { Table } from "@tanstack/react-table";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@castfy/ui/components/select";
+import { cn } from "@castfy/ui/lib/utils";
+import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,

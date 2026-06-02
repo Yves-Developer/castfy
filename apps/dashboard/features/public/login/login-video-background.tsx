@@ -50,6 +50,7 @@ export function LoginVideoBackground() {
           filter: isVideoLoaded ? "blur(0px)" : "blur(1px)",
         }}
       >
+        {/** biome-ignore lint/performance/noImgElement: for now */}
         <img
           src="https://midday.ai/cdn-cgi/image/width=1000,quality=80,format=auto/https://cdn.midday.ai/video-poster-v2.jpg"
           alt=""

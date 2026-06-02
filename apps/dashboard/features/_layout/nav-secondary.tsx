@@ -6,7 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@workspace/ui/components/sidebar";
+} from "@castfy/ui/components/sidebar";
 import type { LucideProps } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
