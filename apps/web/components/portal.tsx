@@ -1,4 +1,4 @@
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import React from "react";
 import { createPortal } from "react-dom";
 

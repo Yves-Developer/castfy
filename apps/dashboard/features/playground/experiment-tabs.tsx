@@ -1,9 +1,8 @@
 /** biome-ignore-all lint/correctness/noChildrenProp: for now */
 "use client";
 
-import { useForm } from "@tanstack/react-form";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@castfy/ui/components/badge";
+import { Button } from "@castfy/ui/components/button";
 import {
   Card,
   CardContent,
@@ -11,16 +10,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@castfy/ui/components/card";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@workspace/ui/components/field";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@castfy/ui/components/field";
+import { Input } from "@castfy/ui/components/input";
+import { Textarea } from "@castfy/ui/components/textarea";
+import { useForm } from "@tanstack/react-form";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -377,7 +377,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
                       className="relative group"
                     >
                       {/* Timeline Dot/Icon wrapper */}
-                      <span className="absolute -left-[37px] top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
+                      <span className="absolute -left-9.25 top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
                         {getStepIcon(step.action)}
                       </span>
 

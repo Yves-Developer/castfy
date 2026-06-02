@@ -11,8 +11,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@castfy/ui/components/tooltip";
+import { cn } from "@castfy/ui/lib/utils";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 

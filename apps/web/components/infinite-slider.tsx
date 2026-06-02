@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import { animate, motion, useMotionValue } from "motion/react";
 import { useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
@@ -28,10 +28,11 @@ export function InfiniteSlider({
   const [ref, { width, height }] = useMeasure();
   const translation = useMotionValue(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [key, setKey] = useState(0);
+  const [_key, setKey] = useState(0);
 
   useEffect(() => {
-    let controls;
+    // biome-ignore lint/suspicious/noExplicitAny: for now
+    let controls: any;
     const size = direction === "horizontal" ? width : height;
     const contentSize = size + gap;
     const from = reverse ? -contentSize / 2 : 0;
@@ -67,7 +68,6 @@ export function InfiniteSlider({
 
     return controls?.stop;
   }, [
-    key,
     translation,
     currentSpeed,
     width,

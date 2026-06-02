@@ -1,4 +1,4 @@
-import { Badge } from "@workspace/ui/components/badge";
+import { Badge } from "@castfy/ui/components/badge";
 import {
   Card,
   CardAction,
@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@castfy/ui/components/card";
 import { Clock3Icon, DownloadIcon, SparklesIcon } from "lucide-react";
 
 export const analyticCards = [
@@ -49,12 +49,12 @@ export const analyticCards = [
 
 export function AnalyticCards() {
   return (
-    <div className="grid @5xl/main:grid-cols-4 @xl/main:grid-cols-2 grid-cols-1 gap-4">
+    <div className="grid @5xl/main:grid-cols-4 @xl/main:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:bg-muted/50 *:data-[slot=card]:ring-0">
       {analyticCards.map((card) => {
         const Icon = card.badge.icon;
 
         return (
-          <Card className="@container/card shadow-none" key={card.title}>
+          <Card className="@container/card shadow-none " key={card.title}>
             <CardHeader>
               <CardDescription>{card.title}</CardDescription>
 

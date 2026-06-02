@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import "@workspace/ui/globals.css";
+import "@castfy/ui/globals.css";
 import Providers from "@/components/providers";
 import { siteConfig } from "@/config/site";
 import { fontVariables } from "@/lib/fonts";

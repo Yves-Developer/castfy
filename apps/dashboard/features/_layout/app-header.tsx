@@ -1,8 +1,8 @@
 "use client";
-import { Button } from "@workspace/ui/components/button";
-import { useSidebar } from "@workspace/ui/components/sidebar";
-import { useScroll } from "@workspace/ui/hooks/use-scroll";
-import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@castfy/ui/components/button";
+import { useSidebar } from "@castfy/ui/components/sidebar";
+import { useScroll } from "@castfy/ui/hooks/use-scroll";
+import { cn } from "@castfy/ui/lib/utils";
 import { ChevronRightIcon, MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
@@ -21,7 +21,7 @@ export function AppSiteHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 flex h-(--header-height) shrink-0 items-center gap-2 bg-background transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)",
+        "sticky top-0 border-b z-50 flex h-(--header-height) shrink-0 items-center gap-2 bg-background transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)",
         scrolled && "border-b",
         className,
       )}

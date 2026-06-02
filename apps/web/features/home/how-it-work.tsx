@@ -5,7 +5,7 @@ import { useState } from "react";
 export default function HowItWork() {
   const [activeFeature, setActiveFeature] = useState(0);
   return (
-    <section className="max-w-350 mx-auto" id="features">
+    <section className="container" id="features">
       {/* Mobile: Stacked features */}
       <div className="grid grid-cols-1 gap-12 sm:gap-16 lg:hidden">
         <div className="hidden lg:block text-center mb-2">

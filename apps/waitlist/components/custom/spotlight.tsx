@@ -1,4 +1,4 @@
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 
 interface SpotlightProps {
   className?: string;
@@ -8,7 +8,7 @@ interface SpotlightProps {
 export const Spotlight = ({ className, fill }: SpotlightProps) => (
   <svg
     className={cn(
-      "pointer-events-none absolute z-[1] h-[169%] w-[138%] animate-spotlight opacity-0 lg:w-[84%]",
+      "pointer-events-none absolute z-1 h-[169%] w-[138%] animate-spotlight opacity-0 lg:w-[84%]",
       className,
     )}
     fill="none"

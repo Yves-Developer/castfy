@@ -1,7 +1,4 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@workspace/ui/components/sidebar";
+import { SidebarInset, SidebarProvider } from "@castfy/ui/components/sidebar";
 import { AppSidebar } from "@/features/_layout/app-sidebar";
 
 export default function Lyout(props: LayoutProps<"/">) {

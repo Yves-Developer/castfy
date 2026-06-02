@@ -1,5 +1,5 @@
-import { Button } from "@workspace/ui/components/button";
-import { ClapperboardIcon } from "lucide-react";
+import { Button } from "@castfy/ui/components/button";
+import { CircleFadingPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { AppSiteHeader } from "@/features/_layout/app-header";
 import { AnalyticCards } from "@/features/home/analytic-cards";
@@ -13,11 +13,11 @@ export default function Home() {
             asChild
             className="rounded-full"
             size="sm"
-            variant={"secondary"}
+            variant={"outline"}
           >
             <Link href="/new">
-              <ClapperboardIcon />
-              New demo
+              <CircleFadingPlusIcon />
+              Add New
             </Link>
           </Button>
         </div>

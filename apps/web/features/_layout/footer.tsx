@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { siteConfig } from "@/config/site";

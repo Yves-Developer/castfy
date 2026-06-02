@@ -10,8 +10,8 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
-} from "@workspace/ui/components/sidebar";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@castfy/ui/components/sidebar";
+import { cn } from "@castfy/ui/lib/utils";
 import {
   ChartPieIcon,
   CircleHelpIcon,

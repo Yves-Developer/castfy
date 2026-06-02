@@ -1,17 +1,17 @@
 /** biome-ignore-all lint/correctness/noChildrenProp: fo now */
 "use client";
 
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@workspace/ui/components/field";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@castfy/ui/components/field";
+import { Input } from "@castfy/ui/components/input";
+import { Textarea } from "@castfy/ui/components/textarea";
+import { useForm } from "@tanstack/react-form";
 import type * as React from "react";
 import { toast } from "sonner";
 import * as z from "zod";

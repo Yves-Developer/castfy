@@ -1,8 +1,7 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@castfy/ui/components/badge";
+import { Button } from "@castfy/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
+} from "@castfy/ui/components/dropdown-menu";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   CheckCircle2Icon,
   Clock3Icon,
