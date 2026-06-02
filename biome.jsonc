@@ -1,12 +1,6 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core"],
-  "css": {
-    "parser": {
-      "allowWrongLineComments": true,
-      "css": "css2021"
-    }
-  },
   "linter": {
     "enabled": true,
     "rules": {

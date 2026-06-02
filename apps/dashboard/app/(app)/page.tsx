@@ -1,9 +1,9 @@
 import { Button } from "@workspace/ui/components/button";
-import { ClapperboardIcon } from "lucide-react";
 import Link from "next/link";
 import { AppSiteHeader } from "@/features/_layout/app-header";
 import { AnalyticCards } from "@/features/home/analytic-cards";
 import RecentDemos from "@/features/home/recent";
+import { CircleFadingPlusIcon } from "lucide-react";
 export default function Home() {
   return (
     <>
@@ -13,11 +13,11 @@ export default function Home() {
             asChild
             className="rounded-full"
             size="sm"
-            variant={"secondary"}
+            variant={"outline"}
           >
             <Link href="/new">
-              <ClapperboardIcon />
-              New demo
+            <CircleFadingPlusIcon />
+             Add New
             </Link>
           </Button>
         </div>
