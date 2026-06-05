@@ -1,11 +1,17 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@castfy/ui/components/popover";
 import { useSidebar } from "@castfy/ui/components/sidebar";
 import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
-import { ChevronRightIcon, MenuIcon } from "lucide-react";
+import { ChevronRightIcon, EllipsisIcon, MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { GiveFeedbackDialog } from "./give-feedback";
 
 export function AppSiteHeader({
   children,
@@ -30,7 +36,7 @@ export function AppSiteHeader({
         <Button
           className={cn(open && "md:hidden", openMobile && "md:hidden")}
           onClick={() => (isMobile ? setOpenMobile(true) : setOpen(true))}
-          size={"icon-lg"}
+          size={"icon"}
           variant={"ghost"}
         >
           <MenuIcon />
@@ -42,7 +48,23 @@ export function AppSiteHeader({
           <ChevronRightIcon className="size-4 text-muted-foreground" />
         )}
         {children}
+        <GiveFeedback className="ml-auto" />
       </div>
     </header>
+  );
+}
+
+export function GiveFeedback({ className }: { className?: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild className={cn(className)}>
+        <Button variant="ghost">
+          <EllipsisIcon className="size-4.5 text-foreground/70" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="mx-4 w-64 p-2">
+        <GiveFeedbackDialog />
+      </PopoverContent>
+    </Popover>
   );
 }

@@ -7,21 +7,7 @@ import RecentDemos from "@/features/home/recent";
 export default function Home() {
   return (
     <>
-      <AppSiteHeader showChevron={false}>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            asChild
-            className="rounded-full"
-            size="sm"
-            variant={"outline"}
-          >
-            <Link href="/new">
-              <CircleFadingPlusIcon />
-              Add New
-            </Link>
-          </Button>
-        </div>
-      </AppSiteHeader>
+      <AppSiteHeader />
 
       <div className="@container/main container flex flex-col gap-5 py-4">
         <AnalyticCards />
