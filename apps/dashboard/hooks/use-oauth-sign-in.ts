@@ -4,11 +4,11 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { getUrl } from "@/utils/environment";
 
-export type OAuthProvider = "google" | "apple" | "github" | "azure";
+export type OAuthProvider = "google" | "github";
 
 type ProviderConfig = {
   name: string;
-  icon: "Google" | "Apple" | "Github" | "Microsoft";
+  icon: "Google" | "Github";
   scopes?: string;
   queryParams?: Record<string, string>;
   variant: "primary" | "secondary";
@@ -23,22 +23,10 @@ const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
     variant: "secondary",
     supportsReturnTo: true,
   },
-  apple: {
-    name: "Apple",
-    icon: "Apple",
-    variant: "secondary",
-    supportsReturnTo: false,
-  },
+
   github: {
     name: "Github",
     icon: "Github",
-    variant: "secondary",
-    supportsReturnTo: true,
-  },
-  azure: {
-    name: "Microsoft",
-    icon: "Microsoft",
-    scopes: "email profile openid",
     variant: "secondary",
     supportsReturnTo: true,
   },
@@ -59,12 +47,11 @@ export function useOAuthSignIn(provider: OAuthProvider) {
 
     // const isDesktop = isDesktopApp();
 
-  if (config.supportsReturnTo && returnTo) {
+    if (config.supportsReturnTo && returnTo) {
       redirectTo.searchParams.append("return_to", returnTo);
     }
 
-    const queryParams=
-       config.queryParams;
+    // const queryParams = config.queryParams;
 
     // await supabase.auth.signInWithOAuth({
     //   provider: provider as Provider,

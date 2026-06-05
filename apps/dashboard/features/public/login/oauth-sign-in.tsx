@@ -1,8 +1,7 @@
 "use client";
 
 import { SubmitButton } from "@castfy/ui/components/submit-button";
-import { FaApple, FaGithub } from "react-icons/fa";
-import { FaMicrosoft } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { type OAuthProvider, useOAuthSignIn } from "@/hooks/use-oauth-sign-in";
 
@@ -13,9 +12,7 @@ type Props = {
 
 const iconMap = {
   Google: FcGoogle,
-  Apple: FaApple,
   Github: FaGithub,
-  Microsoft: FaMicrosoft,
 } as const;
 
 export function OAuthSignIn({ provider, showLastUsed = false }: Props) {

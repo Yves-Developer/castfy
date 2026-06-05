@@ -9,8 +9,7 @@ import { useSidebar } from "@castfy/ui/components/sidebar";
 import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
 import { ChevronRightIcon, EllipsisIcon, MenuIcon } from "lucide-react";
-import Link from "next/link";
-import { siteConfig } from "@/config/site";
+
 import { GiveFeedbackDialog } from "./give-feedback";
 
 export function AppSiteHeader({

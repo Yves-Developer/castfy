@@ -5,11 +5,11 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@castfy/ui/components/avatar";
+import { Button, buttonVariants } from "@castfy/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -20,16 +20,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@castfy/ui/components/sidebar";
+import { cn } from "@castfy/ui/lib/utils";
 import {
-  CreditCardIcon,
   EllipsisVerticalIcon,
+  HomeIcon,
   LogOutIcon,
-  MoonIcon,
-  SunIcon,
-  UserCircleIcon,
+  SettingsIcon,
 } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+
+import { ThemeSwitcher } from "@/components/custom/theme-switcher";
+import { GiveFeedbackDialog } from "./give-feedback";
 
 export function NavUser({
   user,
@@ -41,12 +41,6 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <SidebarMenu>
@@ -71,52 +65,53 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            align="end"
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
+            align="start"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "top"}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage alt={user.name} src={user.avatar} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate text-foreground">{user.name}</span>
-                  <span className="truncate text-muted-foreground text-xs">
-                    {user.email}
-                  </span>
-                </div>
+            <DropdownMenuLabel className="flex items-center justify-between gap-2 font-normal text-foreground">
+              <div>
+                <p className="truncate font-medium text-foreground text-sm">
+                  {user.name}
+                </p>
+                <p className="truncate text-muted-foreground text-xs">
+                  {user.email}
+                </p>
               </div>
+              <SettingsIcon className="size-4" />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCircleIcon />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="capitalize"
-                onClick={() =>
-                  setTheme(resolvedTheme === "dark" ? "light" : "dark")
-                }
+              <GiveFeedbackDialog />
+              <Button
+                className="flex w-full justify-between font-normal"
+                size="lg"
+                variant={"ghost"}
               >
-                {mounted &&
-                  (resolvedTheme === "dark" ? <MoonIcon /> : <SunIcon />)}
-                {mounted && <span className="capitalize">{resolvedTheme}</span>}{" "}
-                theme
-              </DropdownMenuItem>
+                Home Page
+                <HomeIcon />
+              </Button>
+              <div
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "ghost" }),
+                  "flex w-full justify-between font-normal hover:bg-transparent!",
+                )}
+              >
+                Theme
+                <ThemeSwitcher />
+              </div>
+
+              <Button
+                className="flex w-full justify-between font-normal"
+                size="lg"
+                variant={"ghost"}
+              >
+                Log out
+                <LogOutIcon />
+              </Button>
+              <Button className="my-1 w-full">Upgrade to pro</Button>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon />
-              Log out
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
