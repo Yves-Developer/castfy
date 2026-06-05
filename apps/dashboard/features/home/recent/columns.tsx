@@ -39,6 +39,21 @@ const statusMap = {
   },
 };
 
+function getBadgeColor(status: TDemos["status"]) {
+  switch (status) {
+    case "pending":
+      return "warning";
+    case "processing":
+      return "info";
+    case "success":
+      return "success";
+    case "failed":
+      return "destructive";
+    default:
+      return "default";
+  }
+}
+
 export const recentDemosColumns: ColumnDef<TDemos>[] = [
   {
     accessorKey: "name",
@@ -70,9 +85,10 @@ export const recentDemosColumns: ColumnDef<TDemos>[] = [
 
       const config = statusMap[status];
       const Icon = config.icon;
+      const variant = getBadgeColor(status);
 
       return (
-        <Badge className="gap-1.5 capitalize" variant="outline">
+        <Badge className="gap-1.5 capitalize" variant={variant}>
           <Icon className="size-3.5" />
           {config.label}
         </Badge>
