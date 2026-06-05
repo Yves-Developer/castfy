@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AppSiteHeader } from "@/features/_layout/app-header";
-import { PlaygroundIndex } from "@/features/playground";
+import { ExperimentTabs } from "@/features/playground/experiment-tabs";
 
 export const metadata: Metadata = {
   title: "Playground",
@@ -11,14 +11,7 @@ export default function PlaygroundPage() {
     <>
       <AppSiteHeader title="Playground" />
       <div className="container max-w-5xl space-y-8 py-8">
-        <div>
-          <h1 className="font-medium text-2xl tracking-tight">Playground</h1>
-          <p className="mt-2 text-muted-foreground">
-            Test the core Castfy0 logic, inspect accessibility trees, and debug
-            LLM generation in isolation.
-          </p>
-        </div>
-        <PlaygroundIndex />
+        <ExperimentTabs />
       </div>
     </>
   );
