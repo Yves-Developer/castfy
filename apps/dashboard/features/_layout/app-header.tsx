@@ -17,10 +17,12 @@ export function AppSiteHeader({
   children,
   className,
   showChevron = true,
+  title,
 }: {
   children?: React.ReactNode;
   className?: string;
   showChevron?: boolean;
+  title: string;
 }) {
   const scrolled = useScroll(20);
   const { open, openMobile, isMobile, setOpen, setOpenMobile } = useSidebar();
@@ -41,9 +43,8 @@ export function AppSiteHeader({
         >
           <MenuIcon />
         </Button>
-        <Button asChild className="text-sm" variant={"ghost"}>
-          <Link href="/">{siteConfig.name}</Link>
-        </Button>
+
+        <span className="text-sm">{title}</span>
         {children && showChevron && (
           <ChevronRightIcon className="size-4 text-muted-foreground" />
         )}

@@ -117,16 +117,10 @@ function AppSidebarHeader() {
       <SidebarMenu>
         <SidebarMenuItem className="flex items-center justify-between">
           {/* Logo — visible when expanded, or collapsed but not hovered */}
-          <SidebarMenuButton
-            asChild
-            className={cn(
-              "w-fit data-[slot=sidebar-menu-button]:p-1.5!",
-              !isExpanded && "group-hover/header:hidden",
-            )}
-          >
+          <SidebarMenuButton asChild>
             <Link href="/">
               <MousePointer2Icon className="size-6 rotate-90 fill-foreground" />
-              <span className="sr-only text-base">{siteConfig.name}</span>
+              {siteConfig.name}
             </Link>
           </SidebarMenuButton>
 
