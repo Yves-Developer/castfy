@@ -75,12 +75,12 @@ export function Header({
               </div>
 
               <div className="border-border border-l pl-4">
-                <Link
+                <a
                   className="text-primary text-sm transition-colors hover:text-primary/80"
-                  href={siteConfig.appUrl}
+                  href={`${siteConfig.appUrl}/login`}
                 >
                   Sign in
-                </Link>
+                </a>
               </div>
             </>
           )}
@@ -154,14 +154,14 @@ export function Header({
               ))}
 
               <div className="mt-8 border-border border-t pt-8">
-                <Link
+                <a
                   className="touch-manipulation py-2 font-sans text-2xl text-primary transition-colors hover:text-primary focus:outline-none focus-visible:outline-none"
-                  href={siteConfig.appUrl}
+                  href={`${siteConfig.appUrl}/login`}
                   onTouchEnd={handleTouchEnd}
                   style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   Sign in
-                </Link>
+                </a>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { Button } from "@castfy/ui/components/button";
 import { PlanCards } from "@castfy/ui/components/plan-cards";
+import { siteConfig } from "@/config/site";
 
 export function PricingSection() {
   return (
@@ -20,7 +21,7 @@ export function PricingSection() {
         renderStarterAction={() => (
           <>
             <Button asChild className="w-full text-sm" variant="outline">
-              <a href="https://app.midday.ai/">Start your trial</a>
+              <a href={`${siteConfig.appUrl}/login`}>Start your trial</a>
             </Button>
             <p className="font-sans text-xs text-muted-foreground text-center">
               Best for getting started
@@ -30,7 +31,7 @@ export function PricingSection() {
         renderProAction={() => (
           <>
             <Button asChild className="w-full text-sm">
-              <a href="https://app.midday.ai/">Start your trial</a>
+              <a href={`${siteConfig.appUrl}/login`}>Start your trial</a>
             </Button>
             <p className="font-sans text-xs text-muted-foreground text-center">
               Best value for most businesses

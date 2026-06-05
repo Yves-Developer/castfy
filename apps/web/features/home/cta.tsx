@@ -1,4 +1,5 @@
 import { Button } from "@castfy/ui/components/button";
+import { siteConfig } from "@/config/site";
 
 export function HomeCta() {
   return (
@@ -12,7 +13,7 @@ export function HomeCta() {
 
         <div className="flex flex-col items-center gap-3 pt-2">
           <Button asChild size="xl">
-            <a href="https://app.midday.ai/">
+            <a href={`${siteConfig.appUrl}/login`}>
               <span className="text-inherit text-sm">Start your trial</span>
             </a>
           </Button>

@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Castfy",
   url: "https://www.castfy.app", // Replace with production URL
-  appUrl: "https://dashboard.castfy.app/",
+  appUrl: "https://dashboard.castfy.app",
   ogImage: "https://www.castfy.com/opengraph-image.png",
   description: "Castfy is ai for your demo",
   links: {

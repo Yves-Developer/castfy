@@ -18,7 +18,7 @@ import {
   FilmIcon,
   LayoutDashboard,
   ListVideoIcon,
-  SendIcon,
+  MousePointer2Icon,
   SettingsIcon,
   SparklesIcon,
   Trash2Icon,
@@ -125,7 +125,7 @@ function AppSidebarHeader() {
             )}
           >
             <Link href="/">
-              <SendIcon className="size-5" />
+              <MousePointer2Icon className="size-6 rotate-90 fill-foreground" />
               <span className="sr-only text-base">{siteConfig.name}</span>
             </Link>
           </SidebarMenuButton>
