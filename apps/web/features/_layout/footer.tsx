@@ -15,31 +15,6 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-16">
           {/* Left Column - Links */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-12 md:grid-cols-5 lg:col-span-1">
-            {/* Features Column */}
-            <div className="space-y-3">
-              <h3 className="mb-4 font-sans text-foreground text-sm">
-                Features
-              </h3>
-              <div className="space-y-2.5">
-                {[
-                  { href: "/invoicing", label: "Invoicing" },
-                  { href: "/inbox", label: "Inbox" },
-                  { href: "/time-tracking", label: "Time tracking" },
-                  { href: "/customers", label: "Customers" },
-                  { href: "/file-storage", label: "Files" },
-                  { href: "/pre-accounting", label: "Exports" },
-                ].map((item) => (
-                  <Link
-                    className="block font-sans text-muted-foreground text-sm transition-colors hover:text-foreground"
-                    href={item.href}
-                    key={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
             {/* Product Column */}
             <div className="space-y-3">
               <h3 className="mb-4 font-sans text-foreground text-sm">
@@ -48,8 +23,7 @@ export function Footer() {
               <div className="space-y-2.5">
                 {[
                   { href: "/download", label: "Download" },
-                  { href: "/pre-accounting", label: "Pre-accounting" },
-                  { href: "/integrations", label: "Apps & Integrations" },
+                  { href: "/integrations", label: "Demo generation" },
                   { href: "/testimonials", label: "Customer Stories" },
                 ].map((item) => (
                   <Link
@@ -104,7 +78,6 @@ export function Footer() {
               <div className="space-y-2.5">
                 {[
                   { href: "/chat", label: "Chat", external: false },
-                  { href: "/docs", label: "Documentation", external: false },
                   { href: "/support", label: "Support", external: false },
                   {
                     href: "/policy",
@@ -133,7 +106,7 @@ export function Footer() {
 
           {/* Right Column - Tagline & Compliance */}
           <div className="flex flex-col items-start gap-6 lg:items-end lg:gap-10">
-            <p className="text-left font-sans text-base text-foreground sm:text-xl lg:text-right">
+            <p className="text-left font-sans text-sm text-foreground sm:text-base lg:text-right">
               Get demo in minutes.
             </p>
 

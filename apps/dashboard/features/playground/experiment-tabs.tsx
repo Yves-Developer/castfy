@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import * as z from "zod";
+import { Model } from "./model";
 
 const formSchema = z.object({
   demoTitle: z.string().min(5, "Demo title must be at least 5 characters."),
@@ -53,11 +54,11 @@ interface AgentStep {
   error?: string;
 }
 
-interface ExperimentTabsProps {
-  provider: string;
-}
+export type AIProvider = "anthropic" | "openai" | "gemini";
 
-export function ExperimentTabs({ provider }: ExperimentTabsProps) {
+export function ExperimentTabs() {
+  const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
+
   const [status, setStatus] = useState<
     "idle" | "generating" | "completed" | "error"
   >("idle");
@@ -74,7 +75,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
         body: JSON.stringify({
           url: webUrl,
           promptGoal: aiPrompt,
-          provider,
+          provider: selectedModel as AIProvider,
         }),
       });
 
@@ -198,7 +199,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
   return (
     <div className="w-full max-w-2xl mx-auto mt-8">
       {status === "idle" && (
-        <Card className="border shadow-md">
+        <Card>
           <CardHeader>
             <CardTitle>Record Product Demo</CardTitle>
             <CardDescription>
@@ -298,7 +299,13 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
               </FieldGroup>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
+          <CardFooter className="flex justify-between border-t ">
+            <Model
+              selectedModel={selectedModel}
+              setSelectedModelAction={(id) => {
+                setSelectedModel(id as AIProvider);
+              }}
+            />
             <Button
               className="rounded-full px-6"
               form="playground-demo-form"
@@ -312,8 +319,8 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
       )}
 
       {status !== "idle" && (
-        <Card className="border shadow-md">
-          <CardHeader className="border-b bg-slate-50/50">
+        <Card>
+          <CardHeader className="border-b ">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>
@@ -468,7 +475,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
             )}
           </CardContent>
 
-          <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
+          <CardFooter className="flex justify-end border-t pt-6 ">
             {(status === "completed" || status === "error") && (
               <Button
                 onClick={() => {

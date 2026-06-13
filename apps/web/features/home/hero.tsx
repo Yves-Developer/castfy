@@ -1,4 +1,5 @@
 import { Button } from "@castfy/ui/components/button";
+import { siteConfig } from "@/config/site";
 import HeroVid from "./hero-vid";
 export function Hero() {
   return (
@@ -22,7 +23,7 @@ export function Hero() {
 
           <div className="flex flex-col items-center gap-3 pt-2">
             <Button asChild className="btn-inverse h-11 px-6 transition-colors">
-              <a href="https://app.midday.ai/">
+              <a href={`${siteConfig.appUrl}/login`}>
                 <span className="text-inherit text-sm">Start your trial</span>
               </a>
             </Button>

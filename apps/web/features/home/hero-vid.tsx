@@ -8,7 +8,7 @@ export default function HeroVid() {
 
   return (
     <div className="mt-8 mb-8 md:mt-12 lg:mt-0 lg:mb-4 3xl:mb-20 overflow-visible lg:w-full">
-      <div className="relative overflow-hidden h-105 sm:h-130 md:h-150 lg:h-200 xl:h-225 3xl:h-[1000px]">
+      <div className="relative overflow-hidden h-105 sm:h-130 md:h-150 lg:h-200  3xl:h-[1000px]">
         {/* Poster image with fade and blur effect */}
         <div
           className={`absolute inset-0 w-full  transition-all duration-1000 ease-in-out z-1
