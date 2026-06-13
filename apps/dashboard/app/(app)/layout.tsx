@@ -12,7 +12,7 @@ export default function Lyout(props: LayoutProps<"/">) {
       }
     >
       <AppSidebar />
-      <SidebarInset>{props.children}</SidebarInset>
+      <SidebarInset className="@container">{props.children}</SidebarInset>
     </SidebarProvider>
   );
 }
