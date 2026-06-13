@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { getUrl } from "@/utils/environment";
+import { getUrl } from "@/lib/environment";
 
 export type OAuthProvider = "google" | "github";
 

@@ -15,7 +15,6 @@ import { cn } from "@castfy/ui/lib/utils";
 import {
   ChartPieIcon,
   CircleHelpIcon,
-  FilmIcon,
   LayoutDashboard,
   ListVideoIcon,
   MousePointer2Icon,
@@ -27,9 +26,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type * as React from "react";
 import { siteConfig } from "@/config/site";
-import { NavMain } from "./nav-main";
-import { NavSecondary } from "./nav-secondary";
-import { NavUser } from "./nav-user";
+import { NavMain } from "./main";
+import { NavSecondary } from "./secondary";
+import { NavUser } from "./user";
 
 const data = {
   user: {
@@ -62,11 +61,6 @@ const data = {
   ],
 
   navSecondary: [
-    {
-      title: "Templates",
-      url: "/templates",
-      icon: FilmIcon,
-    },
     {
       title: "Billing",
       url: "/billing",

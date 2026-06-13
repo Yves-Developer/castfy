@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 import { ThemeSwitcher } from "@/components/custom/theme-switcher";
-import { GiveFeedbackDialog } from "./give-feedback";
+import { GiveFeedbackDialog } from "../give-feedback";
 
 export function NavUser({
   user,

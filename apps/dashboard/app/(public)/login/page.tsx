@@ -6,7 +6,7 @@ import { LoginAccordion } from "@/features/public/login/login-accordion";
 import { LoginVideoBackground } from "@/features/public/login/login-video-background";
 import { OAuthSignIn } from "@/features/public/login/oauth-sign-in";
 import { OTPSignIn } from "@/features/public/login/otp-sign-in";
-import { Cookies } from "@/utils/constants";
+import { Cookies } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Login",
