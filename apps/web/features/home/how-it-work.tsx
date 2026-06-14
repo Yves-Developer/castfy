@@ -158,26 +158,25 @@ export default function HowItWork() {
 
 const features = [
   {
-    title: "Enter product url",
+    title: "Enter your product URL",
     subtitle:
-      "Every payment in and out of the business is automatically synced from your connected accounts.",
-    mobileSubtitle: "Every payment in and out is pulled in automatically.",
+      "Paste your product URL and let AI analyze your product, messaging, and key features automatically.",
+    mobileSubtitle:
+      "Paste your URL and let AI extract your product details instantly.",
     illustration: "/images/dashboard-dark.svg",
   },
   {
-    title: "Get demo",
+    title: "Generate your demo",
     subtitle:
-      "Customers can pay invoices online, with payments tracked automatically.",
-    mobileSubtitle:
-      "Customers can pay invoices online with payments tracked automatically.",
+      "AI creates a polished product demo in minutes, complete with engaging flows and clear messaging.",
+    mobileSubtitle: "Get a ready-to-share product demo generated in minutes.",
     illustration: "/images/dashboard-dark.svg",
   },
   {
-    title: "Add your own final touch",
+    title: "Add your final touch",
     subtitle:
-      "Payments, receipts, and transactions are automatically matched so records stay accurate.",
-    mobileSubtitle:
-      "Transactions are categorized and reconciled automatically.",
+      "Customize the content, branding, and experience before exporting your demo in multiple formats.",
+    mobileSubtitle: "Edit, personalize, and export your demo anywhere.",
     illustration: "/images/dashboard-dark.svg",
   },
 ];

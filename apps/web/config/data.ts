@@ -9,13 +9,19 @@ export const navLinks = [
     label: "Features",
     href: "/#features",
   },
-  {
-    label: "Pricing",
-    href: "/#pricing",
-  },
+
   {
     label: "Use Cases",
     href: "/#use-cases",
+  },
+  {
+    label: "Testimonials",
+    href: "/#testimonails",
+  },
+
+  {
+    label: "Pricing",
+    href: "/#pricing",
   },
   {
     label: "Faqs",
@@ -87,7 +93,7 @@ export const faqs: FAQItem[] = [
     answer:
       "Receipts and invoices can be pulled automatically from connected email accounts, synced from existing folders, or uploaded manually. They are then matched to transactions so everything stays organized.",
   },
- 
+
   {
     question: "What are weekly updates?",
     answer:
@@ -98,7 +104,6 @@ export const faqs: FAQItem[] = [
     answer:
       "Yes. You can create one-off, recurring, scheduled, and web invoices. Invoice activity is reflected directly in your overview.",
   },
-
 ];
 
 export const defaultTestimonials: Testimonial[] = [
@@ -110,7 +115,6 @@ export const defaultTestimonials: Testimonial[] = [
     image: "/stories/pawel.jpeg",
     content:
       "Castfy helps us showcase products instantly. Instead of recording walkthroughs, we simply paste a URL and share a polished interactive demo.",
-  
   },
   {
     name: "Facu Montanaro",
@@ -129,7 +133,6 @@ export const defaultTestimonials: Testimonial[] = [
     image: "/stories/richard.jpeg",
     content:
       "The ability to turn any product URL into a demo has completely changed how we present products to prospects and clients.",
-   
   },
   {
     name: "Guy Solan",
@@ -139,8 +142,5 @@ export const defaultTestimonials: Testimonial[] = [
     image: "/stories/guy.jpeg",
     content:
       "Castfy makes it incredibly easy to demonstrate our platform. Prospects can explore the product before ever speaking with our team.",
-  
-  
   },
 ];
-
