@@ -1,10 +1,9 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
-import lightCover from "@/public/images/dashboard-light.svg";
+import lightCover from "@/public/dev_cover.png";
 export default function HeroVid() {
   const [isDashboardLightLoaded, setIsDashboardLightLoaded] = useState(false);
-  const [isDashboardDarkLoaded, setIsDashboardDarkLoaded] = useState(false);
 
   return (
     <div className="mt-8 mb-8 md:mt-12 lg:mt-0 lg:mb-4 3xl:mb-20 overflow-visible lg:w-full">
@@ -22,7 +21,7 @@ export default function HeroVid() {
             fetchPriority="high"
             quality={50}
             sizes="100vw"
-            className="object-cover rounded-lg transition-all duration-1000 ease-in-out"
+            className="object-cover  rounded-lg transition-all duration-1000 ease-in-out"
             priority
           />
         </div>
@@ -35,7 +34,7 @@ export default function HeroVid() {
               alt="Dashboard illustration"
               width={1600}
               height={1200}
-              className="w-full h-auto rounded-lg md:scale-[0.85]! lg:scale-100! lg:object-contain lg:max-w-[85%] 2xl:max-w-[75%] block dark:hidden lg:transform-[rotate(-2deg)_skewY(1deg)] lg:filter-[drop-shadow(0_30px_60px_rgba(0,0,0,0.6))] transition-all duration-700 ease-out"
+              className="w-full  h-auto rounded-lg md:scale-[0.85]! lg:scale-100! lg:object-contain lg:max-w-[85%] 2xl:max-w-[75%]  lg:transform-[rotate(-2deg)_skewY(1deg)] lg:filter-[drop-shadow(0_30px_60px_rgba(0,0,0,0.6))] transition-all duration-700 ease-out"
               style={{
                 filter: isDashboardLightLoaded
                   ? "blur(0px) drop-shadow(0 30px 60px rgba(0,0,0,0.6))"
@@ -47,12 +46,12 @@ export default function HeroVid() {
               onLoad={() => setIsDashboardLightLoaded(true)}
             />
 
-            <Image
-              src="/images/dashboard-dark.svg"
+            {/* <Image
+              src="/images/dash"
               alt="Dashboard illustration"
               width={1600}
               height={1200}
-              className="w-full h-auto rounded-lg md:scale-[0.85]! lg:scale-100! lg:object-contain lg:max-w-[85%] 2xl:max-w-[75%] hidden dark:block lg:transform-[rotate(-2deg)_skewY(1deg)] lg:filter-[drop-shadow(0_30px_60px_rgba(0,0,0,0.6))] transition-all duration-700 ease-out"
+              className="w-full  h-auto rounded-lg md:scale-[0.85]! lg:scale-100! lg:object-contain lg:max-w-[85%] 2xl:max-w-[75%] hidden dark:block lg:transform-[rotate(-2deg)_skewY(1deg)] lg:filter-[drop-shadow(0_30px_60px_rgba(0,0,0,0.6))] transition-all duration-700 ease-out"
               style={{
                 filter: isDashboardDarkLoaded
                   ? "blur(0px) drop-shadow(0 30px 60px rgba(0,0,0,0.6))"
@@ -62,7 +61,7 @@ export default function HeroVid() {
               priority
               fetchPriority="high"
               onLoad={() => setIsDashboardDarkLoaded(true)}
-            />
+            /> */}
           </div>
         </div>
       </div>

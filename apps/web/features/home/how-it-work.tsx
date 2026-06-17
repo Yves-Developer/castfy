@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { steps } from "@/config/data";
 
 export default function HowItWork() {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -13,7 +14,7 @@ export default function HowItWork() {
             How it works
           </h2>
         </div>
-        {features.map((feature, index) => (
+        {steps.map((feature, index) => (
           <div key={index.toString()} className="space-y-6 sm:space-y-8">
             <div className="space-y-2 text-center">
               <h2 className="font-serif text-2xl sm:text-2xl text-foreground max-w-md mx-auto">
@@ -54,7 +55,7 @@ export default function HowItWork() {
                 className="flex items-center justify-center relative mb-4 lg:mb-6"
                 style={{ minHeight: "3rem" }}
               />
-              {features.map((feature, index) => (
+              {steps.map((feature, index) => (
                 <div
                   key={feature.title}
                   className="flex items-start justify-center relative"
@@ -75,7 +76,7 @@ export default function HowItWork() {
                       }`}
                     />
                   </button>
-                  {index < features.length - 1 && (
+                  {index < steps.length - 1 && (
                     <div
                       className="absolute left-1/2 -translate-x-1/2 w-px border-l border-border"
                       style={{
@@ -99,7 +100,7 @@ export default function HowItWork() {
                 How it works
               </h2>
             </div>
-            {features.map((feature, index) => (
+            {steps.map((feature, index) => (
               <button
                 key={index.toString()}
                 className={`cursor-pointer transition-all duration-300 flex items-start ${
@@ -141,8 +142,8 @@ export default function HowItWork() {
           >
             <div className="w-full h-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
               <Image
-                src={features[activeFeature]?.illustration ?? ""}
-                alt={features[activeFeature]?.title ?? "Feature"}
+                src={steps[activeFeature]?.illustration ?? ""}
+                alt={steps[activeFeature]?.title ?? "Feature"}
                 width={600}
                 height={450}
                 className="w-full h-full  object-contain"
@@ -155,28 +156,3 @@ export default function HowItWork() {
     </section>
   );
 }
-
-const features = [
-  {
-    title: "Enter your product URL",
-    subtitle:
-      "Paste your product URL and let AI analyze your product, messaging, and key features automatically.",
-    mobileSubtitle:
-      "Paste your URL and let AI extract your product details instantly.",
-    illustration: "/images/dashboard-dark.svg",
-  },
-  {
-    title: "Generate your demo",
-    subtitle:
-      "AI creates a polished product demo in minutes, complete with engaging flows and clear messaging.",
-    mobileSubtitle: "Get a ready-to-share product demo generated in minutes.",
-    illustration: "/images/dashboard-dark.svg",
-  },
-  {
-    title: "Add your final touch",
-    subtitle:
-      "Customize the content, branding, and experience before exporting your demo in multiple formats.",
-    mobileSubtitle: "Edit, personalize, and export your demo anywhere.",
-    illustration: "/images/dashboard-dark.svg",
-  },
-];

@@ -29,6 +29,64 @@ export const navLinks = [
   },
 ];
 
+export const steps = [
+  {
+    title: "Enter your product URL",
+    subtitle:
+      "Paste your product URL and let AI analyze your product, messaging, and key features automatically.",
+    mobileSubtitle:
+      "Paste your URL and let AI extract your product details instantly.",
+    illustration: "/images/dashboard-dark.svg",
+  },
+  {
+    title: "Generate your demo",
+    subtitle:
+      "AI creates a polished product demo in minutes, complete with engaging flows and clear messaging.",
+    mobileSubtitle: "Get a ready-to-share product demo generated in minutes.",
+    illustration: "/images/dashboard-dark.svg",
+  },
+  {
+    title: "Add your final touch",
+    subtitle:
+      "Customize the content, branding, and experience before exporting your demo in multiple formats.",
+    mobileSubtitle: "Edit, personalize, and export your demo anywhere.",
+    illustration: "/images/dashboard-dark.svg",
+  },
+];
+
+export const comparisonData = [
+  {
+    label: "Before",
+    title: "Manual",
+    items: [
+      "Hours to days from recording to final video",
+      "Record 5–10 takes to avoid stumbles",
+      "Re-record when UI changes (every release)",
+      "Edit cuts, zooms, and pacing manually",
+      "Write captions + transcript after the fact",
+      "Create variants (persona/region) from scratch",
+      "Chase approvals in Slack threads",
+      "Demos end up outdated in weeks",
+    ],
+    type: "negative",
+  },
+  {
+    label: "After",
+    title: "Castfy",
+    items: [
+      "Few minutes from URL to shareable demo",
+      "URL + prompt → Demosmith runs the flow",
+      "Auto-cuts + UI-aware zooms for key actions",
+      "Captions + narration (optional) generated",
+      "Brand kit applied (logo/colors/intro/outro)",
+      "Generate variants for personas + regions",
+      "Export MP4 + shareable link",
+      "Store in a demo library for reuse",
+    ],
+    type: "positive",
+    cta: "Join waitlist",
+  },
+];
 export const usaCases: TUseCase[] = [
   {
     title: "Vendyy",

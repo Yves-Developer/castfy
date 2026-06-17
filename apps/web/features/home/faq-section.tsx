@@ -13,7 +13,7 @@ export function FAQSection() {
   return (
     <section className="py-12 container sm:py-16 border-y lg:py-24" id="faqs">
       <div className="text-center space-y-4 mb-12">
-        <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
+        <h2 className="font-serif text-3xl sm:text-4xl text-foreground">
           Frequently asked questions
         </h2>
         <p className="hidden sm:block font-sans text-base text-muted-foreground leading-normal max-w-2xl mx-auto">
