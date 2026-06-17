@@ -17,20 +17,20 @@ import type { TUseCase } from "@/types";
 export function UseCases() {
   return (
     <section
-      className="py-12 container sm:py-16 border-y lg:py-24"
+      className="container border-y py-12 sm:py-16 lg:py-24"
       id="use-cases"
     >
-      <div className="text-center space-y-4 mb-10 sm:mb-12">
-        <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
+      <div className="mb-10 space-y-4 text-center sm:mb-12">
+        <h2 className="font-serif text-2xl text-foreground sm:text-2xl">
           Use Cases
         </h2>
-        <p className="hidden sm:block font-sans text-base text-muted-foreground leading-normal max-w-2xl mx-auto px-4">
+        <p className="mx-auto hidden max-w-2xl px-4 font-sans text-base text-muted-foreground leading-normal sm:block">
           Your url is turned into demo in minutes.
         </p>
       </div>
 
       <Carousel>
-        <div className="flex items-center relative justify-end gap-6 mb-4">
+        <div className="relative mb-4 flex items-center justify-end gap-6">
           <CarouselPrevious />
           <CarouselNext />
         </div>
@@ -51,7 +51,9 @@ export function UseCaseCard({ project }: { project: TUseCase }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const togglePlay = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current) {
+      return;
+    }
 
     if (videoRef.current.paused) {
       videoRef.current.play();
@@ -69,23 +71,23 @@ export function UseCaseCard({ project }: { project: TUseCase }) {
         ratio={16 / 9}
       >
         <video
-          ref={videoRef}
           autoPlay={false}
-          loop
-          playsInline
           className="aspect-video h-full w-full object-cover"
-          src={project.media}
-          onPlay={() => setIsPlaying(true)}
+          loop
           onPause={() => setIsPlaying(false)}
+          onPlay={() => setIsPlaying(true)}
+          playsInline
+          ref={videoRef}
+          src={project.media}
         >
           <track kind="captions" src={project.media} />
         </video>
 
         <button
-          type="button"
-          onClick={togglePlay}
-          className="absolute top-2 right-2 flex items-center justify-center"
           aria-label={isPlaying ? "Pause video" : "Play video"}
+          className="absolute top-2 right-2 flex items-center justify-center"
+          onClick={togglePlay}
+          type="button"
         >
           <div className="flex size-14 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all group-hover:scale-110">
             {isPlaying ? (

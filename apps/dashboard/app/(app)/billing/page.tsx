@@ -9,7 +9,7 @@ export default function Billing() {
     <>
       <AppSiteHeader title="Billing" />
 
-      <div className="container flex h-full w-full flex-col py-10  gap-5">
+      <div className="container flex h-full w-full flex-col gap-5 py-10">
         Billing list
       </div>
     </>

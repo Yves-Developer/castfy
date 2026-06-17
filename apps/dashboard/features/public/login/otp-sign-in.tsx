@@ -24,11 +24,7 @@ const formSchema = z.object({
     }),
 });
 
-type Props = {
-  className?: string;
-};
-
-export function OTPSignIn({ className }: Props) {
+export function OTPSignIn({ className }: { className?: string }) {
   const [isLoading, setLoading] = useState(false);
   const [isSent, setSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -41,7 +37,7 @@ export function OTPSignIn({ className }: Props) {
     },
   });
 
-  async function onSubmit({ email }: z.infer<typeof formSchema>) {
+  function onSubmit({ email }: z.infer<typeof formSchema>) {
     setLoading(true);
 
     setEmail(email);
@@ -50,53 +46,55 @@ export function OTPSignIn({ className }: Props) {
     setLoading(false);
   }
 
-  async function onComplete(token: string) {
-    if (!email) return;
+  function onComplete(token: string) {
+    if (!email) {
+      return;
+    }
     console.log("Verifying OTP for email:", email, "with token:", token);
     setIsVerifying(true);
   }
 
   if (isSent) {
     return (
-      <div className={cn("flex flex-col space-y-4 items-center", className)}>
-        <div className="h-15.5 w-full flex items-center justify-center">
+      <div className={cn("flex flex-col items-center space-y-4", className)}>
+        <div className="flex h-15.5 w-full items-center justify-center">
           {/* verifyOtp.isExecuting || */}
           {isVerifying ? (
-            <div className="flex items-center justify-center h-full bg-background/95 border border-input w-full">
-              <div className="flex items-center space-x-2 bg-background px-4 py-2 rounded-md shadow-sm">
-                <Spinner size={16} className="text-primary" />
-                <span className="text-sm text-foreground font-medium">
+            <div className="flex h-full w-full items-center justify-center border border-input bg-background/95">
+              <div className="flex items-center space-x-2 rounded-md bg-background px-4 py-2 shadow-sm">
+                <Spinner className="text-primary" size={16} />
+                <span className="font-medium text-foreground text-sm">
                   Verifying...
                 </span>
               </div>
             </div>
           ) : (
             <InputOTP
-              maxLength={6}
               autoFocus
+              maxLength={6}
               onComplete={onComplete}
               // disabled={verifyOtp.isExecuting || isVerifying}
             >
               <InputOTPGroup>
-                <InputOTPSlot index={0} className="w-15.5 h-15.5" />
-                <InputOTPSlot index={1} className="w-15.5 h-15.5" />
-                <InputOTPSlot index={2} className="w-15.5 h-15.5" />
-                <InputOTPSlot index={3} className="w-15.5 h-15.5" />
-                <InputOTPSlot index={4} className="w-15.5 h-15.5" />
-                <InputOTPSlot index={5} className="w-15.5 h-15.5" />
+                <InputOTPSlot className="h-15.5 w-15.5" index={0} />
+                <InputOTPSlot className="h-15.5 w-15.5" index={1} />
+                <InputOTPSlot className="h-15.5 w-15.5" index={2} />
+                <InputOTPSlot className="h-15.5 w-15.5" index={3} />
+                <InputOTPSlot className="h-15.5 w-15.5" index={4} />
+                <InputOTPSlot className="h-15.5 w-15.5" index={5} />
               </InputOTPGroup>
             </InputOTP>
           )}
         </div>
 
         <div className="flex space-x-2">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             Didn't receive the email?
           </span>
           <button
+            className="font-medium text-primary text-sm underline"
             onClick={() => setSent(false)}
             type="button"
-            className="text-sm text-primary underline font-medium"
           >
             Resend code
           </button>
@@ -106,24 +104,24 @@ export function OTPSignIn({ className }: Props) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+    <form className="w-full" onSubmit={form.handleSubmit(onSubmit)}>
       <div className={cn("flex flex-col space-y-4 px-0.5", className)}>
         <Controller
-          name="email"
           control={form.control}
+          name="email"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name} className="sr-only">
+              <FieldLabel className="sr-only" htmlFor={field.name}>
                 Email
               </FieldLabel>
               <Input
                 {...field}
-                id={field.name}
                 aria-invalid={fieldState.invalid}
-                placeholder="Enter email address"
-                className="min-h-10"
                 autoCapitalize="false"
                 autoCorrect="false"
+                className="min-h-10"
+                id={field.name}
+                placeholder="Enter email address"
                 spellCheck="false"
               />
 
@@ -133,9 +131,9 @@ export function OTPSignIn({ className }: Props) {
         />
 
         <SubmitButton
-          type="submit"
-          className="bg-primary px-6 py-4 text-secondary font-medium flex space-x-2 h-10s w-full"
+          className="flex h-10s w-full space-x-2 bg-primary px-6 py-4 font-medium text-secondary"
           isSubmitting={isLoading}
+          type="submit"
         >
           Continue
         </SubmitButton>

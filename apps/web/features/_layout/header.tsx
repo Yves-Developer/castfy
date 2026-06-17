@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@castfy/ui/components/button";
+import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
 import { MousePointer2Icon } from "lucide-react";
 import { motion } from "motion/react";
@@ -11,13 +13,10 @@ import { siteConfig } from "@/config/site";
 
 interface HeaderProps {
   hideMenuItems?: boolean;
-  transparent?: boolean;
 }
 
-export function Header({
-  transparent = false,
-  hideMenuItems = false,
-}: HeaderProps) {
+export function Header({ hideMenuItems = false }: HeaderProps) {
+  const scrolled = useScroll(10);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -37,9 +36,8 @@ export function Header({
       <nav className="fixed top-0 right-0 left-0 z-50 w-full">
         <div
           className={cn(
-            "relative flex items-center justify-between px-4 py-3 sm:px-4 md:px-4 lg:px-4 xl:gap-6 xl:px-6 xl:py-4 2xl:px-8",
-            isMenuOpen && "border-border border-b",
-            !transparent && "bg-background-semi-transparent backdrop-blur-md",
+            "container relative flex items-center justify-between bg-background py-3",
+            isMenuOpen && "border-border border-b"
           )}
           ref={headerRef}
         >
@@ -52,7 +50,7 @@ export function Header({
           >
             <MousePointer2Icon className="size-6 rotate-90 fill-foreground" />
 
-            <span className="font-medium text-base text-foreground xl:hidden">
+            <span className="font-medium text-foreground text-lg">
               {siteConfig.name}
             </span>
           </Link>
@@ -62,11 +60,17 @@ export function Header({
               <div className="hidden items-center gap-6 xl:flex">
                 {navLinks.map((link) => (
                   <Link
-                    key={link.href}
                     className={cn(
                       "text-muted-foreground text-sm transition-colors hover:text-foreground",
-                      pathname === link.href && "text-foreground",
+                      pathname === link.href && "text-foreground"
                     )}
+                    key={link.href}
+                    {...(link.external
+                      ? {
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                        }
+                      : {})}
                     href={link.href}
                   >
                     {link.label}
@@ -74,14 +78,19 @@ export function Header({
                 ))}
               </div>
 
-              <div className="border-border border-l pl-4">
+              <Button
+                asChild
+                className="hidden lg:flex"
+                variant={scrolled ? "default" : "ghost"}
+              >
                 <a
-                  className="text-primary text-sm transition-colors hover:text-primary/80"
-                  href={`${siteConfig.appUrl}/login`}
+                  href="https://waitlist.castfy.app"
+                  rel="noopener"
+                  target="_blank"
                 >
-                  Sign in
+                  Get started
                 </a>
-              </div>
+              </Button>
             </>
           )}
 
@@ -142,9 +151,9 @@ export function Header({
             <div className="flex flex-col space-y-6 text-left">
               {navLinks.map((link) => (
                 <Link
-                  key={link.href}
                   className="touch-manipulation py-2 font-sans text-2xl text-primary transition-colors hover:text-primary focus:outline-none focus-visible:outline-none"
                   href={link.href}
+                  key={link.href}
                   onClick={() => setIsMenuOpen(false)}
                   onTouchEnd={handleTouchEnd}
                   style={{ WebkitTapHighlightColor: "transparent" }}

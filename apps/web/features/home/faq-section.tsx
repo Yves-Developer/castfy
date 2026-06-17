@@ -11,38 +11,38 @@ export function FAQSection() {
   };
 
   return (
-    <section className="py-12 container sm:py-16 border-y lg:py-24" id="faqs">
-      <div className="text-center space-y-4 mb-12">
-        <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
+    <section className="container border-y py-12 sm:py-16 lg:py-24" id="faqs">
+      <div className="mb-12 space-y-4 text-center">
+        <h2 className="font-serif text-3xl text-foreground sm:text-4xl">
           Frequently asked questions
         </h2>
-        <p className="hidden sm:block font-sans text-base text-muted-foreground leading-normal max-w-2xl mx-auto">
+        <p className="mx-auto hidden max-w-2xl font-sans text-base text-muted-foreground leading-normal sm:block">
           Everything you need to know before getting started.
         </p>
       </div>
 
-      <div className="max-w-3xl  w-full mx-auto space-y-4">
+      <div className="mx-auto w-full max-w-3xl space-y-4">
         {faqs.map((faq, index) => (
           <div
+            className="rounded-lg border border-border bg-background"
             key={faq.question}
-            className="border border-border rounded-lg  bg-background"
           >
             <button
-              type="button"
+              className="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-muted/50 sm:p-4"
               onClick={() => toggleFAQ(index)}
-              className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-muted/50 transition-colors"
               style={{ WebkitTapHighlightColor: "transparent" }}
+              type="button"
             >
-              <span className="font-sans text-sm text-foreground pr-6">
+              <span className="pr-6 font-sans text-foreground text-sm">
                 {faq.question}
               </span>
-              <span className="shrink-0 text-muted-foreground text-base">
+              <span className="shrink-0 text-base text-muted-foreground">
                 {openIndex === index ? "−" : "+"}
               </span>
             </button>
             {openIndex === index && (
-              <div className="px-3 sm:px-4 pb-3 sm:pb-4">
-                <p className="font-sans text-sm text-muted-foreground leading-relaxed">
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+                <p className="font-sans text-muted-foreground text-sm leading-relaxed">
                   {faq.answer}
                 </p>
               </div>

@@ -7,17 +7,15 @@ export interface TUseCase {
 }
 
 export interface Testimonial {
+  company: string;
+  content: string;
+  country: string;
+  image?: string;
   name: string;
   title: string;
-  company: string;
-  country: string;
-  content: string;
-  image?: string;
- 
 }
 
-
 export interface FAQItem {
-  question: string;
   answer: string;
+  question: string;
 }

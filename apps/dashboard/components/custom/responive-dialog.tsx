@@ -55,7 +55,7 @@ export function ResponsiveDialog({
     return (
       <Dialog onOpenChange={setOpenAction} open={open}>
         {trigger && (
-          <DialogTrigger className="hidden lg:flex" asChild>
+          <DialogTrigger asChild className="hidden lg:flex">
             {trigger.desktop}
           </DialogTrigger>
         )}

@@ -9,7 +9,9 @@ export function LoginVideoBackground() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     const handleCanPlay = () => {
       setIsVideoLoaded(true);
@@ -40,37 +42,38 @@ export function LoginVideoBackground() {
   }, []);
 
   return (
-    <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden m-2">
+    <div className="relative m-2 hidden overflow-hidden lg:flex lg:w-1/2">
       {/* Poster image with blur effect */}
       <div
-        className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out ${
-          isVideoLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+        className={`absolute inset-0 h-full w-full transition-all duration-1000 ease-in-out ${
+          isVideoLoaded ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
         style={{
           filter: isVideoLoaded ? "blur(0px)" : "blur(1px)",
         }}
       >
-        {/** biome-ignore lint/performance/noImgElement: for now */}
+        {/** biome-ignore lint/correctness/useImageSize: <explanation */}
+        {/** biome-ignore lint/performance/noImgElement: <explanation */}
         <img
-          src="https://midday.ai/cdn-cgi/image/width=1000,quality=80,format=auto/https://cdn.midday.ai/video-poster-v2.jpg"
           alt=""
-          className="w-full h-full object-cover"
           aria-hidden="true"
+          className="h-full w-full object-cover"
+          src="https://midday.ai/cdn-cgi/image/width=1000,quality=80,format=auto/https://cdn.midday.ai/video-poster-v2.jpg"
         />
       </div>
 
       {/* Video */}
       <video
-        ref={videoRef}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+        autoPlay
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
           isVideoLoaded ? "opacity-100" : "opacity-0"
         }`}
-        autoPlay
         loop
         muted
         playsInline
-        preload="auto"
         poster="https://midday.ai/cdn-cgi/image/width=1000,quality=80,format=auto/https://cdn.midday.ai/video-poster-v2.jpg"
+        preload="auto"
+        ref={videoRef}
       >
         <source
           src="https://cdn.midday.ai/videos/login-video.mp4"
@@ -82,7 +85,7 @@ export function LoginVideoBackground() {
       <div className="absolute inset-0 bg-black/20" />
 
       {/* Content overlay */}
-      <div className="relative z-10 flex flex-col justify-center items-center p-2 text-center h-full w-full">
+      <div className="relative z-10 flex h-full w-full flex-col items-center justify-center p-2 text-center">
         <div className="max-w-lg">
           <LoginTestimonials />
         </div>

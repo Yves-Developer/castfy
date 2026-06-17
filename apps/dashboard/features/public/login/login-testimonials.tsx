@@ -65,32 +65,32 @@ export default function LoginTestimonials() {
   }, []);
 
   return (
-    <div className="relative h-64 flex items-center justify-center">
+    <div className="relative flex h-64 items-center justify-center">
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentTestimonial}
-          initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          className="space-y-4 text-center"
           exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          key={currentTestimonial}
           transition={{ duration: 0.3 }}
-          className="text-center space-y-4"
         >
           {/* Quote - First */}
           <motion.div
-            initial={{ opacity: 0, filter: "blur(2px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+            className="relative mx-auto max-w-md"
+            initial={{ opacity: 0, filter: "blur(2px)", y: 10 }}
             transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-            className="relative max-w-md mx-auto"
           >
             {/* Large opening quote */}
-            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.02]">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform opacity-[0.02]">
               <svg
-                width="220"
+                className="size-55 object-contain"
+                fill="none"
                 height="220"
                 viewBox="0 0 6 5"
-                fill="none"
+                width="220"
                 xmlns="http://www.w3.org/2000/svg"
-                className="size-55 object-contain"
               >
                 <title>Quote</title>
                 <path
@@ -99,7 +99,7 @@ export default function LoginTestimonials() {
                 />
               </svg>
             </div>
-            <p className="font-sans text-xl text-white/40 leading-relaxed pl-4">
+            <p className="pl-4 font-sans text-white/40 text-xl leading-relaxed">
               {(() => {
                 const testimonial = testimonials[currentTestimonial];
                 const secondPart = testimonial?.secondPart || "";
@@ -133,10 +133,10 @@ export default function LoginTestimonials() {
 
           {/* Name and Title - Second */}
           <motion.p
-            initial={{ opacity: 0, filter: "blur(2px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+            className="font-sans text-white/40 text-xs"
+            initial={{ opacity: 0, filter: "blur(2px)", y: 10 }}
             transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="font-sans text-xs text-white/40"
           >
             {testimonials[currentTestimonial]?.name},{" "}
             {testimonials[currentTestimonial]?.title}

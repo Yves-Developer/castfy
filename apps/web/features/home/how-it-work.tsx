@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { steps } from "@/config/data";
 
 export default function HowItWork() {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -8,34 +9,34 @@ export default function HowItWork() {
     <section className="container" id="features">
       {/* Mobile: Stacked features */}
       <div className="grid grid-cols-1 gap-12 sm:gap-16 lg:hidden">
-        <div className="hidden lg:block text-center mb-2">
-          <h2 className="font-serif text-2xl sm:text-2xl text-foreground">
+        <div className="mb-2 hidden text-center lg:block">
+          <h2 className="font-serif text-2xl text-foreground sm:text-2xl">
             How it works
           </h2>
         </div>
-        {features.map((feature, index) => (
-          <div key={index.toString()} className="space-y-6 sm:space-y-8">
+        {steps.map((feature, index) => (
+          <div className="space-y-6 sm:space-y-8" key={index.toString()}>
             <div className="space-y-2 text-center">
-              <h2 className="font-serif text-2xl sm:text-2xl text-foreground max-w-md mx-auto">
+              <h2 className="mx-auto max-w-md font-serif text-2xl text-foreground sm:text-2xl">
                 {feature.title}
               </h2>
-              <p className="font-sans text-base text-muted-foreground leading-normal max-w-md mx-auto">
+              <p className="mx-auto max-w-md font-sans text-base text-muted-foreground leading-normal">
                 <span className="sm:hidden">
                   {feature.mobileSubtitle || feature.subtitle}
                 </span>
                 <span className="hidden sm:inline">{feature.subtitle}</span>
               </p>
             </div>
-            <div className="w-full border border-border overflow-hidden p-1 sm:p-3 relative">
-              <div className="w-full h-130 sm:h-155 relative overflow-hidden flex items-center justify-center z-10">
-                <div className="w-full h-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
+            <div className="relative w-full overflow-hidden border border-border p-1 sm:p-3">
+              <div className="relative z-10 flex h-130 w-full items-center justify-center overflow-hidden sm:h-155">
+                <div className="h-full w-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
                   <Image
-                    src={feature.illustration}
                     alt={feature.title}
-                    width={600}
+                    className="h-full w-full object-contain"
                     height={450}
-                    className="w-full h-full object-contain"
                     loading="lazy"
+                    src={feature.illustration}
+                    width={600}
                   />
                 </div>
               </div>
@@ -45,39 +46,39 @@ export default function HowItWork() {
       </div>
 
       {/* Desktop: Two-column interactive list + canvas */}
-      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 lg:h[740px]">
+      <div className="lg:h[740px] hidden grid-cols-1 gap-8 lg:grid lg:grid-cols-2 lg:gap-16">
         <div className="flex gap-6">
           {/* Timeline */}
-          <div className="flex flex-col justify-center items-center shrink-0 relative">
-            <div className="flex flex-col justify-center space-y-5 lg:space-y-6 mt-2 lg:mt-3">
+          <div className="relative flex shrink-0 flex-col items-center justify-center">
+            <div className="mt-2 flex flex-col justify-center space-y-5 lg:mt-3 lg:space-y-6">
               <div
-                className="flex items-center justify-center relative mb-4 lg:mb-6"
+                className="relative mb-4 flex items-center justify-center lg:mb-6"
                 style={{ minHeight: "3rem" }}
               />
-              {features.map((feature, index) => (
+              {steps.map((feature, index) => (
                 <div
+                  className="relative flex items-start justify-center"
                   key={feature.title}
-                  className="flex items-start justify-center relative"
                   style={{ minHeight: "3.5rem" }}
                 >
                   <button
+                    aria-label={`Go to feature: ${feature.title}`}
+                    className="relative z-10 cursor-pointer"
                     onClick={() => setActiveFeature(index)}
-                    className="cursor-pointer relative z-10"
                     style={{ marginTop: "0.125rem" }}
                     type="button"
-                    aria-label={`Go to feature: ${feature.title}`}
                   >
                     <div
-                      className={`w-2 h-2 rounded-none transition-all duration-200 ease-out ${
+                      className={`h-2 w-2 rounded-none transition-all duration-200 ease-out ${
                         activeFeature === index
-                          ? "bg-primary scale-[1.2]"
-                          : "bg-border hover:bg-muted-foreground scale-100"
+                          ? "scale-[1.2] bg-primary"
+                          : "scale-100 bg-border hover:bg-muted-foreground"
                       }`}
                     />
                   </button>
-                  {index < features.length - 1 && (
+                  {index < steps.length - 1 && (
                     <div
-                      className="absolute left-1/2 -translate-x-1/2 w-px border-l border-border"
+                      className="absolute left-1/2 w-px -translate-x-1/2 border-border border-l"
                       style={{
                         height: "calc(3.5rem + 1.25rem - 0.25rem)",
                         top: "0.375rem",
@@ -90,39 +91,39 @@ export default function HowItWork() {
           </div>
 
           {/* Text Content */}
-          <div className="flex flex-col justify-center space-y-5 lg:space-y-6 flex-1">
+          <div className="flex flex-1 flex-col justify-center space-y-5 lg:space-y-6">
             <div
-              className="flex items-center mb-4 lg:mb-6"
+              className="mb-4 flex items-center lg:mb-6"
               style={{ minHeight: "3rem" }}
             >
               <h2 className="font-serif text-2xl text-foreground">
                 How it works
               </h2>
             </div>
-            {features.map((feature, index) => (
+            {steps.map((feature, index) => (
               <button
-                key={index.toString()}
-                className={`cursor-pointer transition-all duration-300 flex items-start ${
+                className={`flex cursor-pointer items-start transition-all duration-300 ${
                   activeFeature === index
                     ? "opacity-100"
                     : "opacity-60 hover:opacity-80"
                 }`}
+                key={index.toString()}
                 onClick={() => setActiveFeature(index)}
                 style={{ minHeight: "3rem" }}
                 type="button"
               >
                 {activeFeature === index ? (
-                  <div className="overflow-hidden text-left animate-[fadeInBlur_0.35s_ease-out_forwards]">
-                    <h2 className="font-sans text-lg lg:text-xl text-primary transition-colors duration-300 max-w-md">
+                  <div className="animate-[fadeInBlur_0.35s_ease-out_forwards] overflow-hidden text-left">
+                    <h2 className="max-w-md font-sans text-lg text-primary transition-colors duration-300 lg:text-xl">
                       {feature.title}
                     </h2>
-                    <p className="font-sans text-sm text-primary leading-relaxed max-w-md mt-1">
+                    <p className="mt-1 max-w-md font-sans text-primary text-sm leading-relaxed">
                       {feature.subtitle}
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <h2 className="font-sans text-lg lg:text-xl text-muted-foreground transition-colors duration-300 max-w-md">
+                    <h2 className="max-w-md font-sans text-lg text-muted-foreground transition-colors duration-300 lg:text-xl">
                       {feature.title}
                     </h2>
                   </div>
@@ -132,21 +133,21 @@ export default function HowItWork() {
           </div>
         </div>
 
-        <div className="flex items-center rounded-lg justify-center p-6 lg:p-8 border border-border h-full overflow-hidden relative bg-background">
+        <div className="relative flex h-full items-center justify-center overflow-hidden rounded-lg border border-border bg-background p-6 lg:p-8">
           <div
-            key={activeFeature}
             // className="w-[400px] h-[500px] sm:w-[520px]  lg:w-[600px]  relative overflow-hidden z-10 flex items-center justify-center animate-[fadeInScale_0.4s_ease-out_forwards]"
-            className="w-100 h-125 sm:w-130   lg:w-150  relative overflow-hidden z-10 flex items-center justify-center animate-[fadeInScale_0.4s_ease-out_forwards]"
+            className="relative z-10 flex h-125 w-100 animate-[fadeInScale_0.4s_ease-out_forwards] items-center justify-center overflow-hidden sm:w-130 lg:w-150"
+            key={activeFeature}
             style={{ transformOrigin: "center" }}
           >
-            <div className="w-full h-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
+            <div className="h-full w-full origin-center scale-[0.85] sm:scale-[0.90] lg:scale-[0.95]">
               <Image
-                src={features[activeFeature]?.illustration ?? ""}
-                alt={features[activeFeature]?.title ?? "Feature"}
-                width={600}
+                alt={steps[activeFeature]?.title ?? "Feature"}
+                className="h-full w-full object-contain"
                 height={450}
-                className="w-full h-full  object-contain"
                 loading="lazy"
+                src={steps[activeFeature]?.illustration ?? ""}
+                width={600}
               />
             </div>
           </div>
@@ -155,29 +156,3 @@ export default function HowItWork() {
     </section>
   );
 }
-
-const features = [
-  {
-    title: "Enter product url",
-    subtitle:
-      "Every payment in and out of the business is automatically synced from your connected accounts.",
-    mobileSubtitle: "Every payment in and out is pulled in automatically.",
-    illustration: "/images/dashboard-dark.svg",
-  },
-  {
-    title: "Get demo",
-    subtitle:
-      "Customers can pay invoices online, with payments tracked automatically.",
-    mobileSubtitle:
-      "Customers can pay invoices online with payments tracked automatically.",
-    illustration: "/images/dashboard-dark.svg",
-  },
-  {
-    title: "Add your own final touch",
-    subtitle:
-      "Payments, receipts, and transactions are automatically matched so records stay accurate.",
-    mobileSubtitle:
-      "Transactions are categorized and reconciled automatically.",
-    illustration: "/images/dashboard-dark.svg",
-  },
-];

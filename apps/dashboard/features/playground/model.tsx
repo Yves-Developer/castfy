@@ -45,14 +45,14 @@ const models = [
 
 interface ModelItemProps {
   model: (typeof models)[0];
-  selectedModel: string;
   onSelect: (id: string) => void;
+  selectedModel: string;
 }
 
 const ModelItem = memo(({ model, selectedModel, onSelect }: ModelItemProps) => {
   const handleSelect = useCallback(
     () => onSelect(model.chefSlug),
-    [onSelect, model.chefSlug],
+    [onSelect, model.chefSlug]
   );
   return (
     <ModelSelectorItem key={model.id} onSelect={handleSelect} value={model.id}>
@@ -88,11 +88,11 @@ export function Model({
       setSelectedModelAction(id);
       setOpen(false);
     },
-    [setSelectedModelAction],
+    [setSelectedModelAction]
   );
 
   const selectedModelData = models.find(
-    (model) => model.chefSlug === selectedModel,
+    (model) => model.chefSlug === selectedModel
   );
 
   // Get unique chefs in order of appearance

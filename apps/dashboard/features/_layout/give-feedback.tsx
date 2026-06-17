@@ -100,7 +100,7 @@ export function GiveFeedbackDialog() {
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name} className="sr-only">
+                      <FieldLabel className="sr-only" htmlFor={field.name}>
                         Feedback
                       </FieldLabel>
                       <Textarea

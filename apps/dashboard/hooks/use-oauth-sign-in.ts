@@ -6,14 +6,14 @@ import { getUrl } from "@/lib/environment";
 
 export type OAuthProvider = "google" | "github";
 
-type ProviderConfig = {
-  name: string;
+interface ProviderConfig {
   icon: "Google" | "Github";
-  scopes?: string;
+  name: string;
   queryParams?: Record<string, string>;
-  variant: "primary" | "secondary";
+  scopes?: string;
   supportsReturnTo: boolean;
-};
+  variant: "primary" | "secondary";
+}
 
 const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
   google: {
@@ -39,7 +39,7 @@ export function useOAuthSignIn(provider: OAuthProvider) {
   const returnTo = searchParams.get("return_to");
   const config = OAUTH_PROVIDERS[provider];
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     setLoading(true);
 
     const redirectTo = new URL("/api/auth/callback", getUrl());

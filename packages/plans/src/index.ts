@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/useConsistentTypeDefinitions: <explanation */
 const POLAR_ENVIRONMENT = process.env.POLAR_ENVIRONMENT as
   | "production"
   | "sandbox";
@@ -28,6 +29,18 @@ export const PLANS = {
       key: "pro",
       interval: "year",
     },
+    business: {
+      id: "REPLACE_WITH_POLAR_PRODUCT_ID",
+      name: "Business",
+      key: "business",
+      interval: "month",
+    },
+    business_yearly: {
+      id: "REPLACE_WITH_POLAR_PRODUCT_ID",
+      name: "Business Yearly",
+      key: "business",
+      interval: "year",
+    },
   },
   sandbox: {
     starter: {
@@ -54,21 +67,33 @@ export const PLANS = {
       key: "pro",
       interval: "year",
     },
+    business: {
+      id: "REPLACE_WITH_POLAR_PRODUCT_ID",
+      name: "Business",
+      key: "business",
+      interval: "month",
+    },
+    business_yearly: {
+      id: "REPLACE_WITH_POLAR_PRODUCT_ID",
+      name: "Business Yearly",
+      key: "business",
+      interval: "year",
+    },
   },
 } as const;
 
-export type PlanKey = "starter" | "pro";
+export type PlanKey = "starter" | "pro" | "business";
 export type PlanProductKey =
   | "starter"
   | "starter_yearly"
   | "pro"
-  | "pro_yearly";
+  | "pro_yearly"
+  | "business"
+  | "business_yearly";
 
 export type PlanEnvironment = "production" | "sandbox";
 
-export const getPlans = () => {
-  return PLANS[POLAR_ENVIRONMENT];
-};
+export const getPlans = () => PLANS[POLAR_ENVIRONMENT];
 
 export function getPlanProductId(plan: PlanKey, yearly: boolean): string {
   const plans = getPlans();
@@ -88,7 +113,7 @@ export function getPlanByProductId(productId: string): PlanKey {
 }
 
 export function getPlanIntervalByProductId(
-  productId: string,
+  productId: string
 ): "month" | "year" {
   const plans = getPlans();
   const plan = Object.values(plans).find((p) => p.id === productId);
@@ -106,25 +131,28 @@ export function getPlanName(plan: string | null | undefined): string {
       return "Starter";
     case "pro":
       return "Pro";
+    case "business":
+      return "Business";
     case "trial":
-      return "Trial";
+      return "Free Trial";
     default:
-      return "Free";
+      return "Free Trial";
   }
 }
 
 export type PlanLimits = {
-  users: number;
-  bankConnections: number;
-  connectors: number;
-  storage: number;
-  inbox: number;
-  invoices: number;
+  aiMinutes: number;
+  demos: number | "unlimited";
+  versionsPerVideo: number;
+  exportQuality: "1080p" | "1440p" | "4k";
+  multiLanguage: boolean;
+  watermark: boolean;
 };
 
 export type PlanPricing = {
   starter: { monthly: number; yearly: number };
   pro: { monthly: number; yearly: number };
+  business: { monthly: number; yearly: number };
   currency: string;
   symbol: string;
 };
@@ -132,8 +160,10 @@ export type PlanPricing = {
 export function getPlanPricing(continent?: string | null): PlanPricing {
   const isEUR = continent === "EU";
   return {
-    starter: { monthly: 19, yearly: 15 },
-    pro: { monthly: 49, yearly: 39 },
+    // Yearly numbers aren't in the screenshot — placeholders below, update once finalized.
+    starter: { monthly: 40, yearly: 32 },
+    pro: { monthly: 99, yearly: 79 },
+    business: { monthly: 250, yearly: 200 },
     currency: isEUR ? "EUR" : "USD",
     symbol: isEUR ? "€" : "$",
   };
@@ -142,123 +172,56 @@ export function getPlanPricing(continent?: string | null): PlanPricing {
 export type PlanFeature = {
   label: string;
   tooltip?: string;
+  disabled?: boolean; // true = shown but greyed out / not included
 };
 
+export const freeTrialFeatures: PlanFeature[] = [
+  { label: "2 AI minutes" },
+  { label: "1 demo" },
+  { label: "1080p export quality" },
+  { label: "No custom branding", disabled: true },
+  { label: "No multi-language support", disabled: true },
+];
+
 export const starterFeatures: PlanFeature[] = [
-  {
-    label: "Invoicing and payments",
-    tooltip:
-      "Recurring schedules, templates, customer portal, and online card payments.",
-  },
-  {
-    label: "Transactions and bank sync",
-    tooltip:
-      "Connect to 20,000+ banks. Transactions categorized automatically.",
-  },
-  {
-    label: "Inbox and receipt matching",
-    tooltip:
-      "Forward receipts from Gmail, Outlook, Slack, or WhatsApp. Matched to transactions automatically.",
-  },
-  {
-    label: "Accounting exports",
-    tooltip: "Export to Xero, QuickBooks, Fortnox, or CSV with one click.",
-  },
-  {
-    label: "Time tracking",
-    tooltip: "Track billable hours per project and turn them into invoices.",
-  },
-  {
-    label: "Financial metrics",
-    tooltip:
-      "Track revenue, burn rate, profit, expenses, and runway with customizable dashboards.",
-  },
-  {
-    label: "Financial overview and reports",
-    tooltip:
-      "Live dashboard with profit & loss, burn rate, runway, cash flow, and tax summaries.",
-  },
-  {
-    label: "Vault",
-    tooltip:
-      "Store and organize documents. Attach to transactions and invoices.",
-  },
-  {
-    label: "Apps and integrations",
-    tooltip: "Slack, Gmail, Outlook, Stripe, Google Drive, Dropbox, and more.",
-  },
-  {
-    label: "5 AI Connectors",
-    tooltip:
-      "Connect up to 5 of 60+ tools like Linear, Notion, HubSpot, and GitHub to the AI assistant.",
-  },
-  {
-    label: "Multi-currency",
-    tooltip:
-      "Invoice in any currency. Converted to your base currency automatically.",
-  },
-  {
-    label: "Customer management",
-    tooltip:
-      "Store customer details, track history, and reuse across invoices and projects.",
-  },
-  {
-    label: "API, CLI, and MCP",
-    tooltip:
-      "REST API, CLI, SDKs, and MCP server for AI agents and custom workflows.",
-  },
-  { label: "3 banks · 15 invoices/mo · 10GB storage" },
+  { label: "20 AI minutes / month" },
+  { label: "10 demos / month" },
+  { label: "No watermark" },
+  { label: "Custom branding" },
+  { label: "2 versions per video" },
+  { label: "Multi-language support (29 languages)" },
+  { label: "Export in 1080p" },
+  { label: "Email support" },
 ];
 
 export const proFeatures: PlanFeature[] = [
-  { label: "Everything in Starter" },
-  { label: "10 banks · 50 invoices/mo · 100GB storage" },
+  { label: "50 AI minutes / month" },
+  { label: "50 demos / month" },
+  { label: "No watermark" },
+  { label: "Custom branding" },
+  { label: "5 versions per video" },
+  { label: "Multi-language support (29 languages)" },
+  { label: "Export in 1440p (2K)" },
   {
-    label: "20 AI Connectors",
-    tooltip:
-      "Connect up to 20 of 60+ tools like Linear, Notion, HubSpot, Figma, and more to the AI assistant.",
+    label: "Docusmith documentation exports",
+    tooltip: "TODO: add tooltip copy",
   },
-  {
-    label: "Custom transaction categories",
-    tooltip:
-      "Create your own categories and rules to match how your business operates.",
-  },
-  {
-    label: "Invoice templates",
-    tooltip:
-      "Save and reuse invoice layouts for different clients or services.",
-  },
-  {
-    label: "Customer portal",
-    tooltip:
-      "Let customers view and pay invoices through their own branded portal.",
-  },
-  {
-    label: "Customer enrichment",
-    tooltip:
-      "Automatically enrich customer profiles with company details, social links, funding info, and more.",
-  },
-  {
-    label: "Advanced metrics",
-    tooltip:
-      "Revenue forecasting, category breakdowns, and detailed financial analysis across your business.",
-  },
-  {
-    label: "Advanced AI thinking",
-    tooltip:
-      "Deep analysis mode with extended reasoning for complex financial questions.",
-  },
-  {
-    label: "Shareable report and document links",
-    tooltip:
-      "Generate view-only links with optional expiration for reports, receipts, and vault documents.",
-  },
-  // {
-  //   label: "E-Invoicing (Peppol)",
-  //   tooltip:
-  //     "Send and receive e-invoices via the Peppol network for EU/global compliance.",
-  // },
   { label: "Priority support" },
+];
+
+export const businessFeatures: PlanFeature[] = [
+  { label: "150 AI minutes / month" },
+  { label: "Unlimited demos" },
+  { label: "No watermark" },
+  { label: "Custom branding" },
+  { label: "10 versions per video" },
+  { label: "Multi-language support (29 languages)" },
+  { label: "Export in 4K quality" },
+  {
+    label: "Docusmith documentation exports",
+    tooltip: "TODO: add tooltip copy",
+  },
+  { label: "Dedicated support" },
 ];
 
 /** @deprecated Use starterFeatures instead */
@@ -268,31 +231,40 @@ export function getPlanLimits(plan: string): PlanLimits {
   switch (plan) {
     case "starter":
       return {
-        users: 2,
-        bankConnections: 3,
-        connectors: 5,
-        storage: 10 * 1024 * 1024 * 1024,
-        inbox: 150,
-        invoices: 15,
+        aiMinutes: 20,
+        demos: 10,
+        versionsPerVideo: 2,
+        exportQuality: "1080p",
+        multiLanguage: true,
+        watermark: false,
       };
-    case "trial":
     case "pro":
       return {
-        users: 10,
-        bankConnections: 10,
-        connectors: 20,
-        storage: 100 * 1024 * 1024 * 1024,
-        inbox: 500,
-        invoices: 50,
+        aiMinutes: 50,
+        demos: 50,
+        versionsPerVideo: 5,
+        exportQuality: "1440p",
+        multiLanguage: true,
+        watermark: false,
       };
+    case "business":
+      return {
+        aiMinutes: 150,
+        demos: "unlimited",
+        versionsPerVideo: 10,
+        exportQuality: "4k",
+        multiLanguage: true,
+        watermark: false,
+      };
+    case "trial":
     default:
       return {
-        users: 1,
-        bankConnections: 1,
-        connectors: 2,
-        storage: 1 * 1024 * 1024 * 1024,
-        inbox: 50,
-        invoices: 5,
+        aiMinutes: 2,
+        demos: 1,
+        versionsPerVideo: 1,
+        exportQuality: "1080p",
+        multiLanguage: false,
+        watermark: true,
       };
   }
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  businessFeatures,
+  freeTrialFeatures,
   getPlanPricing,
   type PlanFeature,
   proFeatures,
@@ -16,13 +18,21 @@ import { cn } from "@castfy/ui/lib/utils";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
-function FeatureRow({ label, tooltip }: PlanFeature) {
+function FeatureRow({ label, tooltip, disabled }: PlanFeature) {
   const content = (
     <div className="flex items-start gap-2">
-      <span className="text-foreground leading-6">•</span>
       <span
         className={cn(
-          "font-sans text-foreground text-sm leading-relaxed",
+          "leading-6",
+          disabled ? "text-muted-foreground/40" : "text-foreground"
+        )}
+      >
+        •
+      </span>
+      <span
+        className={cn(
+          "font-sans text-sm leading-relaxed",
+          disabled ? "text-muted-foreground/50" : "text-foreground",
           tooltip && "cursor-help border-[#878787]/30 border-b border-dashed"
         )}
       >
@@ -49,14 +59,18 @@ interface PlanCardsProps {
   continent?: string;
   footnote?: string;
   onCurrencyChange?: (currency: "USD" | "EUR") => void;
+  renderBusinessAction: (billingPeriod: "monthly" | "yearly") => ReactNode;
+  renderFreeTrialAction: () => ReactNode;
   renderProAction: (billingPeriod: "monthly" | "yearly") => ReactNode;
   renderStarterAction: (billingPeriod: "monthly" | "yearly") => ReactNode;
 }
 
 export function PlanCards({
   continent,
+  renderFreeTrialAction,
   renderStarterAction,
   renderProAction,
+  renderBusinessAction,
   onCurrencyChange,
   footnote,
 }: PlanCardsProps) {
@@ -133,7 +147,38 @@ export function PlanCards({
           </div>
         </div>
 
-        <div className="mx-auto grid w-full max-w-200 grid-cols-1 gap-7 md:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Free Trial Plan */}
+          <div className="flex h-full flex-col rounded-lg border border-border bg-background p-4 py-6">
+            <div className="mb-4">
+              <h3 className="mb-1 font-sans text-base text-foreground">
+                Free Trial
+              </h3>
+              <p className="mb-3 font-sans text-muted-foreground text-sm">
+                Try it out, no commitment
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="font-sans text-2xl text-foreground">
+                  {pricing.symbol}0
+                </span>
+                <span className="font-sans text-muted-foreground text-sm">
+                  /3 days
+                </span>
+              </div>
+              <p className="mt-1 font-sans text-muted-foreground text-xs">
+                No credit card required
+              </p>
+            </div>
+
+            <div className="flex-1 space-y-1 border-border border-t pt-8 pb-6">
+              {freeTrialFeatures.map((f) => (
+                <FeatureRow key={f.label} {...f} />
+              ))}
+            </div>
+
+            <div className="space-y-3">{renderFreeTrialAction()}</div>
+          </div>
+
           {/* Starter Plan */}
           <div className="flex h-full flex-col rounded-lg border border-border bg-background p-4 py-6">
             <div className="mb-4">
@@ -211,6 +256,44 @@ export function PlanCards({
             </div>
 
             <div className="space-y-3">{renderProAction(billingPeriod)}</div>
+          </div>
+
+          {/* Business Plan */}
+          <div className="flex h-full flex-col rounded-lg border border-border bg-background p-4 py-6">
+            <div className="mb-4">
+              <h3 className="mb-1 font-sans text-base text-foreground">
+                Business
+              </h3>
+              <p className="mb-3 font-sans text-muted-foreground text-sm">
+                Built for high-volume teams
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="font-sans text-2xl text-foreground">
+                  {pricing.symbol}
+                  {billingPeriod === "monthly"
+                    ? pricing.business.monthly
+                    : pricing.business.yearly}
+                </span>
+                <span className="font-sans text-muted-foreground text-sm">
+                  /month
+                </span>
+              </div>
+              <p className="mt-1 font-sans text-muted-foreground text-xs">
+                {billingPeriod === "monthly"
+                  ? "Billed monthly"
+                  : `${pricing.symbol}${pricing.business.yearly * 12}/year · billed annually`}
+              </p>
+            </div>
+
+            <div className="flex-1 space-y-1 border-border border-t pt-8 pb-6">
+              {businessFeatures.map((f) => (
+                <FeatureRow key={f.label} {...f} />
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              {renderBusinessAction(billingPeriod)}
+            </div>
           </div>
         </div>
 

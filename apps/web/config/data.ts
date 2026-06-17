@@ -6,16 +6,23 @@ export const navLinks = [
     href: "/",
   },
   {
-    label: "Features",
-    href: "/#features",
+    label: "How",
+    href: "/#how",
   },
+
+  {
+    label: "Why us",
+    href: "/#why-us",
+  },
+  {
+    label: "Waitlist",
+    href: "https://waitlist.castfy.app/",
+    external: true,
+  },
+
   {
     label: "Pricing",
     href: "/#pricing",
-  },
-  {
-    label: "Use Cases",
-    href: "/#use-cases",
   },
   {
     label: "Faqs",
@@ -23,6 +30,64 @@ export const navLinks = [
   },
 ];
 
+export const steps = [
+  {
+    title: "Enter your product URL",
+    subtitle:
+      "Paste your product URL and let AI analyze your product, messaging, and key features automatically.",
+    mobileSubtitle:
+      "Paste your URL and let AI extract your product details instantly.",
+    illustration: "/images/dashboard-dark.svg",
+  },
+  {
+    title: "Generate your demo",
+    subtitle:
+      "AI creates a polished product demo in minutes, complete with engaging flows and clear messaging.",
+    mobileSubtitle: "Get a ready-to-share product demo generated in minutes.",
+    illustration: "/images/dashboard-dark.svg",
+  },
+  {
+    title: "Add your final touch",
+    subtitle:
+      "Customize the content, branding, and experience before exporting your demo in multiple formats.",
+    mobileSubtitle: "Edit, personalize, and export your demo anywhere.",
+    illustration: "/images/dashboard-dark.svg",
+  },
+];
+
+export const comparisonData = [
+  {
+    label: "Before",
+    title: "Manual",
+    items: [
+      "Hours to days from recording to final video",
+      "Record 5–10 takes to avoid stumbles",
+      "Re-record when UI changes (every release)",
+      "Edit cuts, zooms, and pacing manually",
+      "Write captions + transcript after the fact",
+      "Create variants (persona/region) from scratch",
+      "Chase approvals in Slack threads",
+      "Demos end up outdated in weeks",
+    ],
+    type: "negative",
+  },
+  {
+    label: "After",
+    title: "Castfy",
+    items: [
+      "Few minutes from URL to shareable demo",
+      "URL + prompt → Demosmith runs the flow",
+      "Auto-cuts + UI-aware zooms for key actions",
+      "Captions + narration (optional) generated",
+      "Brand kit applied (logo/colors/intro/outro)",
+      "Generate variants for personas + regions",
+      "Export MP4 + shareable link",
+      "Store in a demo library for reuse",
+    ],
+    type: "positive",
+    cta: "Join waitlist",
+  },
+];
 export const usaCases: TUseCase[] = [
   {
     title: "Vendyy",
@@ -87,7 +152,7 @@ export const faqs: FAQItem[] = [
     answer:
       "Receipts and invoices can be pulled automatically from connected email accounts, synced from existing folders, or uploaded manually. They are then matched to transactions so everything stays organized.",
   },
- 
+
   {
     question: "What are weekly updates?",
     answer:
@@ -98,7 +163,6 @@ export const faqs: FAQItem[] = [
     answer:
       "Yes. You can create one-off, recurring, scheduled, and web invoices. Invoice activity is reflected directly in your overview.",
   },
-
 ];
 
 export const defaultTestimonials: Testimonial[] = [
@@ -110,7 +174,6 @@ export const defaultTestimonials: Testimonial[] = [
     image: "/stories/pawel.jpeg",
     content:
       "Castfy helps us showcase products instantly. Instead of recording walkthroughs, we simply paste a URL and share a polished interactive demo.",
-  
   },
   {
     name: "Facu Montanaro",
@@ -129,7 +192,6 @@ export const defaultTestimonials: Testimonial[] = [
     image: "/stories/richard.jpeg",
     content:
       "The ability to turn any product URL into a demo has completely changed how we present products to prospects and clients.",
-   
   },
   {
     name: "Guy Solan",
@@ -139,8 +201,5 @@ export const defaultTestimonials: Testimonial[] = [
     image: "/stories/guy.jpeg",
     content:
       "Castfy makes it incredibly easy to demonstrate our platform. Prospects can explore the product before ever speaking with our team.",
-  
-  
   },
 ];
-
