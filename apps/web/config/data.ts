@@ -76,7 +76,7 @@ export const comparisonData = [
     title: "Castfy",
     items: [
       "Few minutes from URL to shareable demo",
-      "URL + prompt → Demosmith runs the flow",
+      "URL + prompt → Castfy runs the flow",
       "Auto-cuts + UI-aware zooms for key actions",
       "Captions + narration (optional) generated",
       "Brand kit applied (logo/colors/intro/outro)",
