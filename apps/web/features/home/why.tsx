@@ -4,21 +4,21 @@ import { comparisonData } from "@/config/data";
 
 export function WhyCastfy() {
   return (
-    <section className=" container " id="why-us">
-      <div className="text-center space-y-4 mb-12">
-        <h2 className="font-serif text-3xl sm:text-4xl text-foreground">
+    <section className="container" id="why-us">
+      <div className="mb-12 space-y-4 text-center">
+        <h2 className="font-serif text-3xl text-foreground sm:text-4xl">
           Why teams switch to Castfy
         </h2>
-        <p className="hidden sm:block font-sans text-base text-muted-foreground leading-normal">
+        <p className="hidden font-sans text-base text-muted-foreground leading-normal sm:block">
           The old way takes days. The Castfy way takes minutes.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {comparisonData.map((c) => (
-          <div key={c.title} className="space-y-4">
+          <div className="space-y-4" key={c.title}>
             <Card className="h-full">
-              <CardHeader className="space-y-6 p-8 ">
-                <CardTitle className="text-center text-2xl font-medium tracking-tight">
+              <CardHeader className="space-y-6 p-8">
+                <CardTitle className="text-center font-medium text-2xl tracking-tight">
                   {c.title} - {c.label}
                 </CardTitle>
 
@@ -27,8 +27,8 @@ export function WhyCastfy() {
                 <ul className="space-y-4">
                   {c.items.map((item) => (
                     <li
-                      key={item}
                       className="flex items-start gap-4 text-lg text-muted-foreground"
+                      key={item}
                     >
                       <span className="mt-1 shrink-0">
                         {c.type === "positive" ? "✓" : "✕"}
@@ -39,11 +39,11 @@ export function WhyCastfy() {
                 </ul>
 
                 {c.cta && (
-                  <Button size="xl" asChild>
+                  <Button asChild size="xl">
                     <a
                       href="https://waitlist.castfy.app"
-                      target="_blank"
                       rel="noopener"
+                      target="_blank"
                     >
                       <span className="text-inherit text-sm">{c.cta}</span>
                     </a>

@@ -36,8 +36,8 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
       <nav className="fixed top-0 right-0 left-0 z-50 w-full">
         <div
           className={cn(
-            "relative flex items-center justify-between bg-background container py-3 ",
-            isMenuOpen && "border-border border-b",
+            "container relative flex items-center justify-between bg-background py-3",
+            isMenuOpen && "border-border border-b"
           )}
           ref={headerRef}
         >
@@ -50,7 +50,7 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
           >
             <MousePointer2Icon className="size-6 rotate-90 fill-foreground" />
 
-            <span className="font-medium text-lg text-foreground ">
+            <span className="font-medium text-foreground text-lg">
               {siteConfig.name}
             </span>
           </Link>
@@ -60,11 +60,11 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
               <div className="hidden items-center gap-6 xl:flex">
                 {navLinks.map((link) => (
                   <Link
-                    key={link.href}
                     className={cn(
                       "text-muted-foreground text-sm transition-colors hover:text-foreground",
-                      pathname === link.href && "text-foreground",
+                      pathname === link.href && "text-foreground"
                     )}
+                    key={link.href}
                     {...(link.external
                       ? {
                           target: "_blank",
@@ -80,13 +80,13 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
 
               <Button
                 asChild
-                className="hidden  lg:flex"
+                className="hidden lg:flex"
                 variant={scrolled ? "default" : "ghost"}
               >
                 <a
                   href="https://waitlist.castfy.app"
-                  target="_blank"
                   rel="noopener"
+                  target="_blank"
                 >
                   Get started
                 </a>
@@ -151,9 +151,9 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
             <div className="flex flex-col space-y-6 text-left">
               {navLinks.map((link) => (
                 <Link
-                  key={link.href}
                   className="touch-manipulation py-2 font-sans text-2xl text-primary transition-colors hover:text-primary focus:outline-none focus-visible:outline-none"
                   href={link.href}
+                  key={link.href}
                   onClick={() => setIsMenuOpen(false)}
                   onTouchEnd={handleTouchEnd}
                   style={{ WebkitTapHighlightColor: "transparent" }}

@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@castfy/ui/lib/utils";
-import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { siteConfig } from "@/config/site";
 
@@ -28,7 +27,7 @@ export function Footer() {
             "select-none font-sans text-[200px] leading-none sm:text-[508px]",
             "text-secondary",
             "[WebkitTextStroke:1px_var(--muted-foreground)]",
-            "[textStroke:1px_var(--muted-foreground)]",
+            "[textStroke:1px_var(--muted-foreground)]"
           )}
           style={{
             WebkitTextStroke: "1px var(--muted-foreground)",

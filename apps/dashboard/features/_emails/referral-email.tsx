@@ -1,11 +1,4 @@
-import {
-  Body,
-  Html,
-  Preview,
-  Section,
-  Tailwind,
-  Text,
-} from "react-email";
+import { Body, Html, Preview, Section, Tailwind, Text } from "react-email";
 import type { TReferralFormSchema } from "@/server/schema";
 
 export const ReferralEmail = ({

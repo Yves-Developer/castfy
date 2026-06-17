@@ -10,16 +10,16 @@ import { steps } from "@/config/data";
 
 export function Steps() {
   return (
-    <section className=" container " id="how">
-      <div className="text-center space-y-4 mb-12">
-        <h2 className="font-serif text-3xl sm:text-4xl text-foreground">
+    <section className="container" id="how">
+      <div className="mb-12 space-y-4 text-center">
+        <h2 className="font-serif text-3xl text-foreground sm:text-4xl">
           How it works
         </h2>
-        <p className="hidden sm:block font-sans text-base text-muted-foreground leading-normal">
+        <p className="hidden font-sans text-base text-muted-foreground leading-normal sm:block">
           Step by step, how your demo come to live.
         </p>
       </div>
-      <div className="grid grid-cols-1 w-full md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {steps.map((step, i) => (
           <Card key={step.title}>
             <CardHeader>

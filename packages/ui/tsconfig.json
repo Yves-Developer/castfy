@@ -3,7 +3,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "strictNullChecks": true
   },
   "include": [".", "../../apps/web/components/carousel.tsx"],
   "exclude": ["node_modules", "dist"]

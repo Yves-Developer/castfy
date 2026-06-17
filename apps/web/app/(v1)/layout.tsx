@@ -8,7 +8,7 @@ export default function AppLayout(props: LayoutProps<"/">) {
       <Suspense>
         <Header />
       </Suspense>
-      <main className="flex flex-1 flex-col pt-16 xl:max-w-360 w-full mx-auto  overflow-hidden ">
+      <main className="mx-auto flex w-full flex-1 flex-col overflow-hidden pt-16 xl:max-w-360">
         {props.children}
       </main>
       <Footer />

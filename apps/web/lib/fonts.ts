@@ -49,5 +49,5 @@ export const fontVariables = cn(
   fontRoboto.variable,
   fontPlusJakartaSans.variable,
   hedvigSans.variable,
-  hedvigSerif.variable,
+  hedvigSerif.variable
 );
