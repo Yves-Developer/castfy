@@ -65,6 +65,12 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
                       "text-muted-foreground text-sm transition-colors hover:text-foreground",
                       pathname === link.href && "text-foreground",
                     )}
+                    {...(link.external
+                      ? {
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                        }
+                      : {})}
                     href={link.href}
                   >
                     {link.label}

@@ -4,7 +4,7 @@ import { comparisonData } from "@/config/data";
 
 export function WhyCastfy() {
   return (
-    <section className=" container " id="pricing">
+    <section className=" container " id="why-us">
       <div className="text-center space-y-4 mb-12">
         <h2 className="font-serif text-3xl sm:text-4xl text-foreground">
           Why teams switch to Castfy

@@ -2,7 +2,6 @@
 
 import { Button } from "@castfy/ui/components/button";
 import { PlanCards } from "@castfy/ui/components/plan-cards";
-import { siteConfig } from "@/config/site";
 
 export function PricingSection() {
   return (
@@ -21,7 +20,13 @@ export function PricingSection() {
         renderFreeTrialAction={() => (
           <>
             <Button asChild className="w-full text-sm" variant="outline">
-              <a href={`${siteConfig.appUrl}/login`}>Get started</a>
+              <a
+                href="https://waitlist.castfy.app"
+                target="_blank"
+                rel="noopener"
+              >
+                Join waiting list
+              </a>
             </Button>
             <p className="font-sans text-xs text-muted-foreground text-center">
               No credit card required
@@ -31,7 +36,13 @@ export function PricingSection() {
         renderStarterAction={() => (
           <>
             <Button asChild className="w-full text-sm" variant="outline">
-              <a href={`${siteConfig.appUrl}/login`}>Start your trial</a>
+              <a
+                href="https://waitlist.castfy.app"
+                target="_blank"
+                rel="noopener"
+              >
+                Join waiting list
+              </a>
             </Button>
             <p className="font-sans text-xs text-muted-foreground text-center">
               Best for getting started
@@ -41,7 +52,13 @@ export function PricingSection() {
         renderProAction={() => (
           <>
             <Button asChild className="w-full text-sm">
-              <a href={`${siteConfig.appUrl}/login`}>Start your trial</a>
+              <a
+                href="https://waitlist.castfy.app"
+                target="_blank"
+                rel="noopener"
+              >
+                Join waiting list
+              </a>
             </Button>
             <p className="font-sans text-xs text-muted-foreground text-center">
               Best value for most businesses
@@ -51,7 +68,13 @@ export function PricingSection() {
         renderBusinessAction={() => (
           <>
             <Button asChild className="w-full text-sm" variant="outline">
-              <a href={`${siteConfig.appUrl}/login`}>Start your trial</a>
+              <a
+                href="https://waitlist.castfy.app"
+                target="_blank"
+                rel="noopener"
+              >
+                Join waiting list
+              </a>
             </Button>
             <p className="font-sans text-xs text-muted-foreground text-center">
               Built for high-volume teams

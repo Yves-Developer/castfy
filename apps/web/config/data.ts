@@ -6,17 +6,18 @@ export const navLinks = [
     href: "/",
   },
   {
-    label: "Features",
-    href: "/#features",
+    label: "How",
+    href: "/#how",
   },
 
   {
-    label: "Use Cases",
-    href: "/#use-cases",
+    label: "Why us",
+    href: "/#why-us",
   },
   {
-    label: "Testimonials",
-    href: "/#testimonails",
+    label: "Waitlist",
+    href: "https://waitlist.castfy.app/",
+    external: true,
   },
 
   {
