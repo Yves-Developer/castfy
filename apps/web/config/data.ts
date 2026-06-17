@@ -32,11 +32,11 @@ export const navLinks = [
 
 export const steps = [
   {
-    title: "Enter your product URL",
+    title: "Enter your product URL + Prompt",
     subtitle:
-      "Paste your product URL and let AI analyze your product, messaging, and key features automatically.",
+      "Paste your product URL + Prompt and let AI analyze your product, messaging, and key features automatically.",
     mobileSubtitle:
-      "Paste your URL and let AI extract your product details instantly.",
+      "Paste your URL + Prompt and let AI extract your product details instantly.",
     illustration: "/images/dashboard-dark.svg",
   },
   {
