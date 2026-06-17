@@ -58,7 +58,7 @@ export function AnalyticCards() {
         const Icon = card.badge.icon;
 
         return (
-          <Card className="@container/card shadow-none " key={card.title}>
+          <Card className="@container/card shadow-none" key={card.title}>
             <CardHeader>
               <CardDescription>{card.title}</CardDescription>
 

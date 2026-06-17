@@ -9,6 +9,17 @@
         "noUnknownAtRules": "off",
         "noArrayIndexKey": "off"
       }
+    },
+    "domains": {
+      "next": "recommended",
+      "react": "recommended"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
     }
   }
 }

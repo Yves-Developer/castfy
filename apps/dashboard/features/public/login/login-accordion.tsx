@@ -8,28 +8,24 @@ import {
 import { Button } from "@castfy/ui/components/button";
 import { useState } from "react";
 
-type Props = {
-  children: React.ReactNode;
-};
-
-export function LoginAccordion({ children }: Props) {
+export function LoginAccordion({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Accordion
-      type="single"
-      collapsible
       className="w-full"
-      value={isOpen ? "item-1" : ""}
+      collapsible
       onValueChange={(value) => setIsOpen(value === "item-1")}
+      type="single"
+      value={isOpen ? "item-1" : ""}
     >
-      <AccordionItem value="item-1" className="border-0">
+      <AccordionItem className="border-0" value="item-1">
         <div className="flex items-center justify-center">
           <Button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
             className="w-full"
+            onClick={() => setIsOpen(!isOpen)}
             size="xl"
+            type="button"
           >
             {isOpen ? "Hide other options" : "Show other options"}
           </Button>

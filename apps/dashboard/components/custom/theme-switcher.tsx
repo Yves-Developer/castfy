@@ -64,7 +64,7 @@ function ThemeSwitcher() {
       //
     },
     () => true,
-    () => false,
+    () => false
   );
 
   if (!isMounted) {

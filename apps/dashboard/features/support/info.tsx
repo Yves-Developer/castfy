@@ -3,7 +3,7 @@ import { MailIcon, MapPinIcon, MessageCircleIcon } from "lucide-react";
 export function SupportInfo() {
   return (
     <div className="flex flex-col gap-10">
-      <h3 className="text-balance font-medium text-[32px] leading-9 md:text-[44px] lg:text-[52px] @5xl:text-[64px]   md:leading-12 lg:leading-13.25 xl:leading-16">
+      <h3 className="text-balance font-medium @5xl:text-[64px] text-[32px] leading-9 md:text-[44px] md:leading-12 lg:text-[52px] lg:leading-13.25 xl:leading-16">
         Contact our sales team
       </h3>
       <p className="text-balance">

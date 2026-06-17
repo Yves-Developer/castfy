@@ -28,7 +28,7 @@ export function DataTablePagination<TData>({
     <div
       className={cn(
         "flex flex-wrap items-center justify-between gap-2 px-2 text-muted-foreground",
-        className,
+        className
       )}
     >
       <div className="flex-1 text-sm">

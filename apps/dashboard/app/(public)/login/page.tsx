@@ -30,7 +30,7 @@ export default async function Page() {
       moreSignInOptions = (
         <>
           <OAuthSignIn provider="google" />
-          <OTPSignIn className="border-t border-border pt-8" />
+          <OTPSignIn className="border-border border-t pt-8" />
         </>
       );
       break;
@@ -40,7 +40,7 @@ export default async function Page() {
       moreSignInOptions = (
         <>
           <OAuthSignIn provider="github" />
-          <OTPSignIn className="border-t border-border pt-8" />
+          <OTPSignIn className="border-border border-t pt-8" />
         </>
       );
       break;
@@ -59,42 +59,42 @@ export default async function Page() {
       moreSignInOptions = (
         <>
           <OAuthSignIn provider="github" />
-          <OTPSignIn className="border-t border-border pt-8" />
+          <OTPSignIn className="border-border border-t pt-8" />
         </>
       );
   }
 
   return (
-    <div className="min-h-screen bg-background flex relative">
+    <div className="relative flex min-h-screen bg-background">
       {/* Left Side - Video Background */}
       <LoginVideoBackground />
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-12 pb-2">
-        <div className="w-full max-w-md flex flex-col h-full">
-          <div className="space-y-8 flex-1 flex flex-col justify-center">
+      <div className="flex w-full flex-col items-center justify-center p-8 pb-2 lg:w-1/2 lg:p-12">
+        <div className="flex h-full w-full max-w-md flex-col">
+          <div className="flex flex-1 flex-col justify-center space-y-8">
             {/* Header */}
-            <div className="text-center space-y-2">
-              <h1 className="text-lg lg:text-xl mb-4 font-serif">
+            <div className="space-y-2 text-center">
+              <h1 className="mb-4 font-serif text-lg lg:text-xl">
                 Welcome to {siteConfig.name}
               </h1>
-              <p className="font-sans text-sm text-[#878787]">
+              <p className="font-sans text-[#878787] text-sm">
                 Sign in or create an account
               </p>
             </div>
 
             {/* Sign In Options */}
-            <div className="space-y-3 flex items-center justify-center w-full">
+            <div className="flex w-full items-center justify-center space-y-3">
               {preferredSignInOption}
             </div>
 
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
+                <div className="w-full border-border border-t" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-background font-sans text-muted-foreground">
+                <span className="bg-background px-2 font-sans text-muted-foreground">
                   or
                 </span>
               </div>
@@ -105,19 +105,19 @@ export default async function Page() {
           </div>
 
           {/* Terms and Privacy Policy - Bottom aligned */}
-          <div className="text-center mt-auto">
-            <p className="font-sans text-xs text-[#878787]">
+          <div className="mt-auto text-center">
+            <p className="font-sans text-[#878787] text-xs">
               By signing in you agree to our{" "}
               <Link
+                className="text-muted-foreground underline transition-colors hover:text-foreground"
                 href={`https://${siteConfig.url}/terms`}
-                className="text-muted-foreground hover:text-foreground transition-colors underline"
               >
                 Terms of service
               </Link>{" "}
               &{" "}
               <Link
+                className="text-muted-foreground underline transition-colors hover:text-foreground"
                 href={`https://${siteConfig.url}/policy`}
-                className="text-muted-foreground hover:text-foreground transition-colors underline"
               >
                 Privacy policy
               </Link>

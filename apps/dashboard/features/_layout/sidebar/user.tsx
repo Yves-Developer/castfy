@@ -95,7 +95,7 @@ export function NavUser({
               <div
                 className={cn(
                   buttonVariants({ size: "lg", variant: "ghost" }),
-                  "flex w-full justify-between font-normal hover:bg-transparent!",
+                  "flex w-full justify-between font-normal hover:bg-transparent!"
                 )}
               >
                 Theme

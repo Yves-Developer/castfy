@@ -16,7 +16,6 @@ interface ThemeOption {
 import { Button } from "@castfy/ui/components/button";
 import {
   CardAction,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -53,7 +52,7 @@ export function AppearanceCard() {
       //
     },
     () => true,
-    () => false,
+    () => false
   );
 
   useEffect(() => {
@@ -97,8 +96,7 @@ export function AppearanceCard() {
               <div
                 className={cn(
                   "overflow-hidden rounded-md",
-                  selectedTheme === option.value &&
-                    "border-2 border-foreground",
+                  selectedTheme === option.value && "border-2 border-foreground"
                 )}
               >
                 <Image
