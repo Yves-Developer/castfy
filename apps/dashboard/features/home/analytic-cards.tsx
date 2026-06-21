@@ -1,9 +1,6 @@
-import { Badge } from "@castfy/ui/components/badge";
 import {
   Card,
-  CardAction,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@castfy/ui/components/card";
@@ -54,34 +51,16 @@ export const analyticCards = [
 export function AnalyticCards() {
   return (
     <div className="grid @5xl/main:grid-cols-4 @xl/main:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:bg-muted/50 *:data-[slot=card]:ring-0">
-      {analyticCards.map((card) => {
-        const Icon = card.badge.icon;
-
-        return (
-          <Card className="@container/card shadow-none" key={card.title}>
-            <CardHeader>
-              <CardDescription>{card.title}</CardDescription>
-
-              <CardTitle className="font-semibold text-2xl tabular-nums">
-                {card.value}
-              </CardTitle>
-
-              <CardAction>
-                <Badge variant={card.badge.variant as any}>
-                  {Icon ? <Icon className="size-3.5" /> : null}
-                  {card.badge.label}
-                </Badge>
-              </CardAction>
-            </CardHeader>
-
-            <CardFooter className="border-0 bg-transparent">
-              <p className="fontmedium line-clamp-1 flex gap-2 text-sm">
-                {card.description}
-              </p>
-            </CardFooter>
-          </Card>
-        );
-      })}
+      {analyticCards.map((card) => (
+        <Card className="@container/card shadow-none" key={card.title}>
+          <CardHeader>
+            <CardTitle className="font-semibold text-2xl tabular-nums">
+              {card.value}
+            </CardTitle>
+            <CardDescription>{card.title}</CardDescription>
+          </CardHeader>
+        </Card>
+      ))}
     </div>
   );
 }
