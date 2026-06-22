@@ -5,9 +5,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@castfy/ui/components/popover";
+import { useSidebar } from "@castfy/ui/components/sidebar";
 import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
-import { ChevronRightIcon, EllipsisIcon } from "lucide-react";
+import { ChevronRightIcon, EllipsisIcon, MenuIcon } from "lucide-react";
 
 import { GiveFeedbackDialog } from "./give-feedback";
 
@@ -23,15 +24,25 @@ export function AppSiteHeader({
   title: string;
 }) {
   const scrolled = useScroll(20);
+  const { open, openMobile, isMobile, setOpen, setOpenMobile } = useSidebar();
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b bg-background",
+        "sticky top-0 z-50 flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)",
         scrolled && "border-b",
         className
       )}
     >
       <div className="container flex w-full items-center gap-1">
+        <Button
+          className={cn(open && "md:hidden", openMobile && "md:hidden")}
+          onClick={() => (isMobile ? setOpenMobile(true) : setOpen(true))}
+          size={"icon"}
+          variant={"ghost"}
+        >
+          <MenuIcon />
+        </Button>
+
         <span className="text-sm">{title}</span>
         {children && showChevron && (
           <ChevronRightIcon className="size-4 text-muted-foreground" />

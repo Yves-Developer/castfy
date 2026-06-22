@@ -8,6 +8,9 @@
       "suspicious": {
         "noUnknownAtRules": "off",
         "noArrayIndexKey": "off"
+      },
+      "style": {
+        "noNestedTernary": "off"
       }
     },
     "domains": {

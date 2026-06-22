@@ -1,21 +1,21 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
+import { useSidebar } from "@castfy/ui/components/sidebar";
 import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
-import { ChevronRightIcon, DownloadIcon } from "lucide-react";
+import { ChevronRightIcon, DownloadIcon, MenuIcon } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
 export function DemoHeader({
   children,
   className,
-  showChevron = true,
   title,
 }: {
   children?: React.ReactNode;
   className?: string;
-  showChevron?: boolean;
   title: string;
 }) {
+  const { open, openMobile, isMobile, setOpen, setOpenMobile } = useSidebar();
   const scrolled = useScroll(20);
   return (
     <header
@@ -26,11 +26,17 @@ export function DemoHeader({
       )}
     >
       <div className="container flex w-full items-center gap-1">
-        <span className="text-sm">{siteConfig.name}</span>
-        {children && showChevron && (
-          <ChevronRightIcon className="size-4 text-muted-foreground" />
-        )}
-        <span className="text-sm">{title}</span>
+        <Button
+          className={cn(open && "md:hidden", openMobile && "md:hidden")}
+          onClick={() => (isMobile ? setOpenMobile(true) : setOpen(true))}
+          size={"icon"}
+          variant={"ghost"}
+        >
+          <MenuIcon />
+        </Button>
+        <span className="font-medium text-sm">{siteConfig.name}</span>
+        <ChevronRightIcon className="size-4 text-muted-foreground" />
+        <span className="font-medium text-sm">{title}</span>
         {children}
         <Button className="ml-auto">
           <DownloadIcon />
