@@ -15,9 +15,10 @@ import { cn } from "@castfy/ui/lib/utils";
 import {
   ChartPieIcon,
   CircleHelpIcon,
+  CirclePlusIcon,
   LayoutDashboard,
-  ListVideoIcon,
   MousePointer2Icon,
+  SearchIcon,
   SettingsIcon,
   SparklesIcon,
   Trash2Icon,
@@ -25,7 +26,6 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type * as React from "react";
-import { siteConfig } from "@/config/site";
 import { NavMain } from "./main";
 import { NavSecondary } from "./secondary";
 import { NavUser } from "./user";
@@ -43,15 +43,21 @@ const data = {
       url: "/",
       icon: LayoutDashboard,
     },
+
+    {
+      title: "New demo",
+      url: "/new",
+      icon: CirclePlusIcon,
+    },
+    {
+      title: "Search...",
+      url: "/demo",
+      icon: SearchIcon,
+    },
     {
       title: "Playground",
       url: "/playground",
       icon: SparklesIcon,
-    },
-    {
-      title: "My demos",
-      url: "/demos",
-      icon: ListVideoIcon,
     },
     {
       title: "Trash",
@@ -114,7 +120,7 @@ function AppSidebarHeader() {
           <SidebarMenuButton asChild>
             <Link href="/">
               <MousePointer2Icon className="size-6 rotate-90 fill-foreground" />
-              {siteConfig.name}
+              {/* {siteConfig.name} */}
             </Link>
           </SidebarMenuButton>
 

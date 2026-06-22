@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppSiteHeader } from "@/features/_layout/app-header";
+import { DashboardHeader } from "@/features/_layout/header";
 
 export const metadata: Metadata = {
   title: "Billing",
@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 export default function Billing() {
   return (
     <>
-      <AppSiteHeader title="Billing" />
+      <DashboardHeader title="Billing" />
 
       <div className="container flex h-full w-full flex-col gap-5 py-10">
         Billing list

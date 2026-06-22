@@ -9,18 +9,18 @@ import { useSidebar } from "@castfy/ui/components/sidebar";
 import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
 import { ChevronRightIcon, EllipsisIcon, MenuIcon } from "lucide-react";
-
+import { siteConfig } from "@/config/site";
 import { GiveFeedbackDialog } from "./give-feedback";
 
-export function AppSiteHeader({
+export function DashboardHeader({
   children,
   className,
-  showChevron = true,
+  feedback = true,
   title,
 }: {
   children?: React.ReactNode;
   className?: string;
-  showChevron?: boolean;
+  feedback?: boolean;
   title: string;
 }) {
   const scrolled = useScroll(20);
@@ -42,13 +42,12 @@ export function AppSiteHeader({
         >
           <MenuIcon />
         </Button>
+        <span className="font-medium text-sm">{siteConfig.name}</span>
 
+        <ChevronRightIcon className="size-4 text-muted-foreground" />
         <span className="text-sm">{title}</span>
-        {children && showChevron && (
-          <ChevronRightIcon className="size-4 text-muted-foreground" />
-        )}
         {children}
-        <GiveFeedback className="ml-auto" />
+        {feedback && <GiveFeedback className="ml-auto" />}
       </div>
     </header>
   );

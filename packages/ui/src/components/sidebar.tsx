@@ -154,6 +154,7 @@ function Sidebar({
   side = "left",
   variant = "sidebar",
   collapsible = "offcanvas",
+  bg = "sidebar",
   className,
   children,
   dir,
@@ -162,6 +163,7 @@ function Sidebar({
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
+  bg?: "sidebar" | "transparent";
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
@@ -170,6 +172,7 @@ function Sidebar({
       <div
         className={cn(
           "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
+          bg === "transparent" && "bg-transparent",
           className
         )}
         data-slot="sidebar"
@@ -241,7 +244,10 @@ function Sidebar({
         {...props}
       >
         <div
-          className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+          className={cn(
+            "flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border",
+            bg === "transparent" && "bg-transparent"
+          )}
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
         >
