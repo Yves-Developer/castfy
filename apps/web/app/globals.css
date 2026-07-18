@@ -6,8 +6,10 @@
   --font-inter: var(--font-inter);
   --font-roboto: var(--font-roboto);
   --font-plus-jakarta-sans: var(--font-plus-jakarta-sans);
+  --font-hedvig-sans: var(--font-hedvig-sans);
+  --font-hedvig-serif: var(--font-hedvig-serif);
 }
 
 html {
-  @apply font-plus-jakarta-sans;
+  @apply font-inter;
 }

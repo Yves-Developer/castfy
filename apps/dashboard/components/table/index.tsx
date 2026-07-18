@@ -1,5 +1,14 @@
 "use client";
 
+import { Input } from "@castfy/ui/components/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@castfy/ui/components/table";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -11,15 +20,6 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { Input } from "@workspace/ui/components/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
 import React from "react";
 import { DataTablePagination } from "./pagination";
 
@@ -40,7 +40,7 @@ export function DataTable<TData, TValue>({
   "use no memo";
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    []
   );
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -85,7 +85,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </TableHead>
                 ))}
@@ -103,7 +103,7 @@ export function DataTable<TData, TValue>({
                     <TableCell className="p-3" key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}

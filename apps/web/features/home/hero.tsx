@@ -1,39 +1,42 @@
-"use client";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 import Link from "next/link";
-
-export function HomeHero() {
+import HeroVid from "./hero-vid";
+export function Hero() {
   return (
-    <section
-      className="flex flex-col items-center justify-center gap-10"
-      id="hero"
-    >
-      <div className="mx-auto flex max-w-lg flex-col items-center gap-10">
-        <Badge className="px-3 text-muted-foreground" variant={"outline"}>
-          Trusted by 10k+ Marketers
-        </Badge>
-        <h1 className="text-balance text-center font-semibold text-3xl leading-[1.2] tracking-[-1] md:text-4xl lg:text-5xl xl:text-[56px]">
-          Turn your url into demo in seconds
-        </h1>
-        <p className="text-balance text-center font-normal text-muted-foreground lg:text-xl lg:leading-[1.3]">
-          No more manual work of creating demos, paste your product url and get
-          demo
-        </p>
+    <section className="container relative flex min-h-screen flex-col pt-32 md:pt-24 lg:pt-0">
+      {/* Header content - centered on mobile, side-by-side on desktop */}
+      <div className="z-20 3xl:mb-16 flex flex-1 flex-col items-center justify-center space-y-8 px-3 sm:px-4 md:justify-start md:pt-16 lg:mx-auto lg:mb-12 lg:w-full lg:max-w-350 lg:flex-none lg:space-y-0 lg:px-0 xl:mb-12 2xl:mb-12">
+        <div className="flex w-full flex-col items-center space-y-6 text-center lg:space-y-8">
+          <div className="mx-auto 3xl:max-w-5xl max-w-3xl space-y-5 px-2 lg:space-y-6 lg:px-0">
+            <h1 className="font-serif 3xl:text-8xl text-3xl text-foreground leading-[1.1] tracking-tight sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl 2xl:text-7xl">
+              Turn your url into demo
+            </h1>
+
+            <p className="mx-auto max-w-xl font-sans text-base text-muted-foreground leading-relaxed lg:text-lg">
+              Skip the manual work. Turn any product URL into a polished demo in
+              minutes and export it wherever you need.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-3 pt-2 md:flex-row">
+            <Button asChild size="xl">
+              <a
+                href="https://waitlist.castfy.app"
+                rel="noopener"
+                target="_blank"
+              >
+                <span className="text-inherit text-sm">Join waiting list</span>
+              </a>
+            </Button>
+            <Button asChild size="xl" variant={"secondary"}>
+              <Link href="/#how">Discover product</Link>
+            </Button>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-4 md:flex-row">
-        <Button asChild className="rounded-full text-base" size="xl">
-          <Link href="/contact-sales">Sign Up</Link>
-        </Button>
-        <Button
-          asChild
-          className="rounded-full text-base"
-          size="xl"
-          variant={"secondary"}
-        >
-          <Link href="/about">Request Demo</Link>
-        </Button>
-      </div>
+
+      {/* Video section */}
+      <HeroVid />
     </section>
   );
 }

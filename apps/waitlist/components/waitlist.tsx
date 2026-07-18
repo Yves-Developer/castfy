@@ -1,4 +1,4 @@
-import { SendIcon } from "lucide-react";
+import { MousePointer2Icon } from "lucide-react";
 import WaitlistForm from "./waiting-form";
 
 export function WaitlistSection() {
@@ -6,7 +6,7 @@ export function WaitlistSection() {
     <section className="relative z-10 flex min-h-screen items-center justify-center">
       <div className="mx-auto w-full max-w-xl rounded-2xl bg-background p-4 py-14 ring ring-muted md:p-6 md:py-20">
         <div className="flex flex-col items-center justify-center gap-5">
-          <SendIcon className="size-10" />
+          <MousePointer2Icon className="size-10 rotate-90 fill-foreground" />
           <h1 className="text-balance text-center font-medium text-4xl sm:text-5xl">
             Join the waitlist
           </h1>

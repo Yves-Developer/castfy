@@ -1,9 +1,8 @@
 /** biome-ignore-all lint/correctness/noChildrenProp: for now */
 "use client";
 
-import { useForm } from "@tanstack/react-form";
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@castfy/ui/components/badge";
+import { Button } from "@castfy/ui/components/button";
 import {
   Card,
   CardContent,
@@ -11,16 +10,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
+} from "@castfy/ui/components/card";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@workspace/ui/components/field";
-import { Input } from "@workspace/ui/components/input";
-import { Textarea } from "@workspace/ui/components/textarea";
+} from "@castfy/ui/components/field";
+import { Input } from "@castfy/ui/components/input";
+import { Textarea } from "@castfy/ui/components/textarea";
+import { useForm } from "@tanstack/react-form";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import * as z from "zod";
+import { Model } from "./model";
 
 const formSchema = z.object({
   demoTitle: z.string().min(5, "Demo title must be at least 5 characters."),
@@ -46,18 +47,18 @@ const formSchema = z.object({
 
 interface AgentStep {
   action: string;
-  ref?: string;
-  value?: string;
   description: string;
-  status: "success" | "error";
   error?: string;
+  ref?: string;
+  status: "success" | "error";
+  value?: string;
 }
 
-interface ExperimentTabsProps {
-  provider: string;
-}
+export type AIProvider = "anthropic" | "openai" | "gemini";
 
-export function ExperimentTabs({ provider }: ExperimentTabsProps) {
+export function ExperimentTabs() {
+  const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
+
   const [status, setStatus] = useState<
     "idle" | "generating" | "completed" | "error"
   >("idle");
@@ -74,7 +75,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
         body: JSON.stringify({
           url: webUrl,
           promptGoal: aiPrompt,
-          provider,
+          provider: selectedModel as AIProvider,
         }),
       });
 
@@ -103,13 +104,17 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
 
         for (const line of lines) {
           const trimmed = line.trim();
-          if (!trimmed) continue;
+          if (!trimmed) {
+            continue;
+          }
 
           if (trimmed.startsWith("event: ")) {
             currentEvent = trimmed.slice(7).trim();
           } else if (trimmed.startsWith("data: ")) {
             const dataStr = trimmed.slice(6).trim();
-            if (!dataStr) continue;
+            if (!dataStr) {
+              continue;
+            }
 
             try {
               const data = JSON.parse(dataStr);
@@ -129,7 +134,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
                 setStatus("completed");
               } else if (currentEvent === "error") {
                 setErrorMessage(
-                  data.message || "An error occurred during demo generation.",
+                  data.message || "An error occurred during demo generation."
                 );
                 setStatus("error");
               }
@@ -196,9 +201,9 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8">
+    <div className="mx-auto mt-8 w-full max-w-2xl">
       {status === "idle" && (
-        <Card className="border shadow-md">
+        <Card>
           <CardHeader>
             <CardTitle>Record Product Demo</CardTitle>
             <CardDescription>
@@ -298,7 +303,13 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
               </FieldGroup>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
+          <CardFooter className="flex justify-between border-t">
+            <Model
+              selectedModel={selectedModel}
+              setSelectedModelAction={(id) => {
+                setSelectedModel(id as AIProvider);
+              }}
+            />
             <Button
               className="rounded-full px-6"
               form="playground-demo-form"
@@ -312,8 +323,8 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
       )}
 
       {status !== "idle" && (
-        <Card className="border shadow-md">
-          <CardHeader className="border-b bg-slate-50/50">
+        <Card>
+          <CardHeader className="border-b">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>
@@ -337,16 +348,16 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
               </div>
               {status === "completed" && (
                 <Badge
+                  className="border-green-200 bg-green-50 text-green-700"
                   variant="outline"
-                  className="bg-green-50 text-green-700 border-green-200"
                 >
                   Completed
                 </Badge>
               )}
               {status === "generating" && (
                 <Badge
+                  className="animate-pulse border-blue-200 bg-blue-50 text-blue-700"
                   variant="outline"
-                  className="bg-blue-50 text-blue-700 border-blue-200 animate-pulse"
                 >
                   Recording
                 </Badge>
@@ -357,60 +368,59 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
           <CardContent className="space-y-6 pt-6">
             {/* Real-time Steps Timeline */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
+              <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">
                 Agent Actions
               </h3>
 
               {steps.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-slate-50/30">
-                  <Loader2 className="h-6 w-6 animate-spin text-slate-400 mb-2" />
-                  <span className="text-sm text-slate-500 font-medium">
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-slate-50/30 p-8">
+                  <Loader2 className="mb-2 h-6 w-6 animate-spin text-slate-400" />
+                  <span className="font-medium text-slate-500 text-sm">
                     Waiting for first action...
                   </span>
                 </div>
               ) : (
-                <div className="relative border-l border-slate-200 ml-3 pl-6 space-y-4">
+                <div className="relative ml-3 space-y-4 border-slate-200 border-l pl-6">
                   {steps.map((step, idx) => (
                     <div
-                      // biome-ignore lint/suspicious/noArrayIndexKey: steps are read-only and order is stable
+                      className="group relative"
                       key={`${step.action}-${idx}`}
-                      className="relative group"
                     >
                       {/* Timeline Dot/Icon wrapper */}
-                      <span className="absolute -left-[37px] top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
+                      <span className="absolute top-0 -left-9.25 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
                         {getStepIcon(step.action)}
                       </span>
 
                       {/* Timeline content block */}
-                      <div className="flex flex-col gap-1 p-3 rounded-lg border bg-white shadow-sm group-hover:border-slate-300 transition-colors">
+                      <div className="flex flex-col gap-1 rounded-lg border bg-white p-3 shadow-sm transition-colors group-hover:border-slate-300">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          <span className="font-semibold text-slate-400 text-xs uppercase tracking-wider">
                             Step {idx + 1}: {step.action}
                           </span>
                           {step.status === "error" ? (
                             <Badge
+                              className="px-1.5 py-0 text-[10px]"
                               variant="destructive"
-                              className="text-[10px] px-1.5 py-0"
                             >
                               Error
                             </Badge>
                           ) : (
                             <Badge
+                              className="border-slate-200 bg-slate-100 px-1.5 py-0 text-[10px] text-slate-600"
                               variant="secondary"
-                              className="text-[10px] px-1.5 py-0 bg-slate-100 text-slate-600 border-slate-200"
                             >
                               Success
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                        <p className="font-medium text-slate-700 text-sm leading-relaxed">
                           {step.description}
                         </p>
                         {(step.ref || step.value) && (
-                          <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100">
+                          <div className="mt-1.5 flex flex-wrap gap-1.5 rounded border border-slate-100 bg-slate-50 p-1.5 font-mono text-[11px] text-slate-500">
                             {step.ref && (
                               <span>
-                                <strong className="text-slate-600 font-semibold">
+                                <strong className="font-semibold text-slate-600">
                                   Ref:
                                 </strong>{" "}
                                 {step.ref}
@@ -418,7 +428,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
                             )}
                             {step.value && (
                               <span>
-                                <strong className="text-slate-600 font-semibold">
+                                <strong className="font-semibold text-slate-600">
                                   Val:
                                 </strong>{" "}
                                 {step.value}
@@ -427,7 +437,7 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
                           </div>
                         )}
                         {step.error && (
-                          <p className="text-xs text-red-500 font-mono mt-1 p-2 rounded bg-red-50/50 border border-red-100">
+                          <p className="mt-1 rounded border border-red-100 bg-red-50/50 p-2 font-mono text-red-500 text-xs">
                             Error: {step.error}
                           </p>
                         )}
@@ -440,11 +450,11 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
 
             {/* Error Message display */}
             {status === "error" && (
-              <div className="flex gap-3 p-4 rounded-lg border border-red-200 bg-red-50/50 text-red-700">
-                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="flex gap-3 rounded-lg border border-red-200 bg-red-50/50 p-4 text-red-700">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
                   <h4 className="font-semibold text-sm">Execution Error</h4>
-                  <p className="text-xs font-mono mt-1">{errorMessage}</p>
+                  <p className="mt-1 font-mono text-xs">{errorMessage}</p>
                 </div>
               </div>
             )}
@@ -452,25 +462,26 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
             {/* Video Player Display */}
             {status === "completed" && videoUrl && (
               <div className="space-y-3">
-                <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
+                <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">
                   Recorded Video
                 </h3>
                 <div className="overflow-hidden rounded-xl border bg-black shadow-lg">
                   {/* biome-ignore lint/a11y/useMediaCaption: no captions for recorded demo video */}
                   <video
-                    src={videoUrl}
-                    controls
                     autoPlay
-                    className="w-full aspect-video object-contain"
+                    className="aspect-video w-full object-contain"
+                    controls
+                    src={videoUrl}
                   />
                 </div>
               </div>
             )}
           </CardContent>
 
-          <CardFooter className="flex justify-end border-t pt-6 bg-slate-50/50">
+          <CardFooter className="flex justify-end border-t pt-6">
             {(status === "completed" || status === "error") && (
               <Button
+                className="gap-2 rounded-full px-6"
                 onClick={() => {
                   setStatus("idle");
                   setSteps([]);
@@ -479,7 +490,6 @@ export function ExperimentTabs({ provider }: ExperimentTabsProps) {
                   setCurrentStatusMessage("");
                   form.reset();
                 }}
-                className="rounded-full gap-2 px-6"
                 size="lg"
               >
                 <RefreshCw className="h-4 w-4" />

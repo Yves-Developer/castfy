@@ -1,4 +1,4 @@
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import React from "react";
 import { createPortal } from "react-dom";
 
@@ -33,7 +33,7 @@ function Portal({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("fixed inset-0 isolate z-40 flex flex-col", className)}
       {...props}
     />,
-    document.body,
+    document.body
   );
 }
 
@@ -42,7 +42,7 @@ function PortalBackdrop({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 -z-1 bg-background/95 backdrop-blur-sm duration-500 data-[state=closed]:animate-out data-[state=open]:animate-in supports-backdrop-filter:bg-background/60",
-        className,
+        className
       )}
       {...props}
     />

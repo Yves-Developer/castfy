@@ -1,5 +1,5 @@
-import { Button } from "@workspace/ui/components/button";
-import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@castfy/ui/components/button";
+import { cn } from "@castfy/ui/lib/utils";
 import { MenuIcon, XIcon } from "lucide-react";
 import React from "react";
 import { Portal, PortalBackdrop } from "@/components/portal";
@@ -31,7 +31,7 @@ export function MobileNav() {
           <div
             className={cn(
               "data-[slot=open]:zoom-in-97 ease-out data-[slot=open]:animate-in",
-              "size-full p-4",
+              "size-full p-4"
             )}
             data-slot={open ? "open" : "closed"}
           >

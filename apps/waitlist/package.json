@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@workspace/ui": "workspace:*",
+    "@castfy/ui": "workspace:*",
     "geist": "^1.7.0",
     "lucide-react": "^1.16.0",
     "motion": "^12.38.0",

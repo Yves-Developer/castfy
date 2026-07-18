@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import { Label as LabelPrimitive } from "radix-ui";
 import type * as React from "react";
 

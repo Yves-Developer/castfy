@@ -1,13 +1,13 @@
-import type { Table } from "@tanstack/react-table";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@castfy/ui/components/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@castfy/ui/components/select";
+import { cn } from "@castfy/ui/lib/utils";
+import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,7 +28,7 @@ export function DataTablePagination<TData>({
     <div
       className={cn(
         "flex flex-wrap items-center justify-between gap-2 px-2 text-muted-foreground",
-        className,
+        className
       )}
     >
       <div className="flex-1 text-sm">

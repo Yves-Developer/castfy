@@ -1,9 +1,9 @@
 "use client";
 
+import { Button } from "@castfy/ui/components/button";
+import { Field, FieldError, FieldLabel } from "@castfy/ui/components/field";
+import { Input } from "@castfy/ui/components/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@workspace/ui/components/button";
-import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field";
-import { Input } from "@workspace/ui/components/input";
 import { CircleCheckIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";

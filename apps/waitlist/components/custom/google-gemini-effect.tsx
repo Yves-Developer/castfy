@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import { type MotionValue, motion } from "motion/react";
 
 const transition = {

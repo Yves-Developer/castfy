@@ -1,4 +1,4 @@
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@castfy/ui/lib/utils";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Inter, Roboto } from "next/font/google";
@@ -16,5 +16,5 @@ export const fontVariables = cn(
   GeistSans.variable,
   GeistMono.variable,
   fontInter.variable,
-  fontRoboto.variable,
+  fontRoboto.variable
 );
