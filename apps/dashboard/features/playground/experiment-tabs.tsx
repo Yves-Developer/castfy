@@ -43,6 +43,7 @@ const formSchema = z.object({
   demoTitle: z.string().min(5, "Demo title must be at least 5 characters."),
   webUrl: z.string().url("Please enter a valid URL."),
   aiPrompt: z.string().min(5, "AI prompt must be at least 5 characters."),
+  headless: z.boolean(),
 });
 
 interface AgentStep {
@@ -56,6 +57,11 @@ interface AgentStep {
 
 export type AIProvider = "anthropic" | "openai" | "gemini";
 
+// Origin of the playground backend. Configurable per-env; defaults to the
+// port documented in apps/playground/.env.example (3001).
+const PLAYGROUND_API_URL =
+  process.env.NEXT_PUBLIC_PLAYGROUND_API_URL ?? "http://localhost:3001";
+
 export function ExperimentTabs() {
   const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
 
@@ -65,22 +71,39 @@ export function ExperimentTabs() {
   const [steps, setSteps] = useState<AgentStep[]>([]);
   const [currentStatusMessage, setCurrentStatusMessage] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [videos, setVideos] = useState<Record<string, string>>({});
+  const [activeVideoTab, setActiveVideoTab] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const runGeneration = async (webUrl: string, aiPrompt: string) => {
+  const runGeneration = async (
+    webUrl: string,
+    aiPrompt: string,
+    headless: boolean,
+  ) => {
     try {
-      const response = await fetch("http://localhost:4000/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: webUrl,
-          promptGoal: aiPrompt,
-          provider: selectedModel as AIProvider,
-        }),
+      const params = new URLSearchParams({
+        url: webUrl,
+        promptGoal: aiPrompt,
+        headless: String(headless),
+        provider: selectedModel,
       });
+      const response = await fetch(
+        `${PLAYGROUND_API_URL}/api/generate?${params.toString()}`,
+      );
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
+        // Non-SSE failures (SSRF-block 400, at-capacity 429, 405) return a
+        // JSON { error } body — surface that instead of a bare status line.
+        let message = `Server error: ${response.statusText}`;
+        try {
+          const body = await response.json();
+          if (body?.error) {
+            message = body.error;
+          }
+        } catch {
+          // Non-JSON body; keep the status-line fallback.
+        }
+        throw new Error(message);
       }
 
       const reader = response.body?.getReader();
@@ -125,7 +148,23 @@ export function ExperimentTabs() {
               } else if (currentEvent === "step") {
                 setSteps((prev) => [...prev, data]);
               } else if (currentEvent === "completed") {
-                if (data.videoUrl) {
+                if (data.videos) {
+                  setVideos(data.videos);
+                  const avail = data.videos;
+                  if (avail.audioClean) {
+                    setActiveVideoTab("audioClean");
+                    setVideoUrl(avail.audioClean);
+                  } else if (avail.audio) {
+                    setActiveVideoTab("audio");
+                    setVideoUrl(avail.audio);
+                  } else if (avail.clean) {
+                    setActiveVideoTab("clean");
+                    setVideoUrl(avail.clean);
+                  } else {
+                    setActiveVideoTab("raw");
+                    setVideoUrl(avail.raw || data.videoUrl);
+                  }
+                } else if (data.videoUrl) {
                   setVideoUrl(data.videoUrl);
                 }
                 if (data.steps) {
@@ -157,6 +196,7 @@ export function ExperimentTabs() {
       demoTitle: "",
       webUrl: "",
       aiPrompt: "",
+      headless: true,
     },
     validators: {
       onSubmit: formSchema,
@@ -165,11 +205,15 @@ export function ExperimentTabs() {
       setStatus("generating");
       setSteps([]);
       setVideoUrl("");
+      setVideos({});
+      setActiveVideoTab("");
       setErrorMessage("");
       setCurrentStatusMessage("Initializing session...");
 
       setTimeout(() => {
-        runGeneration(value.webUrl, value.aiPrompt).catch(console.error);
+        runGeneration(value.webUrl, value.aiPrompt, value.headless).catch(
+          console.error,
+        );
       }, 0);
     },
   });
@@ -299,6 +343,39 @@ export function ExperimentTabs() {
                     );
                   }}
                   name="aiPrompt"
+                />
+                <form.Field
+                  children={(field) => {
+                    return (
+                      <Field
+                        orientation="horizontal"
+                        className="items-center justify-between border p-3 rounded-lg bg-slate-50/20"
+                      >
+                        <div className="space-y-0.5">
+                          <FieldLabel
+                            htmlFor={field.name}
+                            className="text-sm font-semibold"
+                          >
+                            Run Headless
+                          </FieldLabel>
+                          <FieldDescription className="text-xs">
+                            If enabled, the browser will run in the background.
+                            Disable this if you want to visually observe the
+                            browser actions on screen.
+                          </FieldDescription>
+                        </div>
+                        <input
+                          id={field.name}
+                          name={field.name}
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                          checked={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.checked)}
+                        />
+                      </Field>
+                    );
+                  }}
+                  name="headless"
                 />
               </FieldGroup>
             </form>
@@ -461,13 +538,84 @@ export function ExperimentTabs() {
 
             {/* Video Player Display */}
             {status === "completed" && videoUrl && (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">
-                  Recorded Video
-                </h3>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
+                    Recorded Video
+                  </h3>
+                  {Object.keys(videos).length > 1 && (
+                    <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/50">
+                      {videos.audioClean && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveVideoTab("audioClean");
+                            setVideoUrl(videos.audioClean);
+                          }}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                            activeVideoTab === "audioClean"
+                              ? "bg-white text-slate-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          🔊 Clean
+                        </button>
+                      )}
+                      {videos.audio && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveVideoTab("audio");
+                            setVideoUrl(videos.audio);
+                          }}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                            activeVideoTab === "audio"
+                              ? "bg-white text-slate-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          🔊 Raw
+                        </button>
+                      )}
+                      {videos.clean && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveVideoTab("clean");
+                            setVideoUrl(videos.clean);
+                          }}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                            activeVideoTab === "clean"
+                              ? "bg-white text-slate-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          🔇 Clean
+                        </button>
+                      )}
+                      {videos.raw && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveVideoTab("raw");
+                            setVideoUrl(videos.raw);
+                          }}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                            activeVideoTab === "raw"
+                              ? "bg-white text-slate-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          🔇 Raw
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="overflow-hidden rounded-xl border bg-black shadow-lg">
                   {/* biome-ignore lint/a11y/useMediaCaption: no captions for recorded demo video */}
                   <video
+                    key={videoUrl}
                     autoPlay
                     className="aspect-video w-full object-contain"
                     controls
@@ -486,6 +634,8 @@ export function ExperimentTabs() {
                   setStatus("idle");
                   setSteps([]);
                   setVideoUrl("");
+                  setVideos({});
+                  setActiveVideoTab("");
                   setErrorMessage("");
                   setCurrentStatusMessage("");
                   form.reset();

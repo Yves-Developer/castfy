@@ -6,7 +6,7 @@ import { runAgent } from "./core/agent.js";
 import { assertPublicUrl } from "./core/url-guard.js";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3001;
 // Public origin used to build returned asset URLs. Must match how clients reach
 // this server (behind a proxy/domain, set BASE_URL explicitly).
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
