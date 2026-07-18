@@ -974,7 +974,7 @@ Rules for Demo Quality:
 
   for (let i = 0; i < 30; i++) {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
+      model: "claude-opus-4-8",
       max_tokens: 4096,
       system: systemInstruction,
       messages: pruneOldSnapshots(messages),
@@ -1085,9 +1085,7 @@ export async function runAgent(
         video: true,
         trace: false,
         outputDir,
-        ...(options.storageState
-          ? { storageState: options.storageState }
-          : {}),
+        ...(options.storageState ? { storageState: options.storageState } : {}),
       },
     });
 
