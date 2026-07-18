@@ -37,8 +37,8 @@ const models = [
   {
     chef: "Claude",
     chefSlug: "anthropic",
-    id: "claude-4.5-sonnet",
-    name: "Claude 4.5 Sonnet",
+    id: "claude-opus-4-8",
+    name: "Claude Opus 4.8",
     providers: ["anthropic"],
   },
 ];
