@@ -1,9 +1,28 @@
 "use client";
+import { Button } from "@castfy/ui/components/button";
+import { cn } from "@castfy/ui/lib/utils";
+import { PauseIcon, PlayIcon } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-import lightCover from "@/public/dev_cover.png";
+import { useRef, useState } from "react";
+
 export default function HeroVid() {
-  const [isDashboardLightLoaded, setIsDashboardLightLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    if (video.paused) {
+      video.play();
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
 
   return (
     <div className="mt-8 3xl:mb-20 mb-8 overflow-visible md:mt-12 lg:mt-0 lg:mb-4 lg:w-full">
@@ -29,39 +48,34 @@ export default function HeroVid() {
         {/* Dashboard overlay - different styles for mobile vs desktop */}
         <div className="absolute inset-0 z-2 flex items-center justify-center p-0 lg:p-4">
           <div className="relative scale-[0.95] md:scale-100 lg:static lg:flex lg:h-full lg:scale-100 lg:flex-col lg:items-center lg:justify-center">
-            <Image
-              alt="Dashboard illustration"
+            {/** biome-ignore lint/a11y/useMediaCaption: <explanation */}
+            <video
               className="lg:transform-[rotate(-2deg)_skewY(1deg)] lg:filter-[drop-shadow(0_30px_60px_rgba(0,0,0,0.6))] h-auto w-full rounded-lg transition-all duration-700 ease-out md:scale-[0.85]! lg:max-w-[85%] lg:scale-100! lg:object-contain 2xl:max-w-[75%]"
-              fetchPriority="high"
-              height={1200}
-              onLoad={() => setIsDashboardLightLoaded(true)}
-              priority
-              src={lightCover}
-              style={{
-                filter: isDashboardLightLoaded
-                  ? "blur(0px) drop-shadow(0 30px 60px rgba(0,0,0,0.6))"
-                  : "blur(20px)",
-                transform: isDashboardLightLoaded ? "scale(1)" : "scale(1.02)",
-              }}
-              width={1600}
-            />
+              muted
+              onClick={togglePlay}
+              preload="metadata"
+              ref={videoRef}
+            >
+              <source
+                src="https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Castfy/demo-with-audio-clean.mp4"
+                type="video/mp4"
+              />
+              <track kind="subtitles" label="English" src="/" srcLang="en" />
+              Your browser does not support the video tag.
+            </video>
 
-            {/* <Image
-              src="/images/dash"
-              alt="Dashboard illustration"
-              width={1600}
-              height={1200}
-              className="w-full  h-auto rounded-lg md:scale-[0.85]! lg:scale-100! lg:object-contain lg:max-w-[85%] 2xl:max-w-[75%] hidden dark:block lg:transform-[rotate(-2deg)_skewY(1deg)] lg:filter-[drop-shadow(0_30px_60px_rgba(0,0,0,0.6))] transition-all duration-700 ease-out"
-              style={{
-                filter: isDashboardDarkLoaded
-                  ? "blur(0px) drop-shadow(0 30px 60px rgba(0,0,0,0.6))"
-                  : "blur(20px)",
-                transform: isDashboardDarkLoaded ? "scale(1)" : "scale(1.02)",
-              }}
-              priority
-              fetchPriority="high"
-              onLoad={() => setIsDashboardDarkLoaded(true)}
-            /> */}
+            <Button
+              className={cn(
+                "rounded-full",
+                isPlaying
+                  ? "absolute right-4 bottom-4"
+                  : "absolute inset-0 m-auto"
+              )}
+              onClick={togglePlay}
+              size="icon-lg"
+            >
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </Button>
           </div>
         </div>
       </div>
