@@ -5,7 +5,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@castfy/ui/components/popover";
-import { useSidebar } from "@castfy/ui/components/sidebar";
 import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
 import { ChevronRightIcon, EllipsisIcon, MenuIcon } from "lucide-react";
@@ -24,7 +23,6 @@ export function AppSiteHeader({
   title: string;
 }) {
   const scrolled = useScroll(20);
-  const { open, openMobile, isMobile, setOpen, setOpenMobile } = useSidebar();
   return (
     <header
       className={cn(
@@ -34,12 +32,7 @@ export function AppSiteHeader({
       )}
     >
       <div className="container flex w-full items-center gap-1">
-        <Button
-          className={cn(open && "md:hidden", openMobile && "md:hidden")}
-          onClick={() => (isMobile ? setOpenMobile(true) : setOpen(true))}
-          size={"icon"}
-          variant={"ghost"}
-        >
+        <Button size={"icon"} variant={"ghost"}>
           <MenuIcon />
         </Button>
 

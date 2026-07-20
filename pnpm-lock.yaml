@@ -233,6 +233,9 @@ importers:
       '@castfy/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@tanstack/react-form':
+        specifier: ^1.32.0
+        version: 1.32.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.7)
@@ -257,9 +260,18 @@ importers:
       react-dom:
         specifier: 19.2.7
         version: 19.2.7(react@19.2.7)
+      react-email:
+        specifier: ^6.6.0
+        version: 6.6.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react-use-measure:
         specifier: ^2.1.7
         version: 2.1.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      resend:
+        specifier: ^6.12.3
+        version: 6.12.3(@react-email/render@2.0.8(react-dom@19.2.7(react@19.2.7))(react@19.2.7))
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
     devDependencies:
       '@biomejs/biome':
         specifier: 2.4.16

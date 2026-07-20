@@ -25,8 +25,8 @@ export const navLinks = [
     href: "/#pricing",
   },
   {
-    label: "Faqs",
-    href: "/#faqs",
+    label: "Contact Us",
+    href: "/contact",
   },
 ];
 

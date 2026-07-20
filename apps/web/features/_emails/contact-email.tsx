@@ -1,29 +1,29 @@
 import { Body, Html, Preview, Section, Tailwind, Text } from "react-email";
-import type { TReferralFormSchema } from "@/server/schema";
+import type { TContactFormSchema } from "@/server/schema";
 
-export const ReferralEmail = ({
-  interstedIn,
+export const ContactEmail = ({
   workEmail,
+  companyName,
+  role,
   firstName,
   lastName,
-  phoneNumber,
-  description,
+  needs,
   receiveUpdates,
-}: TReferralFormSchema) => {
+}: TContactFormSchema) => {
   const name = workEmail.split("@")[0];
 
   return (
     <Html>
       <Preview>Message from {name}</Preview>
       <Tailwind>
-        <Body className="max-w-[600px] font-sans text-black/80">
+        <Body className="max-w-150 font-sans text-black/80">
           {/* Main Content */}
           <Section>
-            {interstedIn && <Text>{interstedIn}</Text>}
-            <Text>{description}</Text>
+            <Text>{needs}</Text>
+            <Text>{companyName}</Text>
             <Text>{firstName}</Text>
             <Text>{lastName}</Text>
-            <Text>{phoneNumber}</Text>
+            <Text>{role}</Text>
           </Section>
 
           <Section>
