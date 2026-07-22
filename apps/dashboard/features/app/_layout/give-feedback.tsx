@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import type * as React from "react";
 import { toast } from "sonner";
+// biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
 
 const formSchema = z.object({
@@ -68,12 +69,7 @@ export function GiveFeedbackDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          className="flex w-full justify-between font-normal"
-          size="lg"
-          variant={"ghost"}
-        >
-          Give Feedback
+        <Button className="text-muted-foreground" size="icon" variant={"ghost"}>
           <SmilePlusIcon />
         </Button>
       </DialogTrigger>

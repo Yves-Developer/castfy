@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AppSiteHeader } from "@/features/_layout/app-header";
-import { ExperimentTabs } from "@/features/playground/experiment-tabs";
+import { AppSiteHeader } from "@/features/app/_layout/app-header";
+import { ExperimentTabs } from "@/features/app/playground/experiment-tabs";
 
 export const metadata: Metadata = {
   title: "Playground",

@@ -64,23 +64,23 @@ const PLAYGROUND_API_URL =
 
 // Shape of any SSE event payload the backend emits (status/step/completed/error).
 interface SseEventData {
-  message?: string;
-  videos?: Record<string, string>;
-  videoUrl?: string;
-  steps?: AgentStep[];
   action?: string;
   description?: string;
-  status?: "success" | "error";
-  ref?: string;
-  value?: string;
   error?: string;
+  message?: string;
+  ref?: string;
+  status?: "success" | "error";
+  steps?: AgentStep[];
+  value?: string;
+  videos?: Record<string, string>;
+  videoUrl?: string;
 }
 
 interface SseHandlers {
-  onStatus: (message: string) => void;
-  onStep: (step: AgentStep) => void;
   onCompleted: (data: SseEventData) => void;
   onError: (message: string) => void;
+  onStatus: (message: string) => void;
+  onStep: (step: AgentStep) => void;
 }
 
 // Choose which recorded variant to show first: clean audio > audio > clean > raw.
@@ -237,7 +237,7 @@ function getStepIcon(action: string) {
 function StepItem({ step, index }: { step: AgentStep; index: number }) {
   return (
     <div className="group relative">
-      <span className="-left-9.25 absolute top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
+      <span className="absolute top-0 -left-9.25 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
         {getStepIcon(step.action)}
       </span>
       <div className="flex flex-col gap-1 rounded-lg border bg-white p-3 shadow-sm transition-colors group-hover:border-slate-300">
@@ -318,7 +318,7 @@ const VIDEO_TABS: { key: string; label: string }[] = [
   { key: "raw", label: "🔇 Raw" },
 ];
 
-function VideoResult({
+export function VideoResult({
   videos,
   activeVideoTab,
   videoUrl,
@@ -368,6 +368,7 @@ function VideoResult({
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation
 export function ExperimentTabs() {
   const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
 
