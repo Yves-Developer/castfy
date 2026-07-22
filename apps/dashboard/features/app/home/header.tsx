@@ -51,13 +51,14 @@ export default function AppHeader() {
             </Button>
           </div>
         </div>
+
         <div className="flex items-center gap-2">
-          <Button variant={"secondary"}>
+          <Button className="text-[13px]" variant={"secondary"}>
             <BookmarkIcon />
             Presets
             <ChevronDownIcon />
           </Button>
-          <Button>
+          <Button className="text-[13px]">
             <DownloadIcon />
             Export
           </Button>

@@ -58,14 +58,14 @@ export default function AppSidebar() {
   const { activePage, setActivePage } = useSibebarStore();
   return (
     <aside className="flex h-full divide-x">
-      <div className="flex flex-col p-2">
+      <div className="flex flex-col px-2 py-4">
         <div className="flex flex-col gap-1">
           {sidebarPages.map((tab) => (
             <Button
               aria-current={activePage === tab.slug ? "page" : undefined}
               className={cn(
                 "text-muted-foreground",
-                activePage === tab.slug && "text-foreground"
+                activePage === tab.slug && "text-primary"
               )}
               key={tab.label}
               onClick={() => setActivePage(tab.slug)}
@@ -84,7 +84,7 @@ export default function AppSidebar() {
           </AvatarFallback>
         </Avatar>
       </div>
-      <div className="p-2">
+      <div className="flex w-full flex-col px-2 py-4">
         {sidebarPages.map((tab) =>
           activePage === tab.slug ? <tab.component key={tab.slug} /> : null
         )}
