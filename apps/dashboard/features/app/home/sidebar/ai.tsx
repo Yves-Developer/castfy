@@ -49,7 +49,7 @@ export default function AiTab() {
             </EmptyHeader>
           </Empty>
         </div>
-        <InputGroup className="mt-auto w-full">
+        <InputGroup className="mt-auto w-full dark:bg-background!">
           <InputGroupTextarea
             className="min-h-2 text-sm"
             placeholder="Edit with ai..."

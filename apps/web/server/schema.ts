@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
 
 export const subscribeFormSchema = z.object({

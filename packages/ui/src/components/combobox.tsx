@@ -10,7 +10,7 @@ import {
 } from "@castfy/ui/components/input-group";
 import { cn } from "@castfy/ui/lib/utils";
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react";
-import * as React from "react";
+import React from "react";
 
 const Combobox = ComboboxPrimitive.Root;
 
