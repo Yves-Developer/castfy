@@ -18,3 +18,11 @@ export interface TsidebarPage {
   label: string;
   slug: TsidebarPages;
 }
+
+export interface Tdemo {
+  action: string;
+  img?: string;
+  name: string;
+  slug: string;
+  updatedAt: string;
+}

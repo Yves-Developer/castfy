@@ -7,6 +7,23 @@ import {
   SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
+import type { Tdemo } from "@/types";
+
+export const demos: Tdemo[] = [
+  {
+    name: "Project Name",
+    slug: "project-name",
+    updatedAt: "24h ago",
+    action: "Viewed",
+    img: "/asset-1.jpg",
+  },
+  {
+    name: "Rathon",
+    slug: "rathon",
+    updatedAt: "24h ago",
+    action: "Edited",
+  },
+];
 export const data = {
   user: {
     name: "Leo Constantin",

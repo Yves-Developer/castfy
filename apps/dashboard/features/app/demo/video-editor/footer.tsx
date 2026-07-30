@@ -15,21 +15,21 @@ export function EditorFooter() {
     <div className="mt-auto flex w-full items-center">
       <div className="flex-1">
         <Button
-          className="rounded-full text-muted-foreground hover:text-primary"
+          className="rounded-full text-muted-foreground"
           size="icon"
           variant={"ghost"}
         >
           <ZoomInIcon />
         </Button>
         <Button
-          className="rounded-full text-muted-foreground hover:text-primary"
+          className="rounded-full text-muted-foreground"
           size="icon"
           variant={"ghost"}
         >
           <ZoomOutIcon />
         </Button>
         <Button
-          className="rounded-full text-muted-foreground hover:text-primary"
+          className="rounded-full text-muted-foreground"
           size="icon"
           variant={"ghost"}
         >
@@ -60,7 +60,7 @@ export function EditorFooter() {
       <div className="flex flex-1 justify-end">
         <AspectRatio />
         <Button
-          className="rounded-full text-muted-foreground hover:text-primary"
+          className="rounded-full text-muted-foreground"
           size="icon"
           variant={"ghost"}
         >

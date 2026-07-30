@@ -52,10 +52,13 @@ importers:
         version: 12.38.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: 16.2.10
-        version: 16.2.10(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      nuqs:
+        specifier: ^2.9.3
+        version: 2.9.3(next@16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
       react:
         specifier: 19.2.7
         version: 19.2.7
@@ -192,7 +195,7 @@ importers:
         version: 12.38.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: 16.2.10
-        version: 16.2.10(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -262,7 +265,7 @@ importers:
         version: 12.38.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: 16.2.10
-        version: 16.2.10(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -2253,6 +2256,9 @@ packages:
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
 
+  '@standard-schema/spec@1.1.0':
+    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
@@ -4194,6 +4200,27 @@ packages:
   npm-run-path@6.0.0:
     resolution: {integrity: sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA==}
     engines: {node: '>=18'}
+
+  nuqs@2.9.3:
+    resolution: {integrity: sha512-Hdb4WfGMGX2dH0GCPFxdSevA2hgTSQs+kv+1G0OPr43/LIm1cyXIZSp0zCd7a/ZZXhbbCBDbyjXKPWHx/aBNWA==}
+    peerDependencies:
+      '@remix-run/react': '>=2'
+      '@tanstack/react-router': ^1
+      next: '>=14.2.0'
+      react: '>=18.2.0 || ^19.0.0-0'
+      react-router: ^5 || ^6 || ^7 || ^8
+      react-router-dom: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      '@tanstack/react-router':
+        optional: true
+      next:
+        optional: true
+      react-router:
+        optional: true
+      react-router-dom:
+        optional: true
 
   nypm@0.6.6:
     resolution: {integrity: sha512-vRyr0r4cbBapw07Xw8xrj9Teq3o7MUD35rSaTcanDbW+aK2XHDgJFiU6ZTj2GBw7Q12ysdsyFss+Vdz4hQ0Y6Q==}
@@ -7154,6 +7181,8 @@ snapshots:
 
   '@stablelib/base64@1.0.1': {}
 
+  '@standard-schema/spec@1.1.0': {}
+
   '@standard-schema/utils@0.3.0': {}
 
   '@swc/helpers@0.5.15':
@@ -8484,7 +8513,7 @@ snapshots:
 
   geist@1.7.0(next@16.2.10(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)):
     dependencies:
-      next: 16.2.10(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      next: 16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
 
   gensync@1.0.0-beta.2: {}
 
@@ -9148,7 +9177,7 @@ snapshots:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
 
-  next@16.2.10(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  next@16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
       '@next/env': 16.2.10
       '@swc/helpers': 0.5.15
@@ -9157,7 +9186,7 @@ snapshots:
       postcss: 8.4.31
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
-      styled-jsx: 5.1.6(react@19.2.7)
+      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.7)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.2.10
       '@next/swc-darwin-x64': 16.2.10
@@ -9215,6 +9244,13 @@ snapshots:
     dependencies:
       path-key: 4.0.0
       unicorn-magic: 0.3.0
+
+  nuqs@2.9.3(next@16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7):
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      react: 19.2.7
+    optionalDependencies:
+      next: 16.2.10(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
 
   nypm@0.6.6:
     dependencies:
@@ -10142,10 +10178,12 @@ snapshots:
 
   stubborn-utils@1.0.2: {}
 
-  styled-jsx@5.1.6(react@19.2.7):
+  styled-jsx@5.1.6(@babel/core@7.29.0)(react@19.2.7):
     dependencies:
       client-only: 0.0.1
       react: 19.2.7
+    optionalDependencies:
+      '@babel/core': 7.29.0
 
   supports-color@5.5.0:
     dependencies:
