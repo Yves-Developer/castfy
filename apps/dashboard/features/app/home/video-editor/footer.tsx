@@ -8,6 +8,7 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
 } from "lucide-react";
+import { AspectRatio } from "./aspect-ratio";
 
 export function EditorFooter() {
   return (
@@ -57,6 +58,7 @@ export function EditorFooter() {
         <p className="text-muted-foreground text-xs">1:46</p>
       </div>
       <div className="flex flex-1 justify-end">
+        <AspectRatio />
         <Button
           className="rounded-full text-muted-foreground hover:text-primary"
           size="icon"

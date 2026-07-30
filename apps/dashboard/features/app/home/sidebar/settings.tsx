@@ -1,22 +1,17 @@
 "use client";
 
 import { Button } from "@castfy/ui/components/button";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@castfy/ui/components/combobox";
+import { Field, FieldLabel } from "@castfy/ui/components/field";
+import { Input } from "@castfy/ui/components/input";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
 export default function SettingsTab() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       <Appearance />
-      <Language />
+      <EditTitle />
+      <DeleteProject />
     </div>
   );
 }
@@ -68,28 +63,37 @@ function Appearance() {
   );
 }
 
-const frameworks = ["English", "French", "Portugues", "Chinese"] as const;
-
-function Language() {
+function EditTitle() {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm">Language</p>
-      <Combobox items={frameworks}>
-        <ComboboxInput
-          inputClassName={"text-[13px] leading-4.5"}
-          placeholder="Select a language"
+      <Field>
+        <FieldLabel htmlFor="demo">Title</FieldLabel>
+        <Input
+          className="text-sm"
+          id="demo"
+          placeholder="Your title"
+          type="password"
         />
-        <ComboboxContent>
-          <ComboboxEmpty>No items found.</ComboboxEmpty>
-          <ComboboxList>
-            {(item) => (
-              <ComboboxItem key={item} value={item}>
-                {item}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
+      </Field>
+      <Button className="w-fit" disabled size="sm">
+        Save
+      </Button>
+    </div>
+  );
+}
+
+function DeleteProject() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1 text-sm">
+        <p>Delete this project</p>
+        <p className="text-muted-foreground">
+          This action cannot be undone. Please proceed with caution.
+        </p>
+      </div>
+      <Button className="w-fit" disabled size="sm" variant={"destructive"}>
+        Delete
+      </Button>
     </div>
   );
 }

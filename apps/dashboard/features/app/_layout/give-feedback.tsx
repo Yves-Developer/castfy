@@ -122,7 +122,7 @@ export function GiveFeedbackDialog() {
             </FieldGroup>
           </div>
 
-          <DialogFooter className="flex items-center sm:justify-between">
+          <DialogFooter className="flex items-center bg-transparent sm:justify-between">
             <div>
               <form.Field
                 children={(field) => {

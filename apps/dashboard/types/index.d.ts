@@ -8,7 +8,7 @@ export type UserWithSubscription = FunctionReturnType<
 export type TsidebarPages =
   | "ai"
   | "background"
-  | "cursor"
+  | "design"
   | "captions"
   | "settings";
 

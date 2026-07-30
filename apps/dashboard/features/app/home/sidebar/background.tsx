@@ -9,42 +9,30 @@ export default function BackgroundTab() {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between text-muted-foreground">
-        <p className="text-sm">Background</p>
-        <Button className="" variant={"ghost"}>
+        <p className="font-medium text-sm">Background</p>
+        <Button className="hover:text-destructive" variant={"ghost"}>
           Reset
         </Button>
       </div>
       <Tabs className="w-full" defaultValue="image">
         <TabsList className="w-full">
-          <TabsTrigger
-            className="text-[13px] leading-4.5 tracking-tight"
-            value="image"
-          >
-            Image
-          </TabsTrigger>
-          <TabsTrigger
-            className="text-[13px] leading-4.5 tracking-tight"
-            value="video"
-          >
-            Video
-          </TabsTrigger>
-          <TabsTrigger
-            className="text-[13px] leading-4.5 tracking-tight"
-            value="color"
-          >
-            Color
-          </TabsTrigger>
-          <TabsTrigger
-            className="text-[13px] leading-4.5 tracking-tight"
-            value="gradient"
-          >
-            Gradient
-          </TabsTrigger>
+          <TabsTrigger value="image">Image</TabsTrigger>
+          <TabsTrigger value="video">Video</TabsTrigger>
+          <TabsTrigger value="color">Color</TabsTrigger>
+          <TabsTrigger value="gradient">Gradient</TabsTrigger>
         </TabsList>
-        <TabsContent value="account">
-          Make changes to your account here.
+        <TabsContent value="image">
+          <p>Upload an image</p>
         </TabsContent>
-        <TabsContent value="password">Change your password here.</TabsContent>
+        <TabsContent value="video">
+          <p>Upload a video</p>
+        </TabsContent>
+        <TabsContent value="color">
+          <p>Select a color</p>
+        </TabsContent>
+        <TabsContent value="gradient">
+          <p>Select a gradient</p>
+        </TabsContent>
       </Tabs>
     </div>
   );

@@ -20,7 +20,7 @@ export function AspectRatio() {
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-30">
+      <DropdownMenuContent align="end" className="min-w-30">
         <DropdownMenuGroup>
           <DropdownMenuItem className="">
             <span>16:9</span>

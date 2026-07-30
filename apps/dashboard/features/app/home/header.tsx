@@ -1,14 +1,6 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
-import { Separator } from "@castfy/ui/components/separator";
-import {
-  BookmarkIcon,
-  ChevronDownIcon,
-  DownloadIcon,
-  FolderIcon,
-  Redo2Icon,
-  Undo2Icon,
-} from "lucide-react";
+import { DownloadIcon, FolderIcon } from "lucide-react";
 import { AiOutlineDiscord } from "react-icons/ai";
 import { GiveFeedbackDialog } from "../_layout/give-feedback";
 export default function AppHeader() {
@@ -33,30 +25,14 @@ export default function AppHeader() {
             </Button>
             <GiveFeedbackDialog />
           </div>
-          <Separator orientation="vertical" />
-          <div className="flex items-center gap-1">
-            <Button
-              className={"text-muted-foreground"}
-              size="icon"
-              variant="secondary"
-            >
-              <Undo2Icon />
-            </Button>
-            <Button
-              className={"text-muted-foreground"}
-              size="icon"
-              variant="ghost"
-            >
-              <Redo2Icon />
-            </Button>
-          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button className="text-[13px]" variant={"secondary"}>
-            <BookmarkIcon />
-            Presets
-            <ChevronDownIcon />
+          <Button
+            className="text-[13px] text-muted-foreground"
+            variant={"secondary"}
+          >
+            Save
           </Button>
           <Button className="text-[13px]">
             <DownloadIcon />

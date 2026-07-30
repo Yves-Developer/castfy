@@ -6,16 +6,17 @@ import {
 } from "@castfy/ui/components/avatar";
 import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
+import { SlidersHorizontalIcon } from "lucide-react";
 import { IoSettingsOutline } from "react-icons/io5";
 import { LuSparkles } from "react-icons/lu";
-import { PiClosedCaptioning, PiCursorClickLight } from "react-icons/pi";
+import { PiClosedCaptioning } from "react-icons/pi";
 import { TbBackground } from "react-icons/tb";
 import { useSibebarStore } from "@/hooks/store";
 import type { TsidebarPage } from "@/types";
 import AiTab from "./ai";
 import BackgroundTab from "./background";
 import CaptionsTab from "./captions";
-import CursorTab from "./cursor";
+import DesignTab from "./design";
 import SettingsTab from "./settings";
 
 const sidebarPages: TsidebarPage[] = [
@@ -26,10 +27,10 @@ const sidebarPages: TsidebarPage[] = [
     component: AiTab,
   },
   {
-    label: "Cursor",
-    slug: "cursor",
-    icon: PiCursorClickLight,
-    component: CursorTab,
+    label: "Design",
+    slug: "design",
+    icon: SlidersHorizontalIcon,
+    component: DesignTab,
   },
   {
     label: "Background",
