@@ -8,15 +8,11 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@castfy/ui/components/dropdown-menu";
-import { CheckIcon, ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { ModeSwitcher } from "./mode";
 import { NewWorkspace } from "./new-workspace";
@@ -24,7 +20,7 @@ import { Settings } from "./settings";
 
 const workspace = [
   {
-    name: "My Workspace",
+    name: "Lecon",
     image: null,
   },
 ];
@@ -46,32 +42,24 @@ export function HomeDropMenu() {
               </Avatar>
             ) : (
               <div className="flex size-7.5 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <span className="text-sm leading-normal">
+                <span className="font-medium text-sm leading-normal">
                   {workspace[0].name.charAt(0)}
                 </span>
               </div>
             )}
-            <span className="text-xs tracking-tight"> {workspace[0].name}</span>
+            <span className="font-medium text-xs tracking-tight">
+              {" "}
+              {workspace[0].name}
+            </span>
             <ChevronDownIcon className="ml-auto size-3 stroke-3 text-muted-foreground" />
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-60" sideOffset={10}>
           <DropdownMenuGroup>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>All Workspace</DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent className="w-50">
-                  <DropdownMenuItem>
-                    <CheckIcon />
-                    My Workspace
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
             <DropdownMenuItem
               onSelect={() => setIsNewWorkspaceDialogOpen(true)}
             >
-              Add Workspace
+              My Workspace
             </DropdownMenuItem>
             <DropdownMenuItem>Invite to Workspace</DropdownMenuItem>
           </DropdownMenuGroup>

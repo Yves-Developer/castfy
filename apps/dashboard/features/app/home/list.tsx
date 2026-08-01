@@ -1,7 +1,7 @@
 import { demos } from "@/config/data";
 import { DemoCard } from "./demo/card";
 
-export function ProjectsList() {
+export function HomeList() {
   return (
     <>
       {demos.map((demo) => (

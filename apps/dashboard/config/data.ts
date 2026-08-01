@@ -14,14 +14,14 @@ export const demos: Tdemo[] = [
     name: "Project Name",
     slug: "project-name",
     updatedAt: "24h ago",
-    action: "Viewed",
+    action: "Created",
     img: "/asset-1.jpg",
   },
   {
     name: "Rathon",
     slug: "rathon",
     updatedAt: "24h ago",
-    action: "Edited",
+    action: "Updated",
   },
 ];
 export const data = {

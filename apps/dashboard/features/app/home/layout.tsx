@@ -1,6 +1,6 @@
 import HomeSidebar from "./sibebar";
 
-export default function ProjectsLayout({
+export  function HomeLayout({
   children,
 }: {
   children: React.ReactNode;

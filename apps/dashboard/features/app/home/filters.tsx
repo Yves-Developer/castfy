@@ -13,26 +13,26 @@ import { useFilters } from "@/lib/nuqs-params";
 
 const filters = [
   {
-    label: "Last viewed by me",
-    value: "last_viewed",
+    label: "Last created by me",
+    value: "last_created",
   },
   {
-    label: "Last edited",
-    value: "last_edited",
+    label: "Last updated",
+    value: "last_updated",
   },
   {
     label: "Alphabetically",
     value: "alphabetically",
   },
 ];
-export function ProjectsFilters() {
+export function HomeFilters() {
   const [{ c }, setSearchParams] = useFilters();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className={"text-[13px]"} size="sm" variant={"secondary"}>
-          {filters.find((f) => f.value === c)?.label || "Last viewed by me"}
+        <Button className="text-[13px]" size="sm" variant={"secondary"}>
+          {filters.find((f) => f.value === c)?.label || "Last created by me"}
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>

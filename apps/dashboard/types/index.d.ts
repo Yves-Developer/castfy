@@ -5,12 +5,6 @@ import type { api } from "@/convex/_generated/api";
 export type UserWithSubscription = FunctionReturnType<
   typeof api.polar.user.getUser_withSubscription
 >;
-export type TsidebarPages =
-  | "ai"
-  | "background"
-  | "design"
-  | "captions"
-  | "settings";
 
 export interface TsidebarPage {
   component: React.ComponentType;

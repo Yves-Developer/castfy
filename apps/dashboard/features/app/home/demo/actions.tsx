@@ -1,5 +1,4 @@
 "use client";
-import { Badge } from "@castfy/ui/components/badge";
 import {
   ContextMenuItem,
   ContextMenuSeparator,
@@ -14,6 +13,7 @@ import {
 } from "@castfy/ui/components/dropdown-menu";
 import { cn } from "@castfy/ui/lib/utils";
 import { EllipsisIcon } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 export function DemoActions({ className }: { className?: string }) {
@@ -23,15 +23,6 @@ export function DemoActions({ className }: { className?: string }) {
       <DropdownMenuTrigger
         className={cn("relative z-2 text-muted-foreground", className)}
       >
-        <Badge
-          className={cn(
-            "font-semibold text-[11px] text-muted-foreground",
-            isOpen ? "hidden" : "group-hover:hidden"
-          )}
-          variant={"secondary"}
-        >
-          Draft
-        </Badge>
         <EllipsisIcon
           className={cn(
             "hidden size-4 group-hover:block",
@@ -41,7 +32,11 @@ export function DemoActions({ className }: { className?: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40" side="top">
         <DropdownMenuGroup>
-          <DropdownMenuItem>Open in New Tab</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/demos/abc" target="_blank">
+              Open in New Tab
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem>Copy Link</DropdownMenuItem>
           <DropdownMenuItem>Move</DropdownMenuItem>
           <DropdownMenuItem>Rename</DropdownMenuItem>

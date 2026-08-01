@@ -15,10 +15,15 @@ import {
 import { ArrowUpIcon, CheckIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
-export function DemoAgent() {
+export function AgentTab() {
   return (
-    <div>
-      <Field>
+    <div className="flex h-full flex-col">
+      <div className="flex h-full flex-1 items-center justify-center">
+        <p className="text-center font-medium text-muted-foreground">
+          Get started with <br /> our agent
+        </p>
+      </div>
+      <Field className="mt-auto block">
         <InputGroup>
           <InputGroupTextarea className="text-xs" placeholder="Ask Castfy..." />
           <InputGroupAddon

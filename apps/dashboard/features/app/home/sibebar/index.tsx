@@ -5,8 +5,8 @@ import { Grid2X2Icon, MailIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import SidebarSearch from "../../_shared/search";
-import { HomeDropMenu } from "../menu";
 import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
+import { HomeDropMenu } from "./menu";
 
 export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
