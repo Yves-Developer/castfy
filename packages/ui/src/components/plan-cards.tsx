@@ -162,7 +162,7 @@ export function PlanCards({
                   {pricing.symbol}0
                 </span>
                 <span className="font-sans text-muted-foreground text-sm">
-                  /3 days
+                  /14 days
                 </span>
               </div>
               <p className="mt-1 font-sans text-muted-foreground text-xs">

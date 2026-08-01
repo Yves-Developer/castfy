@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { AppSiteHeader } from "@/features/_layout/app-header";
-import { UserProfileCard } from "@/features/settings";
-import { AppearanceCard } from "@/features/settings/appearance";
-import DeleteUserCard from "@/features/settings/delete-account-card";
+import { AppSiteHeader } from "@/features/app/_layout/app-header";
+import { UserProfileCard } from "@/features/app/settings";
+import { AppearanceCard } from "@/features/app/settings/appearance";
+import DeleteUserCard from "@/features/app/settings/delete-account-card";
 
 export const metadata: Metadata = {
   title: "Settings",

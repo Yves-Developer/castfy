@@ -11,15 +11,22 @@
   },
   "dependencies": {
     "@castfy/ui": "workspace:*",
+    "@posthog/react": "^1.10.3",
+    "@tanstack/react-form": "^1.32.0",
     "embla-carousel-react": "^8.6.0",
     "geist": "^1.7.0",
     "lucide-react": "^1.16.0",
     "motion": "^12.38.0",
-    "next": "16.2.6",
+    "next": "16.2.10",
     "next-themes": "^0.4.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-use-measure": "^2.1.7"
+    "posthog-js": "^1.409.5",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-email": "^6.6.0",
+    "react-use-measure": "^2.1.7",
+    "resend": "^6.12.3",
+    "sonner": "^2.0.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.16",

@@ -1,18 +1,9 @@
-import { SidebarInset, SidebarProvider } from "@castfy/ui/components/sidebar";
-import { AppSidebar } from "@/features/_layout/sidebar";
+import { TooltipProvider } from "@castfy/ui/components/tooltip";
 
 export default function Lyout(props: LayoutProps<"/">) {
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar />
-      <SidebarInset className="@container">{props.children}</SidebarInset>
-    </SidebarProvider>
+    <main className="@container min-h-screen">
+      <TooltipProvider>{props.children}</TooltipProvider>
+    </main>
   );
 }
