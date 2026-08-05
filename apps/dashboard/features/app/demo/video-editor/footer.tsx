@@ -1,9 +1,10 @@
 import { Button } from "@castfy/ui/components/button";
 import {
   PlayIcon,
-  ScissorsIcon,
+  Redo2Icon,
   SkipBackIcon,
   SkipForwardIcon,
+  Undo2Icon,
   Volume2Icon,
   ZoomInIcon,
   ZoomOutIcon,
@@ -33,7 +34,14 @@ export function EditorFooter() {
           size="icon"
           variant={"ghost"}
         >
-          <ScissorsIcon />
+          <Undo2Icon />
+        </Button>
+        <Button
+          className="rounded-full text-muted-foreground"
+          size="icon"
+          variant={"ghost"}
+        >
+          <Redo2Icon />
         </Button>
       </div>
       <div className="flex flex-1 items-center justify-center gap-2">

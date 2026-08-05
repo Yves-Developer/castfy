@@ -53,7 +53,10 @@ export default function DemoSidebar({ className }: { className?: string }) {
         <TabsContent className="min-h-0 flex-1 p-2.5" value="design">
           <DesignTab />
         </TabsContent>
-        <TabsContent className="min-h-0 flex-1 p-2.5" value="background">
+        <TabsContent
+          className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2.5"
+          value="background"
+        >
           <BackgroundTab />
         </TabsContent>
       </Tabs>

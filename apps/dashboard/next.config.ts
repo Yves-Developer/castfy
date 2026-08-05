@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   transpilePackages: ["@workspace/ui"],
   typedRoutes: true,
+  cacheComponents: true,
+  partialPrefetching: true,
+  experimental: {
+    useOffline: true,
+  },
 };
 
 export default nextConfig;

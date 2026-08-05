@@ -1,0 +1,205 @@
+'use client'
+
+import { useState } from 'react'
+import { useImageStore } from '@/lib/store'
+import { MOCKUP_DEFINITIONS, getMockupsByType } from '@/lib/constants/mockups'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useResponsiveCanvasDimensions } from '@/hooks/useAspectRatioDimensions'
+import Image from 'next/image'
+import { SmartPhone01Icon, LaptopIcon, ComputerIcon, Watch02Icon } from 'hugeicons-react'
+
+export function MockupGallery() {
+  const { addMockup } = useImageStore()
+  const [activeType, setActiveType] = useState<'iphone' | 'macbook' | 'imac' | 'iwatch'>('macbook')
+  const responsiveDimensions = useResponsiveCanvasDimensions()
+
+  const getDefaultPosition = (mockupSize: number, mockupType: string) => {
+    const canvasWidth = responsiveDimensions.width || 1920
+    const canvasHeight = responsiveDimensions.height || 1080
+    
+    let aspectRatio = 16 / 9
+    if (mockupType === 'iphone') aspectRatio = 9 / 16
+    else if (mockupType === 'iwatch') aspectRatio = 1
+    else if (mockupType === 'imac') aspectRatio = 2146 / 1207
+    
+    const mockupHeight = mockupSize / aspectRatio
+    
+    return {
+      x: Math.max(20, (canvasWidth / 2) - (mockupSize / 2)),
+      y: Math.max(20, (canvasHeight / 2) - (mockupHeight / 2)),
+    }
+  }
+
+  const handleAddMockup = (definitionId: string) => {
+    const definition = MOCKUP_DEFINITIONS.find(d => d.id === definitionId)
+    let defaultSize = 600
+    if (definition?.type === 'iphone') defaultSize = 220
+    else if (definition?.type === 'iwatch') defaultSize = 150
+    else if (definition?.type === 'imac') defaultSize = 500
+    
+    const defaultPosition = getDefaultPosition(defaultSize, definition?.type || 'macbook')
+    
+    addMockup({
+      definitionId,
+      position: defaultPosition,
+      size: defaultSize,
+      rotation: 0,
+      opacity: 1,
+      isVisible: true,
+      imageFit: 'cover',
+    })
+  }
+
+  const macbookMockups = getMockupsByType('macbook')
+  const iphoneMockups = getMockupsByType('iphone')
+  const imacMockups = getMockupsByType('imac')
+  const iwatchMockups = getMockupsByType('iwatch')
+
+  return (
+    <div className="space-y-5">
+      <div className="space-y-1.5">
+        <h3 className="font-semibold text-sm text-foreground">Device Mockups</h3>
+        <p className="text-xs text-muted-foreground">
+          Add device frames to showcase your designs
+        </p>
+      </div>
+
+      <Tabs value={activeType} onValueChange={(v) => setActiveType(v as 'iphone' | 'macbook' | 'imac' | 'iwatch')}>
+        <TabsList className="w-full grid grid-cols-4 rounded-none bg-transparent h-12 p-1.5 gap-1.5">
+          <TabsTrigger 
+            value="macbook" 
+            className="data-[state=active]:bg-background rounded-md border-0 data-[state=active]:border-0 transition-all duration-200 text-xs gap-1.5"
+          >
+            <LaptopIcon className="h-3.5 w-3.5" />
+            <span>MacBook</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="imac" 
+            className="data-[state=active]:bg-background rounded-md border-0 data-[state=active]:border-0 transition-all duration-200 text-xs gap-1.5"
+          >
+            <ComputerIcon className="h-3.5 w-3.5" />
+            <span>iMac</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="iwatch" 
+            className="data-[state=active]:bg-background rounded-md border-0 data-[state=active]:border-0 transition-all duration-200 text-xs gap-1.5"
+          >
+            <Watch02Icon className="h-3.5 w-3.5" />
+            <span>Watch</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="iphone" 
+            className="data-[state=active]:bg-background rounded-md border-0 data-[state=active]:border-0 transition-all duration-200 text-xs gap-1.5"
+          >
+            <SmartPhone01Icon className="h-3.5 w-3.5" />
+            <span>iPhone</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="macbook" className="mt-5">
+          <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+            {macbookMockups.map((mockup) => (
+              <button
+                key={mockup.id}
+                onClick={() => handleAddMockup(mockup.id)}
+                className="group relative aspect-video rounded-lg overflow-hidden border border-border hover:border-primary transition-colors bg-muted"
+              >
+                <Image
+                  src={mockup.src}
+                  alt={mockup.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 200px"
+                />
+                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors" />
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-foreground/60 to-transparent">
+                  <p className="text-xs text-background font-medium truncate">{mockup.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="imac" className="mt-5">
+          <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+            {imacMockups.map((mockup) => (
+              <button
+                key={mockup.id}
+                onClick={() => handleAddMockup(mockup.id)}
+                className="group relative aspect-video rounded-lg overflow-hidden border border-border hover:border-primary transition-colors bg-muted"
+              >
+                <Image
+                  src={mockup.src}
+                  alt={mockup.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 200px"
+                />
+                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors" />
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-foreground/60 to-transparent">
+                  <p className="text-xs text-background font-medium truncate">{mockup.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="iwatch" className="mt-5">
+          <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+            {iwatchMockups.map((mockup) => (
+              <button
+                key={mockup.id}
+                onClick={() => handleAddMockup(mockup.id)}
+                className="group relative aspect-square rounded-lg overflow-hidden border border-border hover:border-primary transition-colors bg-muted"
+              >
+                <Image
+                  src={mockup.src}
+                  alt={mockup.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 200px"
+                />
+                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors" />
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-foreground/60 to-transparent">
+                  <p className="text-xs text-background font-medium truncate">{mockup.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="iphone" className="mt-5">
+          {iphoneMockups.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+              {iphoneMockups.map((mockup) => (
+                <button
+                  key={mockup.id}
+                  onClick={() => handleAddMockup(mockup.id)}
+                  className="group relative aspect-[9/16] rounded-lg overflow-hidden border border-border hover:border-primary transition-colors bg-muted"
+                >
+                  <Image
+                    src={mockup.src}
+                    alt={mockup.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, 200px"
+                  />
+                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-foreground/60 to-transparent">
+                    <p className="text-xs text-background font-medium truncate">{mockup.name}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-sm text-muted-foreground">
+              <SmartPhone01Icon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>iPhone mockups coming soon</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+
