@@ -1,22 +1,25 @@
+"use client";
 import { Button } from "@castfy/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@castfy/ui/components/dropdown-menu";
 import { Field } from "@castfy/ui/components/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupTextarea,
 } from "@castfy/ui/components/input-group";
-import { ArrowUpIcon, CheckIcon, ChevronDownIcon } from "lucide-react";
+import { Switch } from "@castfy/ui/components/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@castfy/ui/components/tooltip";
+import { ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
+import { SelectModel } from "./models";
 import DemoUrl from "./url";
 
+export type AIProvider = "anthropic" | "openai" | "gemini";
 export function AgentTab() {
+  const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
   return (
     <div className="flex h-full flex-col">
       <DemoUrl />
@@ -27,59 +30,40 @@ export function AgentTab() {
       </div>
       <Field className="mt-auto block">
         <InputGroup>
-          <InputGroupTextarea className="text-xs" placeholder="Ask Castfy..." />
+          <InputGroupTextarea
+            className="text-xs"
+            placeholder="Generate demo..."
+          />
           <InputGroupAddon
             align="block-end"
             className="flex justify-between border-foreground/10 border-t"
           >
-            <SelectModel />
-            <Button className="size-5 rounded" disabled variant="secondary">
-              <ArrowUpIcon className="size-3.5" strokeWidth={2.7} />
-            </Button>
+            <SelectModel
+              selectedModel={selectedModel}
+              setSelectedModelAction={(id) => {
+                setSelectedModel(id as AIProvider);
+              }}
+            />
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Switch id="headless" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    If enabled, the browser will run in the background. Disable
+                    this if you want to visually observe the browser actions on
+                    screen.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <Button className="rounded-full" disabled size="icon-xs">
+                <ArrowUpIcon strokeWidth={2.7} />
+              </Button>
+            </div>
           </InputGroupAddon>
         </InputGroup>
       </Field>
     </div>
-  );
-}
-const models = [
-  {
-    id: "gpt-5.5",
-    name: "GPT-5.5",
-  },
-  {
-    id: "gpt-4",
-    name: "GPT-4",
-  },
-  {
-    id: "sonnet-4.6",
-    name: "Sonnet 4.6",
-  },
-];
-function SelectModel() {
-  const [model, setModel] = useState(models[0].id);
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-xs">
-        {models.find((m) => m.id === model)?.name}
-        <ChevronDownIcon className="size-3.5" strokeWidth={2.7} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" alignOffset={-10} className="w-50">
-        <DropdownMenuGroup>
-          {models.map((m) => (
-            <DropdownMenuItem
-              className="flex justify-between"
-              key={m.id}
-              onClick={() => setModel(m.id)}
-            >
-              {m.name}
-              {model === m.id && (
-                <CheckIcon className="text-muted-foreground" />
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }

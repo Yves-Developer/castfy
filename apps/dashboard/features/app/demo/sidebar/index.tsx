@@ -3,7 +3,7 @@ import { Button } from "@castfy/ui/components/button";
 import { Tabs, TabsContent } from "@castfy/ui/components/tabs";
 import { cn } from "@castfy/ui/lib/utils";
 import { useState } from "react";
-import { AgentTab } from "./agent";
+import { AgentTabq } from "./agent/test";
 import { BackgroundTab } from "./background";
 import { DesignTab } from "./design";
 
@@ -48,7 +48,7 @@ export default function DemoSidebar({ className }: { className?: string }) {
           </div>
         </div>
         <TabsContent className="min-h-0 flex-1 p-2.5" value="agent">
-          <AgentTab />
+          <AgentTabq />
         </TabsContent>
         <TabsContent className="min-h-0 flex-1 p-2.5" value="design">
           <DesignTab />
