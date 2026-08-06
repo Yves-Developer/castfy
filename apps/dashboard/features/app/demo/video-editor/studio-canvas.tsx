@@ -20,13 +20,10 @@ export function StudioCanvas() {
   const {
     slides,
     setActiveSlide,
-    activeSlideId,
-    removeSlide,
     previewIndex,
     isPreviewing,
     stopPreview,
     uploadedImageUrl,
-    showTimeline,
     selectedAspectRatio,
   } = useImageStore();
 
@@ -78,21 +75,17 @@ export function StudioCanvas() {
       : 16 / 9;
 
     return (
-      <div className="flex h-full w-full flex-1 flex-col">
-        <div className="flex flex-1 items-center justify-center">
-          <div
-            className="relative overflow-hidden rounded-lg border-2 transition-all duration-300"
-            style={{
-              aspectRatio: `${ratioValue}`,
-              height: "100%",
-              maxHeight: "70vh",
-              //   width: `min(100%, min(48rem, calc(70vh * ${ratioValue})))`,
-            }}
-          >
-            <CleanUploadState />
-            {/* <EditorVideo /> */}
-            {/* cleam */}
-          </div>
+      <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
+        <div
+          className="relative overflow-hidden rounded-lg border-2 transition-all duration-300"
+          style={{
+            aspectRatio: `${ratioValue}`,
+            height: "100%",
+            maxHeight: "70vh",
+            //   width: `min(100%, min(48rem, calc(70vh * ${ratioValue})))`,
+          }}
+        >
+          <CleanUploadState />
         </div>
       </div>
     );

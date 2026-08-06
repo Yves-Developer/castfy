@@ -781,7 +781,7 @@ export const useImageStore = create<ImageState>()(
     selectedGradient: "vibrant_orange_pink",
     borderRadius: 10,
     backgroundBorderRadius: 10,
-    selectedAspectRatio: "4_3",
+    selectedAspectRatio: "16_9",
     customDimensions: null,
     backgroundConfig: {
       type: "image",

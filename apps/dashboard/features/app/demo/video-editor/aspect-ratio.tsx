@@ -2,10 +2,10 @@
 
 import { Button } from "@castfy/ui/components/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@castfy/ui/components/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@castfy/ui/components/dropdown-menu";
 import { AspectRatioIcon } from "hugeicons-react";
 import { useState } from "react";
 import { AspectRatioPicker } from "@/components/aspect-ratio/aspect-ratio-picker";
@@ -19,8 +19,8 @@ export function AspectRatio() {
     (ar) => ar.id === selectedAspectRatio
   );
   return (
-    <Popover onOpenChange={setAspectRatioOpen} open={aspectRatioOpen}>
-      <PopoverTrigger asChild>
+    <DropdownMenu onOpenChange={setAspectRatioOpen} open={aspectRatioOpen}>
+      <DropdownMenuTrigger asChild>
         <Button
           className="h-8 gap-1.5 rounded-lg px-2.5 text-muted-foreground hover:text-foreground"
           size="sm"
@@ -33,15 +33,10 @@ export function AspectRatio() {
               : "Auto"}
           </span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-[420px] p-0"
-        collisionPadding={16}
-        sideOffset={8}
-      >
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-105 p-0" sideOffset={8}>
         <AspectRatioPicker onSelect={() => setAspectRatioOpen(false)} />
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -1,18 +1,16 @@
 "use client";
 
 import { Button } from "@castfy/ui/components/button";
-import { Input } from "@castfy/ui/components/input";
-import { cn } from "@castfy/ui/lib/utils";
 import {
-  Camera01Icon,
-  CommandIcon,
-  Globe02Icon,
-  Loading03Icon,
-} from "hugeicons-react";
-import { Moon, Sun } from "lucide-react";
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@castfy/ui/components/input-group";
+import { cn } from "@castfy/ui/lib/utils";
+import { Loading03Icon } from "hugeicons-react";
+import { ArrowDownIcon, ClapperboardIcon } from "lucide-react";
 import React from "react";
 import { useDropzone } from "react-dropzone";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from "@/lib/constants";
 import { getBackgroundCSS } from "@/lib/constants/backgrounds";
 import { useEditorStore, useImageStore } from "@/lib/store";
@@ -357,7 +355,7 @@ export function CleanUploadState() {
         className={cn(
           "relative z-10 flex cursor-pointer flex-col items-center justify-center",
           "h-[80%] w-[80%] rounded-2xl",
-          "bg-foreground/5 backdrop-blur-sm",
+          "bg-muted/20 backdrop-blur-sm",
           "border border-foreground/10",
           "transition-all duration-300 ease-out",
           "hover:border-foreground/15 hover:bg-foreground/8",
@@ -365,71 +363,13 @@ export function CleanUploadState() {
         )}
         onClick={open}
       >
-        {/* Plus icon */}
-        <svg
-          className="mb-4 transition-colors duration-200"
-          fill="none"
-          height="48"
-          style={{
-            color: active ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.45)",
-            filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.3))",
-          }}
-          viewBox="0 0 48 48"
-          width="48"
-        >
-          <line
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="3"
-            x1="24"
-            x2="24"
-            y1="8"
-            y2="40"
-          />
-          <line
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="3"
-            x1="8"
-            x2="40"
-            y1="24"
-            y2="24"
-          />
-        </svg>
-
         {/* Placeholder text */}
-        <p
-          className="mb-1 font-medium text-sm"
-          style={{
-            color: "rgba(255,255,255,0.7)",
-            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
-          }}
-        >
-          {active
+        <p className="mb-1 font-medium text-sm">
+          {/* {active
             ? "Drop the image here..."
-            : "Drag & drop, click to browse, or paste"}
+            : "Drag & drop, click to browse, or paste"} */}
+          Generate video with our agent
         </p>
-
-        {!active && (
-          <div
-            className="mt-1 hidden items-center gap-1.5 text-xs sm:flex"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-          >
-            <kbd
-              className="rounded px-1.5 py-0.5 font-medium text-xs"
-              style={{
-                background: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                color: "rgba(255,255,255,0.7)",
-              }}
-            >
-              <span className="flex items-center gap-0.5">
-                <CommandIcon size={10} />V
-              </span>
-            </kbd>
-            <span>to paste</span>
-          </div>
-        )}
 
         {/* Screenshot URL input */}
         {!active && (
@@ -437,7 +377,7 @@ export function CleanUploadState() {
             className="mt-4 hidden w-full max-w-[280px] flex-col items-center gap-2 lg:flex"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex w-full max-w-[140px] items-center gap-2">
+            <div className="flex w-full max-w-35 items-center gap-2">
               <div
                 className="h-px flex-1"
                 style={{ background: "rgba(255,255,255,0.15)" }}
@@ -454,59 +394,26 @@ export function CleanUploadState() {
               />
             </div>
             <div className="flex w-full gap-1.5">
-              <div
-                className="relative flex flex-1 items-center rounded-lg pr-1 pl-2.5 transition-shadow focus-within:ring-1 focus-within:ring-white/25"
-                style={{
-                  background: "rgba(0,0,0,0.25)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                }}
-              >
-                <Globe02Icon
-                  className="shrink-0"
-                  size={14}
-                  style={{ color: "rgba(255,255,255,0.45)" }}
-                />
-                <Input
-                  className="h-9 flex-1 border-0 bg-transparent px-2 text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent"
+              <InputGroup className="border bg-background">
+                <InputGroupInput
+                  className="text-sm"
                   disabled={isCapturing}
                   onChange={(e) => setScreenshotUrl(e.target.value)}
                   onKeyDown={(e) =>
                     e.key === "Enter" && handleCaptureScreenshot()
                   }
-                  placeholder="Enter website URL..."
-                  style={{ color: "rgba(255,255,255,0.9)" }}
+                  placeholder="Enter video URL..."
                   type="url"
                   value={screenshotUrl}
                 />
-                <div className="h-4 w-px shrink-0 bg-white/10" />
-                <SegmentedControl
-                  className={cn(
-                    "ml-1 shrink-0 border-0 bg-transparent p-[2px] dark:bg-transparent",
-                    isCapturing && "pointer-events-none opacity-60"
-                  )}
-                  indicatorClassName="bg-white/15 dark:bg-white/15"
-                  onChange={(value) => setColorScheme(value as ColorScheme)}
-                  options={[
-                    {
-                      id: "light",
-                      icon: <Sun className="h-3 w-3" />,
-                      ariaLabel: "Light",
-                    },
-                    {
-                      id: "dark",
-                      icon: <Moon className="h-3 w-3" />,
-                      ariaLabel: "Dark",
-                    },
-                  ]}
-                  size="sm"
-                  value={colorScheme}
-                />
-              </div>
+                <InputGroupAddon>
+                  <ClapperboardIcon />
+                </InputGroupAddon>
+              </InputGroup>
+
               <Button
-                className="h-9 rounded-lg px-3 transition-all duration-200"
                 disabled={isCapturing}
                 onClick={handleCaptureScreenshot}
-                size="sm"
                 style={{
                   background: "rgba(0,0,0,0.3)",
                   borderColor: "rgba(255,255,255,0.15)",
@@ -516,7 +423,7 @@ export function CleanUploadState() {
                 {isCapturing ? (
                   <Loading03Icon className="animate-spin" size={14} />
                 ) : (
-                  <Camera01Icon size={14} />
+                  <ArrowDownIcon size={14} />
                 )}
               </Button>
             </div>
