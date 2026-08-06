@@ -62,7 +62,7 @@ class ExportWorkerService {
         "Web Workers not supported, operations will run on main thread"
       );
       this.isReady = false;
-      return;
+      return Promise.resolve();
     }
 
     this.readyPromise = new Promise((resolve, reject) => {

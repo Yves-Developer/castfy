@@ -1,24 +1,28 @@
-'use client';
+"use client";
 
-import { HTMLMockupRenderer } from './HTMLMockupRenderer';
-import type { Mockup } from '@/types/mockup';
+import type { Mockup } from "@/types/mockup";
+import { HTMLMockupRenderer } from "./HTMLMockupRenderer";
 
 interface MockupRendererProps {
-  mockup: Mockup;
-  canvasWidth: number;
   canvasHeight: number;
+  canvasWidth: number;
+  mockup: Mockup;
 }
 
 /**
  * Unified mockup renderer using HTML/CSS.
  * Supports all mockup types: iPhone, MacBook, iMac, iWatch.
  */
-export function MockupRenderer({ mockup, canvasWidth, canvasHeight }: MockupRendererProps) {
+export function MockupRenderer({
+  mockup,
+  canvasWidth,
+  canvasHeight,
+}: MockupRendererProps) {
   return (
     <HTMLMockupRenderer
-      mockup={mockup}
-      canvasWidth={canvasWidth}
       canvasHeight={canvasHeight}
+      canvasWidth={canvasWidth}
+      mockup={mockup}
     />
   );
 }

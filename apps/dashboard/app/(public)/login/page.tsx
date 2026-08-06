@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { Suspense } from "react";
 import { siteConfig } from "@/config/site";
 import { LoginAccordion } from "@/features/public/login/login-accordion";
 import { LoginVideoBackground } from "@/features/public/login/login-video-background";
@@ -12,11 +13,19 @@ export const metadata: Metadata = {
   title: "Login",
 };
 
-export default async function Page() {
+export default function Page() {
+  return (
+    <Suspense>
+      <LoginPage />
+    </Suspense>
+  );
+}
+async function LoginPage() {
   const cookieStore = await cookies();
   const preferred = cookieStore.get(Cookies.PreferredSignInProvider);
 
-  let moreSignInOptions = null;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanations
+  let moreSignInOptions: any = null;
   let preferredSignInOption = (
     <OAuthSignIn
       provider="google"
