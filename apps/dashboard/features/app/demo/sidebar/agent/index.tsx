@@ -14,10 +14,12 @@ import {
 } from "@castfy/ui/components/input-group";
 import { ArrowUpIcon, CheckIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
+import DemoUrl from "./url";
 
 export function AgentTab() {
   return (
     <div className="flex h-full flex-col">
+      <DemoUrl />
       <div className="flex h-full flex-1 items-center justify-center">
         <p className="text-center font-medium text-muted-foreground">
           Get started with <br /> our agent

@@ -323,7 +323,7 @@ export const useEditorStore = create<EditorState>((set, _get) => ({
     side: "bottom-right",
     softness: 15,
     spread: 3,
-    color: "rgba(0, 0, 0, 1)",
+    color: "",
     intensity: 0.5,
     offsetX: 5,
     offsetY: 8,

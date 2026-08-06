@@ -44,24 +44,24 @@ export function EditorFooter() {
           <Redo2Icon />
         </Button>
       </div>
-      <div className="flex flex-1 items-center justify-center gap-2">
+      <div className="flex flex-1 items-center justify-center gap-2 font-medium">
         <p className="text-muted-foreground text-xs">0:01</p>
         <Button
           className={"rounded-full text-muted-foreground"}
           size="icon"
           variant="ghost"
         >
-          <SkipBackIcon />
+          <SkipBackIcon strokeWidth={2.5} />
         </Button>
         <Button className="rounded-full" size="icon">
-          <PlayIcon />
+          <PlayIcon strokeWidth={2.5} />
         </Button>
         <Button
           className={"rounded-full text-muted-foreground"}
           size="icon"
           variant="ghost"
         >
-          <SkipForwardIcon />
+          <SkipForwardIcon strokeWidth={2.5} />
         </Button>
         <p className="text-muted-foreground text-xs">1:46</p>
       </div>
@@ -72,7 +72,7 @@ export function EditorFooter() {
           size="icon"
           variant={"ghost"}
         >
-          <Volume2Icon />
+          <Volume2Icon strokeWidth={2.5} />
         </Button>
       </div>
     </div>

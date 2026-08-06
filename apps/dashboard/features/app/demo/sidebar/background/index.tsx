@@ -432,17 +432,11 @@ export function BackgroundTab() {
           <AccordionTrigger className="text-foreground hover:no-underline data-[state=closed]:text-muted-foreground">
             Magic Gradients
           </AccordionTrigger>
-          <AccordionContent className="h-full">
+          <AccordionContent className="h-fit p-1">
             <div className="scrollbar-hide overflow-x-auto">
-              <div
-                className="grid w-max auto-cols-min grid-flow-col gap-2"
-                style={{
-                  gridTemplateRows: "repeat(4, 1fr)",
-                  gridAutoFlow: "column",
-                }}
-              >
+              <div className="mb-10 grid grid-cols-6 gap-2">
                 {(Object.keys(magicGradients) as MagicGradientKey[]).map(
-                  (key, idx) => (
+                  (key) => (
                     <button
                       className={cn(
                         "block h-8 w-8 shrink-0 cursor-pointer border border-border/20 transition-all duration-200 hover:scale-105",
@@ -457,7 +451,6 @@ export function BackgroundTab() {
                       }}
                       style={{
                         background: magicGradients[key],
-                        gridArea: `${(idx % 4) + 1} / ${Math.floor(idx / 4) + 1}`,
                       }}
                       type="button"
                     />
