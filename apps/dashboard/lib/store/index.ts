@@ -619,6 +619,8 @@ export interface ImageState {
     format: "png" | "jpeg" | "webp";
     fileName: string;
   };
+  // Generated demo video URL (from test/generator)
+  generatedVideoUrl: string | null;
   imageBorder: ImageBorder;
   imageFilters: ImageFilters;
   imageName: string | null;
@@ -693,6 +695,7 @@ export interface ImageState {
   setCustomDimensions: (width: number, height: number) => void;
   setEditorMode: (mode: "screenshot" | "browser") => void;
   setExportSettings: (settings: Partial<ImageState["exportSettings"]>) => void;
+  setGeneratedVideoUrl: (url: string | null) => void;
   setGradient: (gradient: GradientKey) => void;
   setImage: (file: File) => void;
   setImageBorder: (border: ImageBorder | Partial<ImageBorder>) => void;
@@ -777,6 +780,8 @@ export const useImageStore = create<ImageState>()(
     previewStartedAt: null,
 
     uploadedImageUrl: null,
+    // Store generated demo video URL (set by demo generator)
+    generatedVideoUrl: null,
     imageName: null,
     selectedGradient: "vibrant_orange_pink",
     borderRadius: 10,
@@ -847,6 +852,10 @@ export const useImageStore = create<ImageState>()(
       // Immediately sync to editor store so canvas updates without
       // waiting for the EditorStoreSync useEffect cycle
       useEditorStore.getState().setScreenshot({ src: url });
+    },
+
+    setGeneratedVideoUrl: (url: string | null) => {
+      set({ generatedVideoUrl: url });
     },
 
     setImage: (file: File) => {

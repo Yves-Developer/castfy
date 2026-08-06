@@ -5,7 +5,7 @@ import {
   ChevronDown,
   Globe,
   Keyboard,
-  Loader2,
+  LoaderIcon,
   MousePointer,
   Move,
   ShieldCheck,
@@ -42,12 +42,12 @@ function getStepIcon(action: string) {
 function StepItem({ step, index }: { step: AgentStep; index: number }) {
   return (
     <div className="group relative">
-      <span className="absolute top-0 -left-9.25 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm ring-4 ring-white">
+      <span className="absolute top-0 -left-9.25 flex h-6 w-6 items-center justify-center rounded-full border bg-background ring-2">
         {getStepIcon(step.action)}
       </span>
-      <div className="flex flex-col gap-1 rounded-lg border bg-white p-3 shadow-sm transition-colors group-hover:border-slate-300">
+      <div className="flex flex-col gap-1 rounded-lg border bg-background p-3 shadow-sm transition-colors group-hover:border-primary">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-slate-400 text-xs uppercase tracking-wider">
+          <span className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
             Step {index + 1}: {step.action}
           </span>
           {step.status === "error" ? (
@@ -55,29 +55,22 @@ function StepItem({ step, index }: { step: AgentStep; index: number }) {
               Error
             </Badge>
           ) : (
-            <Badge
-              className="border-slate-200 bg-slate-100 px-1.5 py-0 text-[10px] text-slate-600"
-              variant="secondary"
-            >
-              Success
-            </Badge>
+            <Badge variant="secondary">Success</Badge>
           )}
         </div>
-        <p className="font-medium text-slate-700 text-sm leading-relaxed">
+        <p className="font-medium text-slate-700 text-xs leading-relaxed">
           {step.description}
         </p>
         {(step.ref || step.value) && (
-          <div className="mt-1.5 flex flex-wrap gap-1.5 rounded border border-slate-100 bg-slate-50 p-1.5 font-mono text-[11px] text-slate-500">
+          <div className="mt-1.5 flex flex-wrap gap-1.5 rounded border bg-muted/50 p-1.5 font-mono text-foreground/80 text-xs">
             {step.ref && (
               <span>
-                <strong className="font-semibold text-slate-600">Ref:</strong>{" "}
-                {step.ref}
+                <strong className="font-semibold">Ref:</strong> {step.ref}
               </span>
             )}
             {step.value && (
               <span>
-                <strong className="font-semibold text-slate-600">Val:</strong>{" "}
-                {step.value}
+                <strong className="font-semibold">Val:</strong> {step.value}
               </span>
             )}
           </div>
@@ -95,18 +88,16 @@ function StepItem({ step, index }: { step: AgentStep; index: number }) {
 export function StepsTimeline({ steps }: { steps: AgentStep[] }) {
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-sm uppercase tracking-wide">
-        Agent Actions
-      </h3>
+      <h3 className="font-medium text-xs">Agent Actions</h3>
       {steps.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-slate-50/30 p-8">
-          <Loader2 className="mb-2 h-6 w-6 animate-spin text-slate-400" />
-          <span className="font-medium text-slate-500 text-sm">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-6 text-muted-foreground">
+          <LoaderIcon className="mb-2 size-6 animate-spin" />
+          <span className="font-medium text-xs">
             Waiting for first action...
           </span>
         </div>
       ) : (
-        <div className="relative ml-3 space-y-4 border-slate-200 border-l pl-6">
+        <div className="relative ml-3 space-y-4 border-l pl-4">
           {steps.map((step, idx) => (
             <StepItem index={idx} key={`${step.action}-${idx}`} step={step} />
           ))}

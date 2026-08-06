@@ -19,6 +19,8 @@ export default function AppVideoEditor() {
 
   const videoUrl =
     "https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Framer%20Update_%20CMS%203.0.mp4";
+  const generatedVideoUrl = useImageStore((s) => s.generatedVideoUrl);
+  const displayedUrl = generatedVideoUrl ?? videoUrl;
 
   const currentRatio = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
   const ratioValue = currentRatio
@@ -135,6 +137,22 @@ export default function AppVideoEditor() {
     setIsPlaying(!(video.paused || video.ended));
   }, []);
 
+  // When a generated video is not available, force-muted the preview
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    if (generatedVideoUrl) {
+      // If a generated video appears, unmute so audio is audible by default
+      video.muted = false;
+      setIsMuted(false);
+    } else {
+      video.muted = true;
+      setIsMuted(true);
+    }
+  }, [generatedVideoUrl]);
+
   return (
     <div className="flex h-full flex-col gap-4 px-2.5 py-4">
       <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
@@ -153,7 +171,7 @@ export default function AppVideoEditor() {
             onTimeUpdate={handleTimeUpdate}
             onVolumeChange={handleNativeVolumeChange}
             ref={videoRef}
-            url={videoUrl}
+            url={displayedUrl}
           />
         </div>
       </div>
