@@ -73,3 +73,29 @@ export const data = {
     },
   ],
 };
+
+export const models = [
+  {
+    chef: "OpenAI",
+    chefSlug: "openai",
+    id: "gpt-4o",
+    name: "GPT-4o",
+    providers: ["openai", "azure"],
+  },
+
+  {
+    chef: "Google",
+    chefSlug: "gemini",
+    id: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    providers: ["google", "google-vertex"],
+  },
+
+  {
+    chef: "Claude",
+    chefSlug: "anthropic",
+    id: "claude-opus-4-8",
+    name: "Claude Opus 4.8",
+    providers: ["anthropic"],
+  },
+];

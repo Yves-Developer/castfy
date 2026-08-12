@@ -1,33 +1,34 @@
-/** biome-ignore-all lint/correctness/noChildrenProp: fo now */
-"use client";
-
 import { Button } from "@castfy/ui/components/button";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@castfy/ui/components/dialog";
+import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@castfy/ui/components/field";
 import { Input } from "@castfy/ui/components/input";
-import { Textarea } from "@castfy/ui/components/textarea";
 import { useForm } from "@tanstack/react-form";
 import type * as React from "react";
 import { toast } from "sonner";
+// biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
 
 const formSchema = z.object({
-  demoTitle: z.string().min(5, "Demo title must be at least 5 characters."),
-  webUrl: z.string().url("Please enter a valid URL."),
-  aiPrompt: z.string().min(5, "AI prompt must be at least 5 characters."),
+  title: z.string().min(5, "Folder title must be at least 5 characters."),
 });
 
-export function NewDemoForm() {
+export function NewDemo() {
   const form = useForm({
     defaultValues: {
-      demoTitle: "",
-      webUrl: "",
-      aiPrompt: "",
+      title: "",
     },
     validators: {
       onSubmit: formSchema,
@@ -51,103 +52,71 @@ export function NewDemoForm() {
   });
 
   return (
-    <div className="flex w-full flex-col gap-10">
-      <form
-        id="new-demo-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-      >
-        <FieldGroup>
-          <form.Field
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Demo Title</FieldLabel>
-                  <Input
-                    aria-invalid={isInvalid}
-                    autoComplete="off"
-                    id={field.name}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="My saas demo"
-                    value={field.state.value}
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-            name="demoTitle"
-          />
-          <form.Field
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Web URL</FieldLabel>
-                  <Input
-                    aria-invalid={isInvalid}
-                    autoComplete="off"
-                    id={field.name}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="https://my-saas-demo.com"
-                    value={field.state.value}
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-            name="webUrl"
-          />
-          <form.Field
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>AI Prompt</FieldLabel>
-                  <Textarea
-                    aria-invalid={isInvalid}
-                    className="min-h-24 resize-none"
-                    id={field.name}
-                    name={field.name}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Ai Prompt..."
-                    rows={6}
-                    value={field.state.value}
-                  />
-
-                  <FieldDescription>
-                    Provide a detailed prompt for the AI to generate a best
-                    results.
-                  </FieldDescription>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-            name="aiPrompt"
-          />
-        </FieldGroup>
-      </form>
-
-      <div className="flex justify-end">
-        <Button
-          className="rounded-full"
-          form="new-demo-form"
-          size="xl"
-          type="submit"
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm">New Demo</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-68" showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle className="font-semibold text-xs">New Demo</DialogTitle>
+          <DialogDescription className="sr-only">
+            Create new demo
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="flex flex-col gap-3"
+          id="new-demo-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
         >
-          Generate Demo
-        </Button>
-      </div>
-    </div>
+          <FieldGroup>
+            <form.Field
+              // biome-ignore lint/correctness/noChildrenProp: <explanation
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel className="sr-only" htmlFor={field.name}>
+                      Demo Title
+                    </FieldLabel>
+                    <Input
+                      aria-invalid={isInvalid}
+                      autoComplete="off"
+                      className="h-7 text-xs focus-visible:ring-1 dark:bg-input/50"
+                      id={field.name}
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Title"
+                      value={field.state.value}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+              name="title"
+            />
+          </FieldGroup>
+          <p className="text-muted-foreground text-xs">
+            Create a new demo to get started.
+          </p>
+          <div className="flex items-center gap-2">
+            <DialogClose asChild>
+              <Button className="flex-1 text-xs" variant="secondary">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button className="flex-1 text-xs" type="submit">
+              Done
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

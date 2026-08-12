@@ -1,7 +1,7 @@
 export default function AppTimelines() {
   return (
     <div className="group relative flex flex-col gap-2 p-2.5">
-      <div className="absolute inset-0 z-10 flex hidden items-center justify-center bg-background/40 backdrop-blur-sm group-hover:flex">
+      <div className="absolute inset-0 z-10 hidden items-center justify-center bg-background/40 backdrop-blur-sm group-hover:flex">
         <p className="text-foreground/70 text-sm tracking-tight">
           In Development
         </p>
