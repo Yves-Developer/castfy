@@ -5,6 +5,7 @@ import { aspectRatios } from "@/lib/constants/aspect-ratios";
 import { useImageStore } from "@/lib/store";
 import { RemotionPlayer } from "../remotion/player";
 import { EditorFooter } from "./footer";
+import StudioTimelines from "./timelines";
 
 const SKIP_SECONDS = 10;
 const FPS = 30;
@@ -18,6 +19,7 @@ export default function AppVideoEditor() {
       : 16 / 9;
   const [durationInFrames, setDurationInFrames] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
+  const [currentFrame, setCurrentFrame] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -68,43 +70,68 @@ export default function AppVideoEditor() {
     setDuration(frames / FPS);
   }, []);
 
+  const seekToFrame = useCallback(
+    (frame: number) => {
+      const current = playerRef.current;
+      if (!current) {
+        return;
+      }
+      const clamped = Math.min(
+        Math.max(0, frame),
+        Math.max(0, durationInFrames - 1)
+      );
+      current.seekTo(clamped);
+    },
+    [durationInFrames]
+  );
+
   const handleFrameChange = useCallback((frame: number) => {
+    setCurrentFrame(frame);
     setCurrentTime(frame / FPS);
   }, []);
 
   return (
-    <div className="flex h-full flex-col gap-4 px-2.5 py-4">
-      <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
-        <div
-          className="relative flex items-center justify-center overflow-hidden rounded-lg"
-          style={{
-            aspectRatio: `${ratioValue}`,
-            height: "100%",
-            maxHeight: "70vh",
-          }}
-        >
-          <RemotionPlayer
-            onDurationInFrames={handleDurationInFrames}
-            onFrameChange={handleFrameChange}
-            onMuteChange={setIsMuted}
-            onPlaybackChange={setIsPlaying}
-            onVolumeChange={setVolume}
-            ref={playerRef}
-          />
+    <>
+      <div className="flex h-full flex-col gap-4 px-2.5 py-4">
+        <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
+          <div
+            className="relative flex items-center justify-center overflow-hidden rounded-lg"
+            style={{
+              aspectRatio: `${ratioValue}`,
+              height: "100%",
+              maxHeight: "70vh",
+            }}
+          >
+            <RemotionPlayer
+              onDurationInFrames={handleDurationInFrames}
+              onFrameChange={handleFrameChange}
+              onMuteChange={setIsMuted}
+              onPlaybackChange={setIsPlaying}
+              onVolumeChange={setVolume}
+              ref={playerRef}
+            />
+          </div>
         </div>
+        <EditorFooter
+          currentTime={currentTime}
+          duration={duration}
+          isMuted={isMuted}
+          isPlaying={isPlaying}
+          onPlayPause={handleTogglePlay}
+          onSkipBack={skipBackward}
+          onSkipForward={skipForward}
+          onToggleMute={handleToggleMute}
+          onVolumeChange={handleVolumeChange}
+          volume={volume}
+        />
       </div>
-      <EditorFooter
-        currentTime={currentTime}
-        duration={duration}
-        isMuted={isMuted}
-        isPlaying={isPlaying}
-        onPlayPause={handleTogglePlay}
-        onSkipBack={skipBackward}
-        onSkipForward={skipForward}
-        onToggleMute={handleToggleMute}
-        onVolumeChange={handleVolumeChange}
-        volume={volume}
-      />
-    </div>
+      <footer className="mt-auto h-30 border-t p-2.5">
+        <StudioTimelines
+          currentFrame={currentFrame}
+          durationInFrames={durationInFrames}
+          onSeek={seekToFrame}
+        />
+      </footer>
+    </>
   );
 }

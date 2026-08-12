@@ -1,7 +1,7 @@
 import DemoHeader from "@/features/app/demo/header";
 import DemoSidebar from "@/features/app/demo/sidebar";
 
-export default function DemoLayout(props: LayoutProps<"/demos/[slug]">) {
+export default function DemoLayout(props: LayoutProps<"/demo/[slug]">) {
   return (
     <div className="flex h-screen flex-col">
       <DemoHeader />

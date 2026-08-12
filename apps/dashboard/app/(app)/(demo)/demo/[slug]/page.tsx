@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import AppTimelines from "@/features/app/demo/timelines";
 import AppVideoEditor from "@/features/app/demo/video-editor";
 
 export default function DemoPage() {
@@ -8,9 +7,6 @@ export default function DemoPage() {
       <Suspense>
         <AppVideoEditor />
       </Suspense>
-      <footer className="mt-auto h-30 border-t">
-        <AppTimelines />
-      </footer>
     </div>
   );
 }

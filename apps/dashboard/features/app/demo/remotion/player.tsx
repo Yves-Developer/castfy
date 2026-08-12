@@ -20,7 +20,8 @@ export function RemotionPlayer({
   onVolumeChange?: (volume: number) => void;
   ref: React.RefObject<PlayerRef | null>;
 }) {
-  const { backgroundConfig, imageOverlays } = useImageStore();
+  const { backgroundConfig, generatedVideoUrl, imageOverlays } =
+    useImageStore();
   const [durationInFrames, setDurationInFrames] = useState(1); // 1 frame @ 30fps = 00:00
 
   useEffect(() => {
@@ -101,7 +102,11 @@ export function RemotionPlayer({
       doubleClickToFullscreen
       durationInFrames={durationInFrames}
       fps={30}
-      inputProps={{ url: demoVideoUrl, backgroundConfig, imageOverlays }}
+      inputProps={{
+        url: generatedVideoUrl || demoVideoUrl,
+        backgroundConfig,
+        imageOverlays,
+      }}
       loop
       ref={ref}
       showPlaybackRateControl
