@@ -6,9 +6,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import SidebarSearch from "../../_shared/search";
+import { NewFolder } from "../new/folder";
 import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
 import { HomeDropMenu } from "./menu";
-import { NewFolder } from "./new-folder";
 
 export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();

@@ -33,7 +33,7 @@ export function DemoActions({ className }: { className?: string }) {
       <DropdownMenuContent align="end" className="w-40" side="top">
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/demos/abc" target="_blank">
+            <Link href="/demo/abc" target="_blank">
               Open in New Tab
             </Link>
           </DropdownMenuItem>

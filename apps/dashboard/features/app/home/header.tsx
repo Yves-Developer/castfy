@@ -1,7 +1,7 @@
 "use client";
 import { Suspense } from "react";
-import { NewDemo } from "../new/new-form";
 import { HomeFilters } from "./filters";
+import { NewDemo } from "./new/demo";
 
 export function HomeHeader() {
   return (

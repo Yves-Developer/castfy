@@ -3,7 +3,7 @@ import type { PlayerRef } from "@remotion/player";
 import { useCallback, useRef, useState } from "react";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
 import { useImageStore } from "@/lib/store";
-import { RemotionPlayer } from "../../remotion/player";
+import { RemotionPlayer } from "../remotion/player";
 import { EditorFooter } from "./footer";
 
 const SKIP_SECONDS = 10;

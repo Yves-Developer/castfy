@@ -14,7 +14,7 @@ export function DemoCard({ demo }: { demo: Tdemo }) {
     <ContextMenu>
       <ContextMenuTrigger>
         <div className="group relative flex flex-col gap-2">
-          <Link className="absolute inset-0 z-1" href={`/demos/${demo.slug}`} />
+          <Link className="absolute inset-0 z-1" href={`/demo/${demo.slug}`} />
           <AspectRatio
             className="relative overflow-hidden rounded-lg bg-muted"
             ratio={16 / 9}

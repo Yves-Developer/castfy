@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { temporal } from "zundo";
 import { create } from "zustand";
 // import {
@@ -34,7 +33,6 @@ import { solidColors } from "@/lib/constants/solid-colors";
 // } from "@/types/animation";
 // import { DEFAULT_TIMELINE_STATE } from "@/types/animation";
 import type { Mockup } from "@/types/mockup";
-import { exportImageWithGradient } from "./export-utils";
 
 interface TextShadow {
   blur: number;
@@ -163,46 +161,6 @@ export interface ImageShadow {
   spread: number;
 }
 
-// Helper function to parse gradient string and extract colors
-function parseGradientColors(gradientStr: string): {
-  colorA: string;
-  colorB: string;
-  direction: number;
-} {
-  // Default fallback
-  let colorA = "#4168d0";
-  let colorB = "#c850c0";
-  let direction = 43;
-
-  try {
-    // Extract angle from linear-gradient(angle, ...)
-    // biome-ignore lint/performance/useTopLevelRegex: <explanation
-    const angleMatch = gradientStr.match(/linear-gradient\((\d+)deg/);
-    if (angleMatch) {
-      direction = Number.parseInt(angleMatch[1], 10);
-    }
-
-    // Extract RGB colors
-    const rgbMatches = gradientStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g);
-    if (rgbMatches && rgbMatches.length >= 2) {
-      colorA = rgbMatches[0];
-      colorB = rgbMatches.at(-1) || colorB;
-    } else {
-      // Try hex colors
-      const hexMatches = gradientStr.match(/#[0-9A-Fa-f]{6}/g);
-      if (hexMatches && hexMatches.length >= 2) {
-        colorA = hexMatches[0];
-        colorB = hexMatches.at(-1) || colorB;
-      }
-    }
-  } catch (e) {
-    console.error("Error parsing gradient string:", e);
-    // Use defaults
-  }
-
-  return { colorA, colorB, direction };
-}
-
 // helper function that omits setter types from EditorState and ImageState; only keeps the properties; excludes any functions
 export type OmitFunctions<T> = {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation
@@ -299,260 +257,6 @@ export interface EditorState {
   };
 }
 
-// Create editor store
-export const useEditorStore = create<EditorState>((set, _get) => ({
-  screenshot: {
-    src: null,
-    scale: 1,
-    offsetX: 0,
-    offsetY: 0,
-    rotation: 0,
-    radius: 0,
-  },
-
-  background: {
-    mode: "gradient",
-    colorA: "#4168d0",
-    colorB: "#c850c0",
-    gradientDirection: 43,
-  },
-
-  shadow: {
-    enabled: true,
-    elevation: 12,
-    side: "bottom-right",
-    softness: 15,
-    spread: 3,
-    color: "",
-    intensity: 0.5,
-    offsetX: 5,
-    offsetY: 8,
-  },
-
-  pattern: {
-    enabled: false,
-    type: "grid",
-    scale: 1,
-    spacing: 20,
-    color: "#000000",
-    rotation: 0,
-    blur: 0,
-    opacity: 0.5,
-  },
-
-  frame: {
-    enabled: false,
-    type: "none",
-    width: 8,
-    color: "#000000",
-    padding: 20,
-    title: "",
-  },
-
-  canvas: {
-    aspectRatio: "free",
-    padding: 40,
-  },
-
-  noise: {
-    enabled: false,
-    type: "none",
-    opacity: 0.5,
-  },
-
-  setScreenshot: (screenshot) => {
-    set((state) => ({
-      screenshot: { ...state.screenshot, ...screenshot },
-    }));
-  },
-
-  setBackground: (background) => {
-    set((state) => ({
-      background: { ...state.background, ...background },
-    }));
-  },
-
-  setShadow: (shadow) => {
-    set((state) => ({
-      shadow: { ...state.shadow, ...shadow },
-    }));
-  },
-
-  setPattern: (pattern) => {
-    set((state) => ({
-      pattern: { ...state.pattern, ...pattern },
-    }));
-  },
-
-  setFrame: (frame) => {
-    set((state) => ({
-      frame: { ...state.frame, ...frame },
-    }));
-  },
-
-  setCanvas: (canvas) => {
-    set((state) => ({
-      canvas: { ...state.canvas, ...canvas },
-    }));
-  },
-
-  setNoise: (noise) => {
-    set((state) => ({
-      noise: { ...state.noise, ...noise },
-    }));
-  },
-}));
-
-// Sync hook to keep editor store in sync with image store
-export function useEditorStoreSync() {
-  const imageStore = useImageStore();
-  const editorStore = useEditorStore();
-
-  // Sync when image store changes
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation
-  React.useEffect(() => {
-    // Sync screenshot src
-    if (imageStore.uploadedImageUrl !== editorStore.screenshot.src) {
-      editorStore.setScreenshot({ src: imageStore.uploadedImageUrl });
-    }
-
-    // Sync screenshot scale
-    if (imageStore.imageScale / 100 !== editorStore.screenshot.scale) {
-      editorStore.setScreenshot({ scale: imageStore.imageScale / 100 });
-    }
-
-    // Sync screenshot radius
-    if (imageStore.borderRadius !== editorStore.screenshot.radius) {
-      editorStore.setScreenshot({ radius: imageStore.borderRadius });
-    }
-
-    // Sync background
-    const bgConfig = imageStore.backgroundConfig;
-    if (bgConfig.type === "gradient") {
-      const gradientStr =
-        gradientColors[bgConfig.value as GradientKey] ||
-        gradientColors.vibrant_orange_pink;
-      const { colorA, colorB, direction } = parseGradientColors(gradientStr);
-      if (
-        editorStore.background.mode !== "gradient" ||
-        editorStore.background.colorA !== colorA ||
-        editorStore.background.colorB !== colorB ||
-        editorStore.background.gradientDirection !== direction
-      ) {
-        editorStore.setBackground({
-          mode: "gradient",
-          colorA,
-          colorB,
-          gradientDirection: direction,
-        });
-      }
-    } else if (bgConfig.type === "solid") {
-      const color =
-        (solidColors as Record<string, string>)[bgConfig.value as string] ||
-        "#ffffff";
-      if (
-        editorStore.background.mode !== "solid" ||
-        editorStore.background.colorA !== color
-      ) {
-        editorStore.setBackground({
-          mode: "solid",
-          colorA: color,
-          colorB: color,
-        });
-      }
-    }
-
-    // Sync frame
-    const frame = imageStore.imageBorder;
-    if (
-      editorStore.frame.enabled !== frame.enabled ||
-      editorStore.frame.type !== frame.type ||
-      editorStore.frame.width !== frame.width ||
-      editorStore.frame.color !== frame.color ||
-      editorStore.frame.padding !== frame.padding ||
-      editorStore.frame.title !== frame.title ||
-      editorStore.frame.opacity !== frame.opacity
-    ) {
-      editorStore.setFrame({
-        enabled: frame.enabled,
-        type: frame.type,
-        width: frame.width,
-        color: frame.color,
-        padding: frame.padding,
-        title: frame.title,
-        opacity: frame.opacity,
-      });
-    }
-
-    // Sync shadow
-    const shadow = imageStore.imageShadow;
-    const offsetX = shadow.offsetX || 0;
-    const offsetY = shadow.offsetY || 0;
-    const elevation = Math.max(Math.abs(offsetX), Math.abs(offsetY)) || 4;
-
-    let side: "bottom" | "right" | "bottom-right" = "bottom";
-    if (Math.abs(offsetX) > Math.abs(offsetY)) {
-      side = "right";
-    } else if (Math.abs(offsetX) > 0 && Math.abs(offsetY) > 0) {
-      side = "bottom-right";
-    }
-
-    if (
-      editorStore.shadow.enabled !== shadow.enabled ||
-      editorStore.shadow.softness !== shadow.blur ||
-      editorStore.shadow.spread !== (shadow.spread || 0) ||
-      editorStore.shadow.color !== shadow.color ||
-      editorStore.shadow.offsetX !== offsetX ||
-      editorStore.shadow.offsetY !== offsetY ||
-      editorStore.shadow.intensity !== (shadow.opacity ?? 0.5)
-    ) {
-      editorStore.setShadow({
-        enabled: shadow.enabled,
-        softness: shadow.blur,
-        spread: shadow.spread || 0,
-        color: shadow.color,
-        elevation,
-        side,
-        intensity: shadow.opacity ?? 0.5,
-        offsetX,
-        offsetY,
-      });
-    }
-
-    // Sync canvas aspect ratio
-    const aspectRatioMap: Record<
-      AspectRatioKey,
-      "square" | "4:3" | "2:1" | "3:2" | "free"
-    > = {
-      "1_1": "square",
-      "4_3": "4:3",
-      "2_1": "2:1",
-      "3_2": "3:2",
-      "16_9": "free",
-      "9_16": "free",
-      "4_5": "free",
-      "3_4": "free",
-      "2_3": "free",
-      "5_4": "free",
-      "16_10": "free",
-    };
-    const canvasAspectRatio =
-      aspectRatioMap[imageStore.selectedAspectRatio] || "free";
-    if (editorStore.canvas.aspectRatio !== canvasAspectRatio) {
-      editorStore.setCanvas({ aspectRatio: canvasAspectRatio });
-    }
-  }, [
-    imageStore.uploadedImageUrl,
-    imageStore.imageScale,
-    imageStore.borderRadius,
-    imageStore.backgroundConfig,
-    imageStore.imageBorder,
-    imageStore.imageShadow,
-    imageStore.selectedAspectRatio,
-    editorStore,
-  ]);
-}
-
 // Re-export existing ImageState interface and store
 export interface ImageState {
   activeAnnotationTool: AnnotationToolType | null;
@@ -571,13 +275,11 @@ export interface ImageState {
   addAnnotation: (annotation: Omit<AnnotationShape, "id">) => void;
   addBlurRegion: (region: Omit<BlurRegion, "id">) => void;
   addImageOverlay: (overlay: Omit<ImageOverlay, "id">) => void;
-  // Slideshow actions
   addImages: (files: File[]) => void;
   addKeyframe: (trackId: string, keyframe: Omit<Keyframe, "id">) => void;
   addMockup: (mockup: Omit<Mockup, "id">) => void;
   addTextOverlay: (overlay: Omit<TextOverlay, "id">) => void;
-  //   addTrack: (track: Omit<AnimationTrack, "id">) => void;
-  //   animationClips: AnimationClip[];
+
   annotationDefaults: {
     strokeColor: string;
     strokeWidth: number;
@@ -613,7 +315,6 @@ export interface ImageState {
   clearTimeline: () => void;
   customDimensions: { width: number; height: number } | null;
   editorMode: "screenshot" | "browser";
-  exportImage: () => Promise<void>;
   exportSettings: {
     quality: "1x" | "2x" | "3x";
     format: "png" | "jpeg" | "webp";
@@ -851,7 +552,7 @@ export const useImageStore = create<ImageState>()(
       });
       // Immediately sync to editor store so canvas updates without
       // waiting for the EditorStoreSync useEffect cycle
-      useEditorStore.getState().setScreenshot({ src: url });
+      // useEditorStore.getState().setScreenshot({ src: url });
     },
 
     setGeneratedVideoUrl: (url: string | null) => {
@@ -1489,14 +1190,6 @@ export const useImageStore = create<ImageState>()(
       });
     },
 
-    exportImage: async () => {
-      try {
-        await exportImageWithGradient("image-render-card");
-      } catch (error) {
-        console.error("Export failed:", error);
-        throw error;
-      }
-    },
     addImages: (files: File[]) => {
       //   const { slides, slideshow, _timeline } = get();
       const { slides, slideshow } = get();
@@ -1549,7 +1242,7 @@ export const useImageStore = create<ImageState>()(
 
       // Also sync to editorStore for export compatibility
       // (React useEffect sync doesn't run during imperative export)
-      useEditorStore.getState().setScreenshot({ src: slide.src });
+      // useEditorStore.getState().setScreenshot({ src: slide.src });
     },
 
     removeSlide: (id) => {
