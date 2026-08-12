@@ -8,8 +8,6 @@ import {
   SkipBackIcon,
   SkipForwardIcon,
   Undo2Icon,
-  Volume2Icon,
-  VolumeXIcon,
 } from "lucide-react";
 import React from "react";
 import { useImageStore } from "@/lib/store";
@@ -42,13 +40,9 @@ export function EditorFooter({
   currentTime,
   duration,
   isPlaying,
-  isMuted,
-  volume,
   onPlayPause,
   onSkipBack,
   onSkipForward,
-  onToggleMute,
-  onVolumeChange,
 }: EditorFooterProps) {
   const [canUndo, setCanUndo] = React.useState(false);
   const [canRedo, setCanRedo] = React.useState(false);
@@ -157,30 +151,6 @@ export function EditorFooter({
       </div>
       <div className="flex flex-1 items-center justify-end gap-2">
         <AspectRatio />
-        <Button
-          aria-label={isMuted ? "Unmute" : "Mute"}
-          className="rounded-full text-muted-foreground"
-          onClick={onToggleMute}
-          size="icon"
-          title={isMuted ? "Unmute" : "Mute"}
-          variant={"ghost"}
-        >
-          {isMuted || volume === 0 ? (
-            <VolumeXIcon strokeWidth={2.5} />
-          ) : (
-            <Volume2Icon strokeWidth={2.5} />
-          )}
-        </Button>
-        <input
-          aria-label="Volume"
-          className="h-1 w-24 cursor-pointer rounded-full accent-accent"
-          max={1}
-          min={0}
-          onChange={(event) => onVolumeChange(Number(event.target.value))}
-          step={0.05}
-          type="range"
-          value={isMuted ? 0 : volume}
-        />
       </div>
     </div>
   );

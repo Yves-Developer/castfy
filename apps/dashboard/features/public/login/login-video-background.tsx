@@ -42,7 +42,7 @@ export function LoginVideoBackground() {
   }, []);
 
   return (
-    <div className="relative m-2 hidden overflow-hidden lg:flex lg:w-1/2">
+    <div className="relative hidden overflow-hidden lg:flex lg:w-1/2">
       {/* Poster image with blur effect */}
       <div
         className={`absolute inset-0 h-full w-full transition-all duration-1000 ease-in-out ${

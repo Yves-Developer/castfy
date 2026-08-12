@@ -8,7 +8,8 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import type { Tdemo } from "@/types";
-
+export const demoVideoUrl =
+  "https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Framer%20Update_%20CMS%203.0.mp4";
 export const demos: Tdemo[] = [
   {
     name: "Project Name",

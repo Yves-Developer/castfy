@@ -131,7 +131,7 @@ export function OTPSignIn({ className }: { className?: string }) {
         />
 
         <SubmitButton
-          className="flex h-10s w-full space-x-2 bg-primary px-6 py-4 font-medium text-secondary"
+          className="flex h-10s w-full space-x-2 px-6 py-4 font-medium"
           isSubmitting={isLoading}
           type="submit"
         >
