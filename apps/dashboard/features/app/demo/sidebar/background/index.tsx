@@ -30,7 +30,7 @@ import {
   backgroundCategories,
   getBackgroundThumbnailUrl,
 } from "@/lib/r2/r2-backgrounds";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 
 // Shadow overlay IDs
 const OVERLAY_SHADOW_IDS = [
@@ -86,7 +86,7 @@ export function BackgroundTab() {
     setBackgroundValue,
     addImageOverlay,
     removeImageOverlay,
-  } = useImageStore();
+  } = useBackgroundStore();
 
   const responsiveDimensions = useResponsiveCanvasDimensions();
   const [bgUploadError, setBgUploadError] = React.useState<string | null>(null);

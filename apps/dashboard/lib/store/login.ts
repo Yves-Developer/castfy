@@ -10,4 +10,3 @@ export const useLoginStore = create<LoginStore>((set) => ({
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
-

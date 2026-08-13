@@ -31,7 +31,7 @@ export function HomeDropMenu() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="w-full">
+        <DropdownMenuTrigger className="w-full outline-0">
           <div className="flex w-full items-center gap-2">
             {workspace[0].image ? (
               <Avatar className="rounded-lg">

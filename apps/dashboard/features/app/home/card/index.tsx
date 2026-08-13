@@ -22,8 +22,9 @@ export function DemoCard({ demo }: { demo: Tdemo }) {
             {demo.img ? (
               <Image
                 alt={demo.name}
-                className="size-full rounded-lg object-cover transition-all duration-300 group-hover:scale-105"
+                className="size-full object-cover transition-all duration-300 group-hover:scale-105"
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 src={demo.img}
               />
             ) : (

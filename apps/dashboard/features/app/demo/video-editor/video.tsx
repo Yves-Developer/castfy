@@ -2,7 +2,7 @@
 
 import React from "react";
 import { getBackgroundCSS } from "@/lib/constants/backgrounds";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 
 const TRANSITION_DURATION = 400; // ms
 
@@ -42,7 +42,7 @@ const EditorVideo = React.forwardRef<HTMLVideoElement, EditorVideoProps>(
     { url, onLoadedMetadata, onTimeUpdate, onPlay, onPause, onVolumeChange },
     ref
   ) => {
-    const { backgroundConfig } = useImageStore();
+    const { backgroundConfig } = useBackgroundStore();
     const containerRef = React.useRef<HTMLDivElement>(null);
 
     // Crossfade state

@@ -2,7 +2,7 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { useEffect, useState } from "react";
 import { demoVideoUrl } from "@/config/data";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 import { StudioComposition } from "./comp";
 import { calculateMetadata } from "./meta";
 export function RemotionPlayer({
@@ -21,7 +21,7 @@ export function RemotionPlayer({
   ref: React.RefObject<PlayerRef | null>;
 }) {
   const { backgroundConfig, generatedVideoUrl, imageOverlays } =
-    useImageStore();
+    useBackgroundStore();
   const [durationInFrames, setDurationInFrames] = useState(1); // 1 frame @ 30fps = 00:00
 
   useEffect(() => {

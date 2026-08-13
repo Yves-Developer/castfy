@@ -16,12 +16,13 @@ export const demos: Tdemo[] = [
     slug: "project-name",
     updatedAt: "24h ago",
     action: "Created",
-    img: "/asset-1.jpg",
+    img: "/assets/asset-1.jpg",
   },
   {
     name: "Rathon",
     slug: "rathon",
     updatedAt: "24h ago",
+    img: "/assets/asset-2.jpg",
     action: "Updated",
   },
 ];

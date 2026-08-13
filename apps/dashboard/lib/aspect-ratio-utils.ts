@@ -7,7 +7,9 @@
 
 import { ASPECT_RATIO_PRESETS, type AspectRatioPreset } from "@/lib/constants";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "./store";
+
+// import { useImageStore } from "@/lib/store";
 
 /**
  * Standard pixel dimensions mapping for aspect ratios
@@ -87,7 +89,7 @@ export function getAspectRatioPreset(
 ): AspectRatioPreset | null {
   // Handle custom dimensions from the store
   if (aspectRatioId === "custom") {
-    const customDimensions = useImageStore.getState().customDimensions;
+    const customDimensions = useBackgroundStore.getState().customDimensions;
     if (customDimensions) {
       return {
         id: "custom",

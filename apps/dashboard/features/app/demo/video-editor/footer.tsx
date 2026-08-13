@@ -10,7 +10,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import React from "react";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 import { AspectRatio } from "./aspect-ratio";
 
 function formatTime(seconds: number) {
@@ -49,24 +49,26 @@ export function EditorFooter({
 
   React.useEffect(() => {
     const updateTemporalState = () => {
-      const { pastStates, futureStates } = useImageStore.temporal.getState();
+      const { pastStates, futureStates } =
+        useBackgroundStore.temporal.getState();
       setCanUndo(pastStates.length > 0);
       setCanRedo(futureStates.length > 0);
     };
     updateTemporalState();
-    const unsubscribe = useImageStore.temporal.subscribe(updateTemporalState);
+    const unsubscribe =
+      useBackgroundStore.temporal.subscribe(updateTemporalState);
     return unsubscribe;
   }, []);
 
   const handleUndo = React.useCallback(() => {
-    const { undo, pastStates } = useImageStore.temporal.getState();
+    const { undo, pastStates } = useBackgroundStore.temporal.getState();
     if (pastStates.length > 0) {
       undo();
     }
   }, []);
 
   const handleRedo = React.useCallback(() => {
-    const { redo, futureStates } = useImageStore.temporal.getState();
+    const { redo, futureStates } = useBackgroundStore.temporal.getState();
     if (futureStates.length > 0) {
       redo();
     }

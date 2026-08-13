@@ -2,7 +2,7 @@
 import type { PlayerRef } from "@remotion/player";
 import { useCallback, useRef, useState } from "react";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 import { RemotionPlayer } from "../remotion/player";
 import { EditorFooter } from "./footer";
 import StudioTimelines from "./timelines";
@@ -10,7 +10,7 @@ import StudioTimelines from "./timelines";
 const SKIP_SECONDS = 10;
 const FPS = 30;
 export default function AppVideoEditor() {
-  const { selectedAspectRatio } = useImageStore();
+  const { selectedAspectRatio } = useBackgroundStore();
 
   const currentRatio = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
   const ratioValue =

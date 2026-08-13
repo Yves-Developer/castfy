@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 import type { AgentStep, AIProvider } from "@/types";
 import { generateDemo, pickInitialVideo } from "./generate";
 import { SelectModel } from "./models";
@@ -74,7 +74,7 @@ export function AgentTab() {
       setErrorMessage("");
       setCurrentStatusMessage("Initializing session...");
       // clear any previously generated video
-      useImageStore.getState().setGeneratedVideoUrl(null);
+      useBackgroundStore.getState().setGeneratedVideoUrl(null);
 
       const params = new URLSearchParams({
         url: value.webUrl,
@@ -93,10 +93,10 @@ export function AgentTab() {
             setActiveVideoTab(initial.tab);
             setVideoUrl(initial.url);
             // expose generated URL to global store so player can pick it up
-            useImageStore.getState().setGeneratedVideoUrl(initial.url);
+            useBackgroundStore.getState().setGeneratedVideoUrl(initial.url);
           } else if (data.videoUrl) {
             setVideoUrl(data.videoUrl);
-            useImageStore.getState().setGeneratedVideoUrl(data.videoUrl);
+            useBackgroundStore.getState().setGeneratedVideoUrl(data.videoUrl);
           }
           if (data.steps) {
             setSteps(data.steps);

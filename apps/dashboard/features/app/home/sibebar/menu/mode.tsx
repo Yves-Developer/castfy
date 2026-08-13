@@ -1,9 +1,7 @@
-import { buttonVariants } from "@castfy/ui/components/button";
 import {
   DropdownMenuItem,
   DropdownMenuShortcut,
 } from "@castfy/ui/components/dropdown-menu";
-import { cn } from "@castfy/ui/lib/utils";
 import { useTheme } from "next-themes";
 import { useCallback, useSyncExternalStore } from "react";
 
@@ -23,25 +21,14 @@ export function ModeSwitcher() {
   }, [theme, setTheme]);
   if (!isMounted) {
     return (
-      <DropdownMenuItem
-        className={cn(
-          buttonVariants({ size: "sm", variant: "ghost" }),
-          "w-full justify-start text-xs"
-        )}
-      >
+      <DropdownMenuItem>
         Mode
         <DropdownMenuShortcut>Alt+N</DropdownMenuShortcut>
       </DropdownMenuItem>
     );
   }
   return (
-    <DropdownMenuItem
-      className={cn(
-        buttonVariants({ size: "sm", variant: "ghost" }),
-        "w-full justify-start text-xs"
-      )}
-      onClick={toggleTheme}
-    >
+    <DropdownMenuItem onClick={toggleTheme}>
       {theme === "dark" ? "Light mode" : "Night mode"}
       <DropdownMenuShortcut>Alt+N</DropdownMenuShortcut>
     </DropdownMenuItem>

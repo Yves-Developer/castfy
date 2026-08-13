@@ -12,7 +12,7 @@ import {
 import React from "react";
 import { getStandardDimensions } from "@/lib/aspect-ratio-utils";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 
 interface AspectRatioPickerProps {
   onSelect?: () => void;
@@ -128,7 +128,7 @@ export const AspectRatioPicker = (
     setAspectRatio,
     customDimensions,
     setCustomDimensions,
-  } = useImageStore();
+  } = useBackgroundStore();
 
   const currentAR = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
   const currentDimensions =
