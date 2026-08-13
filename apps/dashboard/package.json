@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "typecheck": "tsc --noEmit",
-    "remotion": "remotion studio src/remotion/index.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@castfy/ui": "workspace:*",
