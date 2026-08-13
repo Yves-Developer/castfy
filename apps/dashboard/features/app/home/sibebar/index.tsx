@@ -1,12 +1,14 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
-import { Grid2X2Icon, MailIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { Grid2X2Icon, MailIcon, Trash2Icon } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import SidebarSearch from "../../_shared/search";
 import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
 import { HomeDropMenu } from "./menu";
+import { NewFolder } from "./new-folder";
 
 export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
@@ -33,40 +35,33 @@ export default function HomeSidebar({ className }: { className?: string }) {
             asChild
             className={cn(
               "group relative w-full justify-normal gap-3 text-muted-foreground",
-              pathname === "/demos" && "text-foreground"
+              pathname === "/" && "text-foreground"
             )}
             size="sm"
-            variant={pathname === "/demos" ? "secondary" : "ghost"}
+            variant={pathname === "/" ? "secondary" : "ghost"}
           >
-            <div>
+            <Link className="w-full" href="/">
               <Grid2X2Icon className="size-3" strokeWidth={2.7} />
               All
               <AllDropdownActions className="absolute right-2" />
-            </div>
+            </Link>
           </Button>
           <Button
             asChild
             className={cn(
               "group relative w-full justify-normal gap-3 text-muted-foreground",
-              pathname === "/demos/archived" && "text-foreground"
+              pathname === "/archived" && "text-foreground"
             )}
             size="sm"
-            variant={pathname === "/demos/archived" ? "secondary" : "ghost"}
+            variant={pathname === "/archived" ? "secondary" : "ghost"}
           >
-            <div>
+            <Link className="w-full" href="/archived">
               <Trash2Icon className="size-3" strokeWidth={2.7} />
               Archived
               <ArchiveDropdownActions className="absolute right-2" />
-            </div>
+            </Link>
           </Button>
-          <Button
-            className="group relative w-full justify-normal gap-3 text-muted-foreground"
-            size="sm"
-            variant={"ghost"}
-          >
-            <PlusIcon className="size-3" strokeWidth={2.7} />
-            New Folder...
-          </Button>
+          <NewFolder />
         </div>
       </div>
       <div className="mt-auto flex items-center border-t px-2.5 py-2.5">
