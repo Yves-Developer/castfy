@@ -1,7 +1,7 @@
 "use client";
-import { Button } from "@castfy/ui/components/button";
 import { Suspense } from "react";
 import { HomeFilters } from "./filters";
+import { NewDemo } from "./new/demo";
 
 export function HomeHeader() {
   return (
@@ -11,7 +11,7 @@ export function HomeHeader() {
         <Suspense>
           <HomeFilters />
         </Suspense>
-        <Button size="sm">New Demo</Button>
+        <NewDemo />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { demos } from "@/config/data";
-import { DemoCard } from "./demo/card";
+import { DemoCard } from "./card";
 
 export function HomeList() {
   return (

@@ -8,11 +8,9 @@ import {
   SkipBackIcon,
   SkipForwardIcon,
   Undo2Icon,
-  Volume2Icon,
-  VolumeXIcon,
 } from "lucide-react";
 import React from "react";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 import { AspectRatio } from "./aspect-ratio";
 
 function formatTime(seconds: number) {
@@ -42,37 +40,35 @@ export function EditorFooter({
   currentTime,
   duration,
   isPlaying,
-  isMuted,
-  volume,
   onPlayPause,
   onSkipBack,
   onSkipForward,
-  onToggleMute,
-  onVolumeChange,
 }: EditorFooterProps) {
   const [canUndo, setCanUndo] = React.useState(false);
   const [canRedo, setCanRedo] = React.useState(false);
 
   React.useEffect(() => {
     const updateTemporalState = () => {
-      const { pastStates, futureStates } = useImageStore.temporal.getState();
+      const { pastStates, futureStates } =
+        useBackgroundStore.temporal.getState();
       setCanUndo(pastStates.length > 0);
       setCanRedo(futureStates.length > 0);
     };
     updateTemporalState();
-    const unsubscribe = useImageStore.temporal.subscribe(updateTemporalState);
+    const unsubscribe =
+      useBackgroundStore.temporal.subscribe(updateTemporalState);
     return unsubscribe;
   }, []);
 
   const handleUndo = React.useCallback(() => {
-    const { undo, pastStates } = useImageStore.temporal.getState();
+    const { undo, pastStates } = useBackgroundStore.temporal.getState();
     if (pastStates.length > 0) {
       undo();
     }
   }, []);
 
   const handleRedo = React.useCallback(() => {
-    const { redo, futureStates } = useImageStore.temporal.getState();
+    const { redo, futureStates } = useBackgroundStore.temporal.getState();
     if (futureStates.length > 0) {
       redo();
     }
@@ -157,30 +153,6 @@ export function EditorFooter({
       </div>
       <div className="flex flex-1 items-center justify-end gap-2">
         <AspectRatio />
-        <Button
-          aria-label={isMuted ? "Unmute" : "Mute"}
-          className="rounded-full text-muted-foreground"
-          onClick={onToggleMute}
-          size="icon"
-          title={isMuted ? "Unmute" : "Mute"}
-          variant={"ghost"}
-        >
-          {isMuted || volume === 0 ? (
-            <VolumeXIcon strokeWidth={2.5} />
-          ) : (
-            <Volume2Icon strokeWidth={2.5} />
-          )}
-        </Button>
-        <input
-          aria-label="Volume"
-          className="h-1 w-24 cursor-pointer rounded-full accent-accent"
-          max={1}
-          min={0}
-          onChange={(event) => onVolumeChange(Number(event.target.value))}
-          step={0.05}
-          type="range"
-          value={isMuted ? 0 : volume}
-        />
       </div>
     </div>
   );

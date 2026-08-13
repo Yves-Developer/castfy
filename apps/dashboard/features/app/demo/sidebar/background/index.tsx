@@ -30,7 +30,7 @@ import {
   backgroundCategories,
   getBackgroundThumbnailUrl,
 } from "@/lib/r2/r2-backgrounds";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 
 // Shadow overlay IDs
 const OVERLAY_SHADOW_IDS = [
@@ -86,7 +86,7 @@ export function BackgroundTab() {
     setBackgroundValue,
     addImageOverlay,
     removeImageOverlay,
-  } = useImageStore();
+  } = useBackgroundStore();
 
   const responsiveDimensions = useResponsiveCanvasDimensions();
   const [bgUploadError, setBgUploadError] = React.useState<string | null>(null);
@@ -228,7 +228,7 @@ export function BackgroundTab() {
             <div className="grid grid-cols-3 gap-2 p-1">
               <button
                 className={cn(
-                  "flex aspect-[16/9] items-center justify-center rounded-xl border font-medium text-xs transition-all",
+                  "flex aspect-video items-center justify-center rounded-xl border font-medium text-xs transition-all",
                   currentShadow
                     ? "border-border/50 border-dashed text-muted-foreground hover:border-border hover:bg-card/30"
                     : "border-primary/50 bg-primary/5 text-foreground"
@@ -241,7 +241,7 @@ export function BackgroundTab() {
               {OVERLAY_SHADOW_URLS.slice(0, 11).map((shadowUrl, index) => (
                 <button
                   className={cn(
-                    "aspect-[16/9] overflow-hidden rounded-xl border bg-secondary transition-all dark:bg-secondary",
+                    "aspect-video overflow-hidden rounded-xl border bg-secondary transition-all dark:bg-secondary",
                     currentShadow?.src === shadowUrl
                       ? "border-primary/50 ring-1 ring-primary/30"
                       : "border-border/30 hover:border-border/60"

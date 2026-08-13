@@ -9,7 +9,8 @@ import {
   getAspectRatioCSS,
   getAspectRatioPreset,
 } from "@/lib/aspect-ratio-utils";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
+// import { useImageStore } from "@/lib/store";
 
 /**
  * Hook to get canvas dimensions based on selected aspect ratio
@@ -19,7 +20,7 @@ export function useAspectRatioDimensions(options?: {
   maxWidth?: number;
   maxHeight?: number;
 }) {
-  const { selectedAspectRatio } = useImageStore();
+  const { selectedAspectRatio } = useBackgroundStore();
 
   const dimensions = useMemo(() => {
     const preset = getAspectRatioPreset(selectedAspectRatio);
@@ -64,7 +65,7 @@ export function useAspectRatioDimensions(options?: {
  * Reactively updates when window is resized
  */
 export function useResponsiveCanvasDimensions() {
-  const { selectedAspectRatio } = useImageStore();
+  const { selectedAspectRatio } = useBackgroundStore();
   const [viewportSize, setViewportSize] = useState({
     width: 1920,
     height: 1080,

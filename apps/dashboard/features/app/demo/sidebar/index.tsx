@@ -5,11 +5,9 @@ import { cn } from "@castfy/ui/lib/utils";
 import { useState } from "react";
 import { AgentTab } from "./agent";
 import { BackgroundTab } from "./background";
-import { DesignTab } from "./design";
 
 const tabs = [
   { value: "agent", label: "Agent" },
-  { value: "design", label: "Design" },
   { value: "background", label: "Background" },
 ] as const;
 export default function DemoSidebar({ className }: { className?: string }) {
@@ -50,9 +48,7 @@ export default function DemoSidebar({ className }: { className?: string }) {
         <TabsContent className="min-h-0 flex-1 p-2.5" value="agent">
           <AgentTab />
         </TabsContent>
-        <TabsContent className="min-h-0 flex-1 p-2.5" value="design">
-          <DesignTab />
-        </TabsContent>
+
         <TabsContent
           className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2.5"
           value="background"

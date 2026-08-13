@@ -10,10 +10,10 @@ import { AspectRatioIcon } from "hugeicons-react";
 import { useState } from "react";
 import { AspectRatioPicker } from "@/components/aspect-ratio/aspect-ratio-picker";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 
 export function AspectRatio() {
-  const { selectedAspectRatio } = useImageStore();
+  const { selectedAspectRatio } = useBackgroundStore();
   const [aspectRatioOpen, setAspectRatioOpen] = useState(false);
   const currentAspectRatio = aspectRatios.find(
     (ar) => ar.id === selectedAspectRatio

@@ -7,13 +7,13 @@ import {
 import { ArrowDown01Icon } from "hugeicons-react";
 import React from "react";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
-import { useImageStore } from "@/lib/store";
+import { useBackgroundStore } from "@/lib/store";
 import { AspectRatioPicker } from "./aspect-ratio-picker";
 
 const popularRatios = ["1_1", "9_16", "16_9", "4_5", "og_image"];
 
 export const AspectRatioDropdown = () => {
-  const { selectedAspectRatio, setAspectRatio } = useImageStore();
+  const { selectedAspectRatio, setAspectRatio } = useBackgroundStore();
   const current = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
   const [open, setOpen] = React.useState(false);
 
@@ -93,7 +93,7 @@ export const AspectRatioDropdown = () => {
           </div>
         </div>
       </div>
-      <PopoverContent align="start" className="w-[380px] p-0">
+      <PopoverContent align="start" className="w-95 p-0">
         <AspectRatioPicker onSelect={() => setOpen(false)} />
       </PopoverContent>
     </Popover>

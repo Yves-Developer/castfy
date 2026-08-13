@@ -14,12 +14,6 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: siteConfig.keywords,
-  authors: [
-    {
-      name: "Rathon",
-      url: "https://rathon-rw.com",
-    },
-  ],
   creator: "Lecon & Evye",
   openGraph: {
     type: "website",
