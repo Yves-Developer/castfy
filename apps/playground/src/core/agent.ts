@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+import { execPath } from "node:process";
 import Anthropic from "@anthropic-ai/sdk";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import {
@@ -12,6 +14,29 @@ export interface RunAgentOptions {
    * user-supplied filesystem path — to avoid arbitrary local-file reads.
    */
   storageState?: string;
+  /**
+   * Aborts the run. On abort the agent loop stops at the next iteration and the
+   * `finally` below closes the MCP client, which kills the child process and its
+   * browser — so cancelling actually frees the slot rather than orphaning work.
+   */
+  signal?: AbortSignal;
+}
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Absolute path to the castfy0-mcp entrypoint. We spawn `node <entrypoint>`
+ * rather than `pnpm exec castfy0-mcp` so the container needs neither pnpm nor
+ * workspace resolution at spawn time, and so we don't depend on the platform's
+ * .bin shim (a .CMD on Windows, which `spawn` cannot exec directly).
+ * Override with CASTFY0_MCP_ENTRY when running an unpublished build.
+ */
+function resolveMcpEntry(): string {
+  const override = process.env.CASTFY0_MCP_ENTRY;
+  if (override) {
+    return override;
+  }
+  return require.resolve("@yves-developer/castfy0-mcp");
 }
 
 /**
@@ -32,6 +57,9 @@ function buildMcpEnv(): Record<string, string> {
 }
 
 const SNAPSHOT_CHAR_LIMIT = 50_000;
+
+/** Video/audio encoding in castfy0_end is the longest single step in a run. */
+const RENDER_TIMEOUT_MS = 1_800_000;
 
 export interface AgentStep {
   action: string;
@@ -944,7 +972,8 @@ async function runAgentLoop(
   promptGoal: string,
   initialSnapshot: string,
   steps: AgentStep[],
-  onStep: (step: AgentStep) => void
+  onStep: (step: AgentStep) => void,
+  signal?: AbortSignal
 ): Promise<boolean> {
   let currentSnapshot = initialSnapshot;
   let goalConfirmed = false;
@@ -973,13 +1002,20 @@ Rules for Demo Quality:
 7. Call \`submit_journey\` once the user's goal has been completely achieved.`;
 
   for (let i = 0; i < 30; i++) {
-    const response = await anthropic.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 4096,
-      system: systemInstruction,
-      messages: pruneOldSnapshots(messages),
-      tools: AGENT_TOOLS,
-    });
+    // Cancellation lands here rather than mid-tool-call, so the browser is in a
+    // known state when the caller's `finally` closes the MCP client.
+    signal?.throwIfAborted();
+
+    const response = await anthropic.messages.create(
+      {
+        model: "claude-opus-4-8",
+        max_tokens: 4096,
+        system: systemInstruction,
+        messages: pruneOldSnapshots(messages),
+        tools: AGENT_TOOLS,
+      },
+      { signal }
+    );
 
     messages.push({ role: "assistant", content: response.content });
 
@@ -1063,8 +1099,8 @@ export async function runAgent(
   // 1. Initialize MCP Transport & Client
   onStatus("Connecting to Castfy0 MCP Server...");
   const transport = new StdioClientTransport({
-    command: "pnpm",
-    args: ["exec", "castfy0-mcp"],
+    command: execPath,
+    args: [resolveMcpEntry()],
     env: buildMcpEnv(),
   });
   const client = new Client(
@@ -1134,7 +1170,8 @@ export async function runAgent(
       promptGoal,
       initialSnapshot,
       steps,
-      onStep
+      onStep,
+      options.signal
     );
 
     if (!goalConfirmed) {
@@ -1155,7 +1192,7 @@ export async function runAgent(
         },
       },
       undefined,
-      { timeout: 1_800_000 }
+      { timeout: RENDER_TIMEOUT_MS, signal: options.signal }
     );
 
     let deliverables: unknown = null;
