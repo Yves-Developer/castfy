@@ -15,14 +15,13 @@ import {
 import { ArrowLeftIcon, ChevronDownIcon, SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { Settings } from "../../_shared/settings";
+import { useSettingsStore } from "@/lib/store/dialogs";
+import { DemoSettings } from "../settings";
 import { Appearance } from "./appearance";
 
 export function DemoDropMenu() {
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
-  const [settingsDefaultTab, setSettingsDefaultTab] = useState<
-    "account" | "workspace"
-  >("account");
+  const { setActivePage } = useSettingsStore();
+  const [openSettings, setOpenSettings] = useState(false);
   return (
     <>
       <DropdownMenu>
@@ -46,12 +45,7 @@ export function DemoDropMenu() {
                 Go to demos
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                setIsSettingsDialogOpen(true);
-                setSettingsDefaultTab("workspace");
-              }}
-            >
+            <DropdownMenuItem onClick={() => setOpenSettings(true)}>
               <SettingsIcon />
               Settings
             </DropdownMenuItem>
@@ -73,8 +67,7 @@ export function DemoDropMenu() {
             <DropdownMenuItem>Feedback</DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                setIsSettingsDialogOpen(true);
-                setSettingsDefaultTab("account");
+                setActivePage("profile");
               }}
             >
               Your Account
@@ -82,11 +75,7 @@ export function DemoDropMenu() {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Settings
-        defaultTab={settingsDefaultTab}
-        isOpen={isSettingsDialogOpen}
-        onOpenChangeAction={setIsSettingsDialogOpen}
-      />
+      <DemoSettings open={openSettings} openChangeAction={setOpenSettings} />
     </>
   );
 }

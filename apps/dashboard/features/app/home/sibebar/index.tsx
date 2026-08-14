@@ -1,17 +1,18 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
-import { Grid2X2Icon, MailIcon, Trash2Icon } from "lucide-react";
+import { Grid2X2Icon, MailIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { useNewFolderStore } from "@/lib/store/dialogs";
 import SidebarSearch from "../../_shared/search";
-import { NewFolder } from "../new/folder";
 import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
 import { HomeDropMenu } from "./menu";
 
 export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const { open } = useNewFolderStore();
 
   return (
     <div
@@ -61,14 +62,26 @@ export default function HomeSidebar({ className }: { className?: string }) {
               <ArchiveDropdownActions className="absolute right-2" />
             </Link>
           </Button>
-          <NewFolder />
+          <Button
+            className="group relative w-full justify-normal gap-3 text-muted-foreground"
+            onClick={open}
+            size="sm"
+            variant={"ghost"}
+          >
+            <PlusIcon className="size-3" strokeWidth={2.7} />
+            New Folder...
+          </Button>
         </div>
       </div>
       <div className="mt-auto flex items-center border-t px-2.5 py-2.5">
         <div className="group relative flex w-full items-center gap-3 text-muted-foreground">
-          <MailIcon className="size-3" strokeWidth={2.7} />
-          <span className="font-medium text-xs">Invite your team</span>
-          <Button className="ml-auto" size="sm" variant={"secondary"}>
+          <MailIcon className="size-3.5" strokeWidth={2.7} />
+          <span className="font-medium text-xs">Invite Friends</span>
+          <Button
+            className="ml-auto text-muted-foreground text-xs hover:text-foreground"
+            size="sm"
+            variant={"secondary"}
+          >
             Copy Link
           </Button>
         </div>

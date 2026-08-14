@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@castfy/ui/components/button";
 import {
   Dialog,
@@ -6,7 +7,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@castfy/ui/components/dialog";
 import {
   Field,
@@ -20,12 +20,14 @@ import type * as React from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
+import { useNewDemoStore } from "@/lib/store/dialogs";
 
 const formSchema = z.object({
   title: z.string().min(5, "Folder title must be at least 5 characters."),
 });
 
 export function NewDemo() {
+  const { isOpen, open, close } = useNewDemoStore();
   const form = useForm({
     defaultValues: {
       title: "",
@@ -52,10 +54,7 @@ export function NewDemo() {
   });
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="sm">New Demo</Button>
-      </DialogTrigger>
+    <Dialog onOpenChange={isOpen ? close : open} open={isOpen}>
       <DialogContent className="sm:max-w-68" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="font-semibold text-xs">New Demo</DialogTitle>

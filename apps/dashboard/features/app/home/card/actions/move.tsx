@@ -14,23 +14,37 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@castfy/ui/components/field";
-import { Input } from "@castfy/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@castfy/ui/components/select";
 import { useForm } from "@tanstack/react-form";
 import type * as React from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
-import { useNewFolderStore } from "@/lib/store/dialogs";
 
 const formSchema = z.object({
-  title: z.string().min(5, "Demo title must be at least 5 characters."),
+  folder: z.string().min(1, "Please select a folder to move the demo."),
 });
 
-export function NewFolder() {
-  const { open, isOpen, close } = useNewFolderStore();
+const folders = [
+  { label: "All", value: "all" },
+  { label: "Test", value: "test" },
+] as const;
+export function MoveDemo({
+  open,
+  openChangeAction,
+}: {
+  open: boolean;
+  openChangeAction: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const form = useForm({
     defaultValues: {
-      title: "",
+      folder: "all",
     },
     validators: {
       onSubmit: formSchema,
@@ -54,15 +68,13 @@ export function NewFolder() {
   });
 
   return (
-    <Dialog onOpenChange={isOpen ? close : open} open={isOpen}>
+    <Dialog onOpenChange={openChangeAction} open={open}>
       <DialogContent className="sm:max-w-68" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="font-semibold text-xs">
-            New Folder
+            Move “Rathon Demo”
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            Create new folder
-          </DialogDescription>
+          <DialogDescription className="sr-only">Move demo</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-3"
@@ -80,31 +92,41 @@ export function NewFolder() {
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel className="sr-only" htmlFor={field.name}>
-                      Demo Title
+                    <FieldLabel className="sr-only" htmlFor="folder">
+                      Folder
                     </FieldLabel>
-                    <Input
-                      aria-invalid={isInvalid}
-                      autoComplete="off"
-                      className="h-7 text-xs focus-visible:ring-1 dark:bg-input/50"
-                      id={field.name}
+
+                    <Select
                       name={field.name}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Title"
+                      onValueChange={field.handleChange}
                       value={field.state.value}
-                    />
+                    >
+                      <SelectTrigger
+                        aria-invalid={isInvalid}
+                        className="w-full"
+                        id="folder"
+                      >
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent position="item-aligned">
+                        {folders.map((folder) => (
+                          <SelectItem key={folder.value} value={folder.value}>
+                            {folder.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
                   </Field>
                 );
               }}
-              name="title"
+              name="folder"
             />
           </FieldGroup>
           <p className="text-muted-foreground text-xs">
-            Create a new folder to help organize your projects.
+            The demo can only be moved within the current workspace
           </p>
           <div className="flex items-center gap-2">
             <DialogClose asChild>
@@ -113,7 +135,7 @@ export function NewFolder() {
               </Button>
             </DialogClose>
             <Button className="flex-1 text-xs" type="submit">
-              Done
+              Move
             </Button>
           </div>
         </form>

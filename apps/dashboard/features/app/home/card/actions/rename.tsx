@@ -20,14 +20,18 @@ import type * as React from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
-import { useNewFolderStore } from "@/lib/store/dialogs";
 
 const formSchema = z.object({
-  title: z.string().min(5, "Demo title must be at least 5 characters."),
+  title: z.string().min(5, "Folder title must be at least 5 characters."),
 });
 
-export function NewFolder() {
-  const { open, isOpen, close } = useNewFolderStore();
+export function RenameDemo({
+  open,
+  openChangeAction,
+}: {
+  open: boolean;
+  openChangeAction: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const form = useForm({
     defaultValues: {
       title: "",
@@ -54,15 +58,13 @@ export function NewFolder() {
   });
 
   return (
-    <Dialog onOpenChange={isOpen ? close : open} open={isOpen}>
+    <Dialog onOpenChange={openChangeAction} open={open}>
       <DialogContent className="sm:max-w-68" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="font-semibold text-xs">
-            New Folder
+            Rename Demo
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            Create new folder
-          </DialogDescription>
+          <DialogDescription className="sr-only">Rename demo</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-3"
@@ -104,7 +106,7 @@ export function NewFolder() {
             />
           </FieldGroup>
           <p className="text-muted-foreground text-xs">
-            Create a new folder to help organize your projects.
+            This change will be reflected for anyone viewing the demo.
           </p>
           <div className="flex items-center gap-2">
             <DialogClose asChild>
