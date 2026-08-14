@@ -1,0 +1,34 @@
+# Replace with the hostname whose A record points at this droplet.
+# Caddy obtains and renews a Let's Encrypt certificate automatically, which is
+# not cosmetic here: the dashboard is served over HTTPS, so artifact URLs must
+# be HTTPS too or browsers block every <video> as mixed content.
+media.example.com {
+	encode zstd gzip
+
+	# Rendered demos. Public by URL, like any CDN-served asset.
+	handle /output/* {
+		reverse_proxy worker:3001
+	}
+
+	# Health check.
+	handle /ping {
+		reverse_proxy worker:3001
+	}
+
+	# Nothing else on this host is part of the API surface — jobs arrive
+	# through Convex, not over HTTP.
+	handle {
+		respond "Not found" 404
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

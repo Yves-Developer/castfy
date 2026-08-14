@@ -1,0 +1,81 @@
+# Production stack for the playground worker.
+#
+# Two services: the worker (no published ports — it is only reachable through
+# Caddy) and Caddy itself, which terminates TLS and proxies to it.
+#
+#   docker compose up -d --build
+#
+# Run from this directory. The build context is the repo root because the
+# pnpm workspace needs the root manifests; see apps/playground/Dockerfile.
+
+services:
+  worker:
+    build:
+      context: ../../..
+      dockerfile: apps/playground/Dockerfile
+      secrets:
+        - npm_token
+    image: castfy-playground:prod
+    restart: unless-stopped
+
+    # Chromium's default 64MB /dev/shm in Docker causes crashes under load.
+    shm_size: 1gb
+
+    env_file: .env
+
+    # Rendered demos survive container replacement. Without this, every
+    # `up --build` destroys every video. Phase 2 (object storage) is what
+    # eventually makes this mount unnecessary.
+    volumes:
+      - output:/app/apps/playground/output
+
+    # `expose`, not `ports`: the worker must not be reachable from the
+    # internet directly. Only Caddy talks to it, over the compose network.
+    expose:
+      - "3001"
+
+    # Must exceed SHUTDOWN_GRACE_MS (default 60s) so the drain finishes
+    # instead of being SIGKILLed mid-recording.
+    stop_grace_period: 90s
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - worker
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Build-time only: authenticates the private @yves-developer/castfy0-mcp
+# package. Never lands in an image layer.
+secrets:
+  npm_token:
+    environment: NODE_AUTH_TOKEN
+
+volumes:
+  output:
+  caddy_data:
+  caddy_config:
