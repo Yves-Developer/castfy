@@ -63,7 +63,11 @@ export function DemoDropMenu() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>Help</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href="https://x.com/YvesDC0" rel="noopener" target="_blank">
+                Help
+              </a>
+            </DropdownMenuItem>
             <DropdownMenuItem>Feedback</DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {

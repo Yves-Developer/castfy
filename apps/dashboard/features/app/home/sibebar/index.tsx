@@ -5,6 +5,7 @@ import { Grid2X2Icon, MailIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { toast } from "sonner";
 import { useNewFolderStore } from "@/lib/store/dialogs";
 import SidebarSearch from "../../_shared/search";
 import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
@@ -13,6 +14,10 @@ import { HomeDropMenu } from "./menu";
 export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const { open } = useNewFolderStore();
+  function handleCopyLink() {
+    navigator.clipboard.writeText("https://castfy.com");
+    toast.success("Demo link copied to clipboard");
+  }
 
   return (
     <div
@@ -79,6 +84,7 @@ export default function HomeSidebar({ className }: { className?: string }) {
           <span className="font-medium text-xs">Invite Friends</span>
           <Button
             className="ml-auto text-muted-foreground text-xs hover:text-foreground"
+            onClick={handleCopyLink}
             size="sm"
             variant={"secondary"}
           >
