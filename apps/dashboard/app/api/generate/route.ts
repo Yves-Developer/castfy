@@ -7,11 +7,11 @@ import type { NextRequest } from "next/server";
 // NEXT_PUBLIC_* var — readable by anyone who opens devtools, which is not
 // authentication at all.
 //
-// `dynamic`, `revalidate`, and `fetchCache` are NOT valid here: Next 16 removes
-// those segment-config options when `cacheComponents` is enabled, and this app
-// sets `cacheComponents: true` in next.config.ts. Reading `request.nextUrl`
-// below is what makes this handler run per request.
-export const runtime = "nodejs";
+// `runtime`, `dynamic`, `revalidate`, and `fetchCache` are all rejected here:
+// Next 16 disallows those segment-config options when `cacheComponents` is
+// enabled, and this app sets `cacheComponents: true` in next.config.ts. The
+// Node runtime is the default, and reading `request.nextUrl` below is what
+// makes this handler run per request.
 
 // A recording runs well past any default serverless limit. Keep this above the
 // playground's own JOB_TIMEOUT_MS (40 min) so the platform doesn't cut the
