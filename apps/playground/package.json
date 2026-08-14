@@ -19,7 +19,9 @@
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "openai": "^6.38.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@castfy/backend": "workspace:*",
+    "convex": "^1.17.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

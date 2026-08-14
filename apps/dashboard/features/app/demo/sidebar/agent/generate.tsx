@@ -1,9 +1,6 @@
+import { api } from "@castfy/backend/api";
+import { getConvexClient } from "@/lib/convex";
 import type { AgentStep, SseEventData, SseHandlers } from "@/types";
-
-// Same-origin proxy at app/api/generate/route.ts, which attaches the
-// playground's bearer token server-side. The browser never sees that token, so
-// the playground origin is no longer configured here.
-const GENERATE_ENDPOINT = "/api/generate";
 
 // Choose which recorded variant to show first: clean audio > audio > clean > raw.
 export function pickInitialVideo(
@@ -20,20 +17,6 @@ export function pickInitialVideo(
     return { tab: "clean", url: videos.clean };
   }
   return { tab: "raw", url: videos.raw ?? fallbackUrl ?? "" };
-}
-
-async function readErrorMessage(response: Response): Promise<string> {
-  // Non-SSE failures (SSRF-block 400, at-capacity 429, 405) return a JSON
-  // { error } body — surface that instead of a bare status line.
-  try {
-    const body = (await response.json()) as { error?: string };
-    if (body?.error) {
-      return body.error;
-    }
-  } catch {
-    // Non-JSON body; fall through to the status-line fallback.
-  }
-  return `Server error: ${response.statusText}`;
 }
 
 function dispatchSseEvent(
@@ -63,71 +46,111 @@ function dispatchSseEvent(
   }
 }
 
-function parseAndDispatch(
-  event: string,
-  dataStr: string,
-  handlers: SseHandlers
+interface JobEvent {
+  data?: unknown;
+  message?: string;
+  seq: number;
+  type: string;
+}
+
+/** Flattens a stored event back into the payload shape the handlers expect. */
+function toSseData(event: JobEvent): SseEventData {
+  const base =
+    typeof event.data === "object" && event.data !== null
+      ? (event.data as Record<string, unknown>)
+      : {};
+  return {
+    ...base,
+    ...(event.message ? { message: event.message } : {}),
+  } as SseEventData;
+}
+
+/**
+ * The query returns the job's whole log every time, so dispatch only what's
+ * past the cursor — that way a reconnect replays silently instead of
+ * re-emitting every step the UI has already rendered.
+ */
+function drainEvents(
+  events: JobEvent[],
+  cursor: { dispatched: number },
+  handlers: SseHandlers,
+  finish: () => void
 ): void {
-  if (!dataStr) {
-    return;
-  }
-  try {
-    dispatchSseEvent(event, JSON.parse(dataStr) as SseEventData, handlers);
-  } catch (e) {
-    console.error("Failed to parse SSE event data:", dataStr, e);
-  }
-}
-
-async function readSseStream(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-  handlers: SseHandlers
-): Promise<void> {
-  const decoder = new TextDecoder("utf-8");
-  let buffer = "";
-  let currentEvent = "";
-
-  while (true) {
-    const { value: chunk, done } = await reader.read();
-    if (done) {
-      break;
+  for (const event of events) {
+    if (event.seq <= cursor.dispatched) {
+      continue;
     }
-
-    buffer += decoder.decode(chunk, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith("event: ")) {
-        currentEvent = trimmed.slice(7).trim();
-      } else if (trimmed.startsWith("data: ")) {
-        parseAndDispatch(currentEvent, trimmed.slice(6).trim(), handlers);
-      }
+    cursor.dispatched = event.seq;
+    dispatchSseEvent(event.type, toSseData(event), handlers);
+    if (event.type === "completed" || event.type === "error") {
+      finish();
     }
   }
 }
 
-export async function generateDemo(
+/**
+ * Enqueue a recording and follow it.
+ *
+ * The job runs in a worker, not in this request, so closing the tab no longer
+ * kills it — Convex pushes progress reactively and replays anything missed
+ * while disconnected, which is what the SSE stream and its Last-Event-ID
+ * bookkeeping used to do by hand.
+ *
+ * `onJobId` hands the caller the durable id. Nothing stores it yet, so a
+ * refresh still loses sight of a running job; the job itself survives, and
+ * reattaching is now just a matter of holding onto this value.
+ */
+export function generateDemo(
   params: URLSearchParams,
-  handlers: SseHandlers
+  handlers: SseHandlers & { onJobId?: (jobId: string) => void }
 ): Promise<void> {
-  try {
-    const response = await fetch(
-      `${GENERATE_ENDPOINT}?${params.toString()}`
-    );
-    if (!response.ok) {
-      throw new Error(await readErrorMessage(response));
+  return new Promise((resolve) => {
+    const cursor = { dispatched: 0 };
+    let unsubscribe: (() => void) | undefined;
+    let settled = false;
+
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      unsubscribe?.();
+      resolve();
+    };
+
+    const fail = (message: string) => {
+      handlers.onError(message);
+      finish();
+    };
+
+    let client: ReturnType<typeof getConvexClient>;
+    try {
+      client = getConvexClient();
+    } catch (err) {
+      fail(err instanceof Error ? err.message : "Convex is not configured.");
+      return;
     }
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("ReadableStream is not supported by your browser.");
-    }
-    await readSseStream(reader, handlers);
-  } catch (err) {
-    handlers.onError(
-      err instanceof Error ? err.message : "Failed to generate demo."
-    );
-  }
+
+    client
+      .mutation(api.jobs.enqueue, {
+        headless: params.get("headless") !== "false",
+        promptGoal: params.get("promptGoal") ?? "",
+        url: params.get("url") ?? "",
+      })
+      .then((jobId: string) => {
+        handlers.onJobId?.(jobId);
+        unsubscribe = client.onUpdate(
+          api.jobs.events,
+          { jobId: jobId as never },
+          (events: JobEvent[]) => {
+            drainEvents(events, cursor, handlers, finish);
+          }
+        );
+      })
+      .catch((err: unknown) => {
+        fail(err instanceof Error ? err.message : "Failed to generate demo.");
+      });
+  });
 }
 
 const VIDEO_TABS: { key: string; label: string }[] = [

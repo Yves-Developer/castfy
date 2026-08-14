@@ -1,0 +1,12 @@
+{
+  "extends": "@castfy/tsconfig/base.json",
+  "compilerOptions": {
+    "typeRoots": ["../../node_modules/@types"],
+    "strictNullChecks": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "skipLibCheck": true
+  },
+  "include": ["convex"],
+  "exclude": ["node_modules", "convex/_generated"]
+}
