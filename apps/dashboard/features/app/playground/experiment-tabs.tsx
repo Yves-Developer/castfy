@@ -57,10 +57,10 @@ interface AgentStep {
 
 export type AIProvider = "anthropic" | "openai" | "gemini";
 
-// Origin of the playground backend. Configurable per-env; defaults to the
-// port documented in apps/playground/.env.example (3001).
-const PLAYGROUND_API_URL =
-  process.env.NEXT_PUBLIC_PLAYGROUND_API_URL ?? "http://localhost:4000";
+// Same-origin proxy at app/api/generate/route.ts, which attaches the
+// playground's bearer token server-side. The browser never sees that token, so
+// the playground origin is no longer configured here.
+const GENERATE_ENDPOINT = "/api/generate";
 
 // Shape of any SSE event payload the backend emits (status/step/completed/error).
 interface SseEventData {
@@ -190,9 +190,7 @@ async function generateDemo(
   handlers: SseHandlers
 ): Promise<void> {
   try {
-    const response = await fetch(
-      `${PLAYGROUND_API_URL}/api/generate?${params.toString()}`
-    );
+    const response = await fetch(`${GENERATE_ENDPOINT}?${params.toString()}`);
     if (!response.ok) {
       throw new Error(await readErrorMessage(response));
     }
