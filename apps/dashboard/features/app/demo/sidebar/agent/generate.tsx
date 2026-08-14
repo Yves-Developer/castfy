@@ -89,20 +89,48 @@ function drainEvents(
 }
 
 /**
- * Enqueue a recording and follow it.
- *
- * The job runs in a worker, not in this request, so closing the tab no longer
- * kills it — Convex pushes progress reactively and replays anything missed
- * while disconnected, which is what the SSE stream and its Last-Event-ID
- * bookkeeping used to do by hand.
- *
- * `onJobId` hands the caller the durable id. Nothing stores it yet, so a
- * refresh still loses sight of a running job; the job itself survives, and
- * reattaching is now just a matter of holding onto this value.
+ * The id of the run this browser is watching. A job outlives the page now, so
+ * without somewhere to write this down a refresh loses sight of a recording
+ * that is still going — the events stay in Convex, but nothing asks for them.
  */
-export function generateDemo(
-  params: URLSearchParams,
-  handlers: SseHandlers & { onJobId?: (jobId: string) => void }
+const ACTIVE_JOB_KEY = "castfy.activeJobId";
+
+export function readActiveJobId(): string | null {
+  try {
+    return localStorage.getItem(ACTIVE_JOB_KEY);
+  } catch {
+    // Private mode or storage disabled; resuming is a nicety, not a
+    // requirement, so fall back to behaving like a fresh page.
+    return null;
+  }
+}
+
+function rememberActiveJob(jobId: string): void {
+  try {
+    localStorage.setItem(ACTIVE_JOB_KEY, jobId);
+  } catch {
+    // See readActiveJobId.
+  }
+}
+
+export function forgetActiveJob(): void {
+  try {
+    localStorage.removeItem(ACTIVE_JOB_KEY);
+  } catch {
+    // See readActiveJobId.
+  }
+}
+
+/**
+ * Subscribe to a job that already exists and replay its whole log.
+ *
+ * Because the events query returns every row from seq 0, reattaching after a
+ * refresh rebuilds the timeline from the start — the steps that happened while
+ * the page was gone included. This is the payoff for making jobs durable.
+ */
+export function followJob(
+  jobId: string,
+  handlers: SseHandlers
 ): Promise<void> {
   return new Promise((resolve) => {
     const cursor = { dispatched: 0 };
@@ -115,42 +143,80 @@ export function generateDemo(
       }
       settled = true;
       unsubscribe?.();
+      forgetActiveJob();
       resolve();
-    };
-
-    const fail = (message: string) => {
-      handlers.onError(message);
-      finish();
     };
 
     let client: ReturnType<typeof getConvexClient>;
     try {
       client = getConvexClient();
     } catch (err) {
-      fail(err instanceof Error ? err.message : "Convex is not configured.");
+      handlers.onError(
+        err instanceof Error ? err.message : "Convex is not configured."
+      );
+      finish();
       return;
     }
 
-    client
-      .mutation(api.jobs.enqueue, {
-        headless: params.get("headless") !== "false",
-        promptGoal: params.get("promptGoal") ?? "",
-        url: params.get("url") ?? "",
-      })
-      .then((jobId: string) => {
-        handlers.onJobId?.(jobId);
-        unsubscribe = client.onUpdate(
-          api.jobs.events,
-          { jobId: jobId as never },
-          (events: JobEvent[]) => {
-            drainEvents(events, cursor, handlers, finish);
-          }
-        );
-      })
-      .catch((err: unknown) => {
-        fail(err instanceof Error ? err.message : "Failed to generate demo.");
-      });
+    unsubscribe = client.onUpdate(
+      api.jobs.events,
+      { jobId: jobId as never },
+      (events: JobEvent[]) => {
+        drainEvents(events, cursor, handlers, finish);
+      }
+    );
   });
+}
+
+/**
+ * Look up a remembered job and decide whether it is still worth watching.
+ * Returns its status, or null if there is nothing to resume.
+ */
+export async function inspectActiveJob(
+  jobId: string
+): Promise<{ status: string; videos?: Record<string, string> } | null> {
+  try {
+    const job = await getConvexClient().query(api.jobs.get, {
+      jobId: jobId as never,
+    });
+    return job ?? null;
+  } catch {
+    // A stale id from an older deployment, or Convex unreachable.
+    return null;
+  }
+}
+
+/** Enqueue a recording and follow it. */
+export function generateDemo(
+  params: URLSearchParams,
+  handlers: SseHandlers & { onJobId?: (jobId: string) => void }
+): Promise<void> {
+  let client: ReturnType<typeof getConvexClient>;
+  try {
+    client = getConvexClient();
+  } catch (err) {
+    handlers.onError(
+      err instanceof Error ? err.message : "Convex is not configured."
+    );
+    return Promise.resolve();
+  }
+
+  return client
+    .mutation(api.jobs.enqueue, {
+      headless: params.get("headless") !== "false",
+      promptGoal: params.get("promptGoal") ?? "",
+      url: params.get("url") ?? "",
+    })
+    .then((jobId: string) => {
+      rememberActiveJob(jobId);
+      handlers.onJobId?.(jobId);
+      return followJob(jobId, handlers);
+    })
+    .catch((err: unknown) => {
+      handlers.onError(
+        err instanceof Error ? err.message : "Failed to generate demo."
+      );
+    });
 }
 
 const VIDEO_TABS: { key: string; label: string }[] = [
