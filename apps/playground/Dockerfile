@@ -64,6 +64,12 @@ USER pwuser
 
 EXPOSE 3001
 
-# SIGTERM must reach Node directly for the graceful drain in src/index.ts to
-# run, so exec form with no shell wrapper.
-CMD ["pnpm", "start"]
+# Run node as PID 1 — deliberately NOT `pnpm start`.
+#
+# Exec form alone is not enough: it removes the shell, but pnpm would still sit
+# between PID 1 and node. pnpm does forward SIGTERM, yet it exits as soon as it
+# sees the child signalled, reporting ELIFECYCLE and returning 1. That truncates
+# the graceful drain in src/index.ts and makes every clean shutdown look like a
+# crash to an orchestrator. With node as PID 1 the signal is direct and the
+# container exits with the code src/index.ts actually chose.
+CMD ["node", "--import", "tsx", "src/index.ts"]
