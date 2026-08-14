@@ -1,7 +1,12 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
-import { Grid2X2Icon, MailIcon, Trash2Icon } from "lucide-react";
+import {
+  Grid2X2Icon,
+  ListVideoIcon,
+  MailIcon,
+  Trash2Icon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
@@ -59,6 +64,20 @@ export default function HomeSidebar({ className }: { className?: string }) {
               <Trash2Icon className="size-3" strokeWidth={2.7} />
               Archived
               <ArchiveDropdownActions className="absolute right-2" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            className={cn(
+              "group relative w-full justify-normal gap-3 text-muted-foreground",
+              pathname === "/recordings" && "text-foreground"
+            )}
+            size="sm"
+            variant={pathname === "/recordings" ? "secondary" : "ghost"}
+          >
+            <Link className="w-full" href="/recordings">
+              <ListVideoIcon className="size-3" strokeWidth={2.7} />
+              Recordings
             </Link>
           </Button>
           <NewFolder />
