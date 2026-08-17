@@ -5,7 +5,9 @@ export const siteConfig = {
   ogImage: "https://www.castfy.app/opengraph-image.png",
   description: "Castfy is ai for your demo",
   links: {
-    twitter: "https://x.com/castfy",
+    x: "https://x.com/castfy",
+    linkedin: "https://x.com/castfy",
+    instagram: "https://x.com/castfy",
     youtube: "https://www.youtube.com/@CastfyRw",
     github: "https://github.com/CastfyRw",
   },

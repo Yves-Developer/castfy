@@ -1,6 +1,7 @@
 import { Suspense } from "react";
-import { Footer } from "@/features/_layout/footer";
+import { ImgCta } from "@/features/_layout/cta";
 import { Header } from "@/features/_layout/header";
+import { SiteFooter } from "@/features/_layout/site-footer";
 
 export default function AppLayout(props: LayoutProps<"/">) {
   return (
@@ -8,10 +9,12 @@ export default function AppLayout(props: LayoutProps<"/">) {
       <Suspense>
         <Header />
       </Suspense>
-      <main className="mx-auto flex w-full flex-1 flex-col overflow-hidden pt-16 xl:max-w-360">
+      <main className="@container mx-auto flex w-full flex-1 flex-col pt-16 xl:max-w-360">
         {props.children}
       </main>
-      <Footer />
+      {/* <Footer /> */}
+      <ImgCta />
+      <SiteFooter />
     </div>
   );
 }
