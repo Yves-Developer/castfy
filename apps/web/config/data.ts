@@ -11,7 +11,8 @@ import { FaDiscord, FaLinkedin, FaTiktok } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import type { FAQItem, Testimonial } from "@/types";
 import { siteConfig } from "./site";
-
+export const demoVideoUrl =
+  "https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Framer%20Update_%20CMS%203.0.mp4";
 export const navLinks = [
   {
     label: "Home",

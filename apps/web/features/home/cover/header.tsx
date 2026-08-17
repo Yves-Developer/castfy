@@ -3,33 +3,26 @@ import { ChevronDownIcon } from "lucide-react";
 
 export function CoverCmsHeader() {
   return (
-    <header className="container z-10 flex h-12.75 w-full items-center border-b">
+    <header className="z-10 flex h-12.75 w-full items-center border-b px-2.5">
       <div className="flex w-full items-center justify-between">
         <Button
           aria-label="Toggle columns"
-          className="relative bg-background shadow-sm hover:bg-background dark:bg-secondary"
+          className="relative bg-background shadow-xs hover:bg-background dark:bg-secondary"
           role="combobox"
           size="sm"
           variant="secondary"
         >
-          CMS
+          Studio
           <ChevronDownIcon />
         </Button>
         <div>
-          <span className="font-medium text-xs">Rathon Site</span>
+          <span className="font-medium text-xs"> Notion demo</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            className="text-muted-foreground hover:text-foreground"
-            disabled
-            size={"sm"}
-            variant={"secondary"}
-          >
-            Invite
+          <Button disabled size={"sm"} variant={"secondary"}>
+            Save
           </Button>
-          <Button disabled size="sm">
-            Publish
-          </Button>
+          <Button size="sm">Export</Button>
         </div>
       </div>
     </header>
