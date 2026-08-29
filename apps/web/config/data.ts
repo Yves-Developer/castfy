@@ -1,5 +1,18 @@
-import type { FAQItem, Testimonial, TUseCase } from "@/types";
-
+import {
+  BotIcon,
+  DatabaseIcon,
+  ImageIcon,
+  LinkIcon,
+  SendIcon,
+  SparklesIcon,
+} from "lucide-react";
+import { AiFillInstagram } from "react-icons/ai";
+import { FaDiscord, FaLinkedin, FaTiktok } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import type { FAQItem, Testimonial } from "@/types";
+import { siteConfig } from "./site";
+export const demoVideoUrl =
+  "https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Framer%20Update_%20CMS%203.0.mp4";
 export const navLinks = [
   {
     label: "Home",
@@ -7,7 +20,7 @@ export const navLinks = [
   },
   {
     label: "How",
-    href: "/#how",
+    href: "/#joureny",
   },
 
   {
@@ -15,9 +28,8 @@ export const navLinks = [
     href: "/#why-us",
   },
   {
-    label: "Waitlist",
-    href: "https://waitlist.castfy.app/",
-    external: true,
+    label: "Features",
+    href: "/#features",
   },
 
   {
@@ -88,41 +100,13 @@ export const comparisonData = [
     cta: "Join waitlist",
   },
 ];
-export const usaCases: TUseCase[] = [
+export const demos = [
   {
     title: "Vendyy",
     slug: "fatherhood-tech",
     description: "@vendyy",
-    media: "https://screen.studio/videos/features/auto-zoom-on-clicks.mp4",
-    type: "branding",
-  },
-  {
-    title: "Rathon",
-    slug: "teachers-day",
-    description: "@rathon",
-    media: "https://screen.studio/videos/hero/hero-demo.mp4",
-    type: "design",
-  },
-  {
-    title: "Notion",
-    slug: "beautiful-development",
-    description: "@notion",
-    media: "https://screen.studio/videos/features/auto-zoom-on-clicks.mp4",
-    type: "development",
-  },
-  {
-    title: "Vercel",
-    slug: "beautiful-photography",
-    description: "@vercel",
-    media: "https://screen.studio/videos/hero/hero-demo.mp4",
-    type: "photography",
-  },
-  {
-    title: "KuluChat",
-    slug: "beautiful-video",
-    description: "@kuluchat",
-    media: "https://screen.studio/videos/features/auto-zoom-on-clicks.mp4",
-    type: "video",
+    media:
+      "https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Castfy/demo-with-audio-clean.mp4",
   },
 ];
 
@@ -202,4 +186,273 @@ export const defaultTestimonials: Testimonial[] = [
     content:
       "Castfy makes it incredibly easy to demonstrate our platform. Prospects can explore the product before ever speaking with our team.",
   },
+];
+
+export const features = [
+  {
+    icon: LinkIcon,
+    title: "URL to Demo",
+    description:
+      "Paste any URL and let AI instantly turn it into a polished, shareable product demo — no recording or editing required.",
+  },
+  {
+    icon: BotIcon,
+    title: "AI-Powered Generation",
+    description:
+      "AI analyzes the page and automatically generates a walkthrough, highlighting key screens, features, and flows in seconds.",
+  },
+  {
+    icon: ImageIcon,
+    title: "Custom Backgrounds",
+    description:
+      "Personalize every demo with custom backgrounds, gradients, or brand colors to match your product's look and feel.",
+  },
+  {
+    icon: SparklesIcon,
+    title: "Smart Enhancements",
+    description:
+      "Automatically clean up UI clutter, add smooth transitions, and enhance visuals so every demo looks professional by default.",
+  },
+  {
+    icon: DatabaseIcon,
+    title: "Demo Storage & Library",
+    description:
+      "All your generated demos are saved and organized in one place, so you can revisit, reuse, or update them anytime.",
+  },
+  {
+    icon: SendIcon,
+    title: "Instant Sharing",
+    description:
+      "Share your demo with a single link or embed it anywhere, making it easy for teams, clients, or prospects to view instantly.",
+  },
+];
+export const plans = [
+  {
+    title: "Starter",
+    slug: "starter",
+    desc: "Everything you need to get going",
+    price: {
+      monthly: "$32",
+      yearly: "$32",
+    },
+    credits: 20,
+    features: [
+      "20 AI minutes / month",
+      "10 demos / month",
+      "No watermark",
+      "Custom branding",
+      "2 versions per video",
+      "Multi-language support (29 languages)",
+      "Export in 1080p",
+      "Email support",
+    ],
+    cta: "Join waiting list",
+  },
+  {
+    title: "Pro",
+    slug: "pro",
+    popular: true,
+    desc: "More power as your business grows",
+    price: {
+      monthly: "$79",
+      yearly: "$79",
+    },
+    credits: 50,
+    features: [
+      "50 AI minutes / month",
+      "50 demos / month",
+      "No watermark",
+      "Custom branding",
+      "5 versions per video",
+      "Multi-language support (29 languages)",
+      "Export in 1440p (2K)",
+      "Documint documentation exports",
+      "Priority support",
+    ],
+    cta: "Join waiting list",
+  },
+  {
+    title: "Business",
+    slug: "business",
+    desc: "Built for high-volume teams",
+    price: {
+      monthly: "$200",
+      yearly: "$200",
+    },
+    credits: 150,
+    features: [
+      "150 AI minutes / month",
+      "Unlimited demos",
+      "No watermark",
+      "Custom branding",
+      "10 versions per video",
+      "Multi-language support (29 languages)",
+      "Export in 4K quality",
+      "Documint documentation exports",
+      "Dedicated support",
+    ],
+    cta: "Join waiting list",
+  },
+];
+export const footerNavs = [
+  // services
+
+  {
+    group: "products",
+    categories: [
+      {
+        title: "Product",
+        navs: [
+          { label: "Flexible Collections", href: "/", external: false },
+          {
+            label: "Automatic Slugs",
+            href: "/",
+            external: false,
+          },
+          {
+            label: "Rich Content Fields",
+            href: "/",
+            external: false,
+          },
+          {
+            label: "Dynamic Publishing",
+            href: "/",
+            external: false,
+          },
+          {
+            label: "AI-Powered CMS",
+            href: "/",
+            external: false,
+          },
+        ],
+      },
+    ],
+  },
+  // products
+  {
+    group: "Businesses",
+    categories: [
+      {
+        title: "Quick Navs",
+        navs: [
+          {
+            label: "Home",
+            href: "/",
+            external: false,
+          },
+          {
+            label: "Features",
+            href: "/#features",
+            external: false,
+          },
+          {
+            label: "Faqs",
+            href: "/#faqs",
+            external: false,
+          },
+          {
+            label: "Enterprise ",
+            href: "/#pricing",
+            external: false,
+          },
+
+          {
+            label: "Pricing",
+            href: "/#pricing",
+            external: false,
+          },
+        ],
+      },
+    ],
+  },
+  // business
+  {
+    group: "Business",
+    categories: [
+      {
+        title: "Company",
+        navs: [
+          {
+            label: "About Us",
+            href: "/about",
+            external: false,
+          },
+          {
+            label: "Book a call",
+            href: "/book-a-call",
+            external: false,
+          },
+          {
+            label: "News",
+            href: "/news",
+            external: false,
+          },
+          {
+            label: "Careers",
+            href: "/careers",
+            external: false,
+          },
+          {
+            label: "Referrals",
+            href: "/referrals",
+            external: false,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    group: "More",
+    categories: [
+      {
+        title: "More",
+        navs: [
+          {
+            label: "Sitemap",
+            href: "/sitemap.xml",
+            external: false,
+          },
+          {
+            label: "LLMs",
+            href: "/llms.txt",
+            external: false,
+          },
+        ],
+      },
+    ],
+  },
+  // policies
+  {
+    group: "Policies",
+    categories: [
+      {
+        title: "Terms & Policies",
+        navs: [
+          {
+            label: "Terms of Use",
+            href: "/policies/terms-of-use",
+            external: false,
+          },
+          {
+            label: "Privacy Policy",
+            href: "/policies/privacy-policy",
+            external: false,
+          },
+          {
+            label: "Other Policies",
+            href: "/policies",
+            external: false,
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const footerSocialIcons = [
+  { icon: FaXTwitter, href: siteConfig.links.x },
+  { icon: FaLinkedin, href: siteConfig.links.linkedin },
+  { icon: AiFillInstagram, href: siteConfig.links.instagram },
+  { icon: FaTiktok, href: "" },
+  { icon: FaDiscord, href: "" },
 ];

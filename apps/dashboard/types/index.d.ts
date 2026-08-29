@@ -47,3 +47,5 @@ export interface SseHandlers {
   onStatus: (message: string) => void;
   onStep: (step: AgentStep) => void;
 }
+
+export type TSettingPages = "profile" | "sessions" | "billing";

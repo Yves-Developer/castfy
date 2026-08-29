@@ -31,20 +31,24 @@ export function HomeFilters() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="text-[13px]" size="sm" variant={"secondary"}>
+        <Button
+          className="text-[13px] text-foreground/80"
+          size="sm"
+          variant={"secondary"}
+        >
           {filters.find((f) => f.value === c)?.label || "Last created by me"}
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-fit min-w-40 max-w-50">
         <DropdownMenuGroup>
-          {filters.map((filter, i) => (
+          {filters.map((filter) => (
             <DropdownMenuItem
               key={filter.value}
               onClick={() => setSearchParams({ c: filter.value })}
             >
               {filter.label}
-              {i === 0 && (
+              {c === filter.value && (
                 <DropdownMenuShortcut>
                   <CheckIcon className="text-muted-foreground" />
                 </DropdownMenuShortcut>

@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@castfy/ui/components/button";
 import {
   Dialog,
@@ -6,7 +7,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@castfy/ui/components/dialog";
 import {
   Field,
@@ -16,17 +16,18 @@ import {
 } from "@castfy/ui/components/field";
 import { Input } from "@castfy/ui/components/input";
 import { useForm } from "@tanstack/react-form";
-import { PlusIcon } from "lucide-react";
 import type * as React from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
+import { useNewFolderStore } from "@/lib/store/dialogs";
 
 const formSchema = z.object({
   title: z.string().min(5, "Demo title must be at least 5 characters."),
 });
 
 export function NewFolder() {
+  const { open, isOpen, close } = useNewFolderStore();
   const form = useForm({
     defaultValues: {
       title: "",
@@ -53,17 +54,7 @@ export function NewFolder() {
   });
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          className="group relative w-full justify-normal gap-3 text-muted-foreground"
-          size="sm"
-          variant={"ghost"}
-        >
-          <PlusIcon className="size-3" strokeWidth={2.7} />
-          New Folder...
-        </Button>
-      </DialogTrigger>
+    <Dialog onOpenChange={isOpen ? close : open} open={isOpen}>
       <DialogContent className="sm:max-w-68" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="font-semibold text-xs">

@@ -1,3 +1,5 @@
+import { NewDemo } from "@/features/app/home/new/demo";
+import { NewFolder } from "@/features/app/home/new/folder";
 import HomeSidebar from "@/features/app/home/sibebar";
 
 export default function HomeLayout(props: LayoutProps<"/">) {
@@ -9,6 +11,8 @@ export default function HomeLayout(props: LayoutProps<"/">) {
           {props.children}
         </main>
       </div>
+      <NewDemo />
+      <NewFolder />
     </div>
   );
 }
