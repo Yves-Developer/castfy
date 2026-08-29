@@ -14,8 +14,8 @@ export function SupportInfo() {
         <div className="flex flex-col gap-3">
           <div className="relative flex items-center gap-2">
             <MessageCircleIcon className="size-4" />
-            <span className="text-muted-foreground">Whatsapp: </span> +250 799
-            123 456
+            <span className="text-muted-foreground">Whatsapp: </span> +250 792
+            636 403
           </div>
           <div className="relative flex items-center gap-2">
             <MapPinIcon className="size-4" />
@@ -25,13 +25,13 @@ export function SupportInfo() {
           <div className="relative flex items-center gap-2">
             <MailIcon className="size-4" />
             <span className="text-muted-foreground">Email: </span>{" "}
-            casfy@gmail.com
+            casfy.app@gmail.com
           </div>
         </div>
       </div>
       <div className="flex flex-col gap-2 font-medium text-sm md:gap-4">
         <p className="text-muted-foreground">
-          Trusted by thousands of businesses like{" "}
+          Trusted by thousands of startups
         </p>
       </div>
     </div>

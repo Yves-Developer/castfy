@@ -11,5 +11,18 @@
 }
 
 html {
-  @apply font-inter;
+  @apply font-inter font-medium;
+}
+
+
+@layer utilities {
+  .text-h1 {
+    @apply text-balance text-4xl leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5 font-medium;
+  }
+  .text-h2 {
+    @apply text-balance text-[28px] leading-7.75 tracking-[-0.04em] md:text-4xl md:leading-10 lg:text-[44px] lg:leading-12 font-medium;
+  }
+  .text-h3 {
+    @apply text-[32px] leading-9 md:text-[38px] md:leading-11 lg:text-[42px] lg:leading-12 xl:text-[48px] xl:leading-14 font-medium text-balance;
+  }
 }

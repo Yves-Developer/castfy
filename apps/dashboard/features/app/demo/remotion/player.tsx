@@ -94,6 +94,7 @@ export function RemotionPlayer({
 
   return (
     <Player
+      acknowledgeRemotionLicense
       clickToPlay
       component={StudioComposition}
       compositionHeight={1080}
