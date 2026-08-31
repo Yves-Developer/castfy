@@ -2,202 +2,121 @@ import "dotenv/config";
 import path from "node:path";
 import cors from "cors";
 import express from "express";
-import { runAgent } from "./core/agent.js";
-import { assertPublicUrl } from "./core/url-guard.js";
+import { parseAllowedOrigins } from "./core/auth.js";
+import { activeJobCount, startWorker, stopWorker } from "./core/worker.js";
+
+/**
+ * The playground no longer executes recordings in a request.
+ *
+ * Jobs are enqueued into Convex by the dashboard and picked up by the worker
+ * below, so a restart or a closed tab can't destroy a run. What remains here is
+ * the artifact server: the videos the worker writes to local disk, plus health.
+ *
+ * The worker runs in this same process on purpose — artifacts are still on
+ * local disk, so whichever machine renders a video must also be the one serving
+ * it. Splitting them into separate deployments is safe only after Phase 2 moves
+ * artifacts to object storage.
+ */
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-// Public origin used to build returned asset URLs. Must match how clients reach
-// this server (behind a proxy/domain, set BASE_URL explicitly).
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-// Simple in-process cap so a burst of requests can't spawn unbounded browsers /
-// ffmpeg renders. A real queue (Redis/BullMQ) is the production answer.
-const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 2);
-let activeJobs = 0;
+const SHUTDOWN_GRACE_MS = Number(process.env.SHUTDOWN_GRACE_MS || 60_000);
+const RUN_WORKER = process.env.RUN_WORKER !== "false";
 
-app.use(cors());
+const allowedOrigins = parseAllowedOrigins();
+app.use(
+  cors(
+    allowedOrigins.length > 0
+      ? { origin: allowedOrigins, credentials: true }
+      : // No allowlist configured: permit non-browser callers only. `origin:
+        // false` omits the CORS headers entirely rather than echoing back
+        // whatever Origin was sent.
+        { origin: false }
+  )
+);
 app.use(express.json());
 
-// Serve output files statically under /output
+// Rendered demos, served straight off disk until Phase 2.
 app.use("/output", express.static(path.join(process.cwd(), "output")));
 
 app.get("/ping", (_req, res) => {
-  res.json({ status: "ok", message: "Playground Backend is running!" });
+  res.json({
+    status: "ok",
+    message: "Playground Backend is running!",
+    worker: RUN_WORKER ? "enabled" : "disabled",
+    activeJobs: activeJobCount(),
+  });
 });
 
-function resolveVideoFile(
-  files: Record<string, unknown> | undefined | null
-): string {
-  if (!files) {
-    return "demo.webm";
-  }
-  if (files.videoWithAudioClean) {
-    return "demo-with-audio-clean.mp4";
-  }
-  if (files.videoWithAudio) {
-    return "demo-with-audio.mp4";
-  }
-  if (files.videoClean) {
-    return "demo-clean.webm";
-  }
-  return "demo.webm";
-}
-
-function buildVideosMap(
-  files: Record<string, unknown> | undefined | null,
-  baseUrl: string
-): Record<string, string> {
-  const videos: Record<string, string> = {};
-  if (!files) {
-    return videos;
-  }
-  if (files.video) {
-    videos.raw = `${baseUrl}/demo.webm`;
-  }
-  if (files.videoClean) {
-    videos.clean = `${baseUrl}/demo-clean.webm`;
-  }
-  if (files.videoWithAudio) {
-    videos.audio = `${baseUrl}/demo-with-audio.mp4`;
-  }
-  if (files.videoWithAudioClean) {
-    videos.audioClean = `${baseUrl}/demo-with-audio-clean.mp4`;
-  }
-  return videos;
-}
-
-// Full E2E Live Video Generation (SSE Streaming)
-app.all("/api/generate", async (req, res) => {
-  if (req.method !== "GET" && req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
-  const isGet = req.method === "GET";
-  const url = isGet ? (req.query.url as string) : req.body.url;
-  const promptGoal = isGet
-    ? (req.query.promptGoal as string)
-    : req.body.promptGoal;
-  const headlessRaw = isGet ? req.query.headless : req.body.headless;
-  const headless =
-    headlessRaw === undefined
-      ? true
-      : headlessRaw === "true" || headlessRaw === true;
-
-  if (!url) {
-    return res.status(400).json({ error: "URL is required" });
-  }
-  if (!promptGoal) {
-    return res
-      .status(400)
-      .json({ error: "Goal/Instructions are required for the recording" });
-  }
-
-  // SSRF guard: never let a user-supplied URL drive the browser to an internal
-  // host (loopback, private ranges, cloud metadata). Runs before we open SSE.
-  try {
-    await assertPublicUrl(url);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Invalid URL";
-    return res.status(400).json({ error: message });
-  }
-
-  // Backpressure: reject at capacity rather than spawning unbounded browsers.
-  if (activeJobs >= MAX_CONCURRENT_JOBS) {
-    return res
-      .status(429)
-      .json({ error: "Server is at capacity. Please retry shortly." });
-  }
-  activeJobs += 1;
-
-  // Set headers for Server-Sent Events (SSE) and send status code immediately
-  res.writeHead(200, {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache, no-transform, no-store, must-revalidate",
-    Pragma: "no-cache",
-    Expires: "0",
-    Connection: "keep-alive",
-    "X-Accel-Buffering": "no",
-    "X-Content-Type-Options": "nosniff",
-  });
-  res.flushHeaders();
-
-  // Disable Nagle's algorithm to write chunks immediately
-  req.socket.setNoDelay(true);
-
-  // Send 4KB padding of comment lines to flush intermediate proxy and browser buffers
-  res.write(`:${" ".repeat(4096)}\n\n`);
-
-  const keepAliveInterval = setInterval(() => {
-    res.write(":\n\n");
-  }, 2000);
-
-  req.on("close", () => {
-    clearInterval(keepAliveInterval);
-  });
-
-  const sendEvent = (event: string, data: unknown) => {
-    console.log(`[SSE Server] Sending event: ${event}`);
-    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-    const resWithFlush = res as unknown as { flush?: () => void };
-    if (typeof resWithFlush.flush === "function") {
-      resWithFlush.flush();
-    }
-  };
-
-  try {
-    const timestamp = Date.now();
-    const outputDir = path.join(process.cwd(), "output", `${timestamp}`);
-
-    sendEvent("status", { message: "Starting agent..." });
-
-    const result = await runAgent(
-      url,
-      promptGoal,
-      outputDir,
-      headless,
-      (step) => {
-        sendEvent("step", step);
-      },
-      (status) => {
-        sendEvent("status", { message: status });
-      }
+const server = app.listen(PORT, () => {
+  console.log(
+    `Playground artifact server listening on http://localhost:${PORT}`
+  );
+  if (allowedOrigins.length === 0) {
+    console.warn(
+      "[cors] ALLOWED_ORIGINS is not set — browser requests will be blocked. " +
+        "Set it to your dashboard origin(s) to allow them."
     );
-
-    if (result.error) {
-      throw new Error(result.error);
-    }
-
-    const files = (
-      result.deliverables as
-        | { deliverables?: { files?: Record<string, unknown> } }
-        | null
-        | undefined
-    )?.deliverables?.files;
-    const baseUrl = `${BASE_URL}/output/${timestamp}`;
-    const videos = buildVideosMap(files, baseUrl);
-    const videoFile = resolveVideoFile(files);
-    const videoUrl = `${baseUrl}/${videoFile}`;
-
-    clearInterval(keepAliveInterval);
-    sendEvent("completed", {
-      videoUrl,
-      videos,
-      goalConfirmed: result.goalConfirmed,
-      deliverables: result.deliverables,
-      steps: result.steps,
-    });
-    res.end();
-  } catch (error: unknown) {
-    clearInterval(keepAliveInterval);
-    const err = error instanceof Error ? error : new Error(String(error));
-    console.error("Error in /api/generate:", err);
-    sendEvent("error", { message: err.message || "Internal Server Error" });
-    res.end();
-  } finally {
-    activeJobs -= 1;
+  }
+  if (RUN_WORKER) {
+    startWorker();
+  } else {
+    console.warn(
+      "[worker] RUN_WORKER=false — this process serves artifacts only."
+    );
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Playground API listening on http://localhost:${PORT}`);
-});
+/**
+ * Drain on SIGTERM so a deploy doesn't kill recordings mid-take. Jobs are
+ * durable now, so an aborted run returns to the queue via its expired lease
+ * rather than being lost — but finishing cleanly still beats re-billing the
+ * agent loop from scratch.
+ */
+let shuttingDown = false;
+
+function shutdown(signalName: string): void {
+  if (shuttingDown) {
+    return;
+  }
+  shuttingDown = true;
+  console.log(
+    `[shutdown] ${signalName} received; draining ${activeJobCount()} job(s).`
+  );
+
+  server.close(() => {
+    console.log("[shutdown] HTTP server closed.");
+  });
+
+  const startedAt = Date.now();
+  const poll = setInterval(() => {
+    if (activeJobCount() === 0) {
+      clearInterval(poll);
+      stopWorker()
+        .catch((error: unknown) => {
+          console.error("[shutdown] worker stop failed:", error);
+        })
+        .finally(() => {
+          console.log("[shutdown] All jobs finished. Exiting.");
+          process.exit(0);
+        });
+      return;
+    }
+    if (Date.now() - startedAt >= SHUTDOWN_GRACE_MS) {
+      clearInterval(poll);
+      console.warn(
+        `[shutdown] Grace period elapsed with ${activeJobCount()} job(s) still running; aborting them.`
+      );
+      stopWorker().catch((error: unknown) => {
+        console.error("[shutdown] worker stop failed:", error);
+      });
+      // Give the abort a moment to close MCP clients before the process dies.
+      setTimeout(() => process.exit(1), 5000);
+    }
+  }, 500);
+  // Don't let the drain timer itself keep the process alive.
+  poll.unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

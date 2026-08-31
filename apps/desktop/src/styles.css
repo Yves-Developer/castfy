@@ -1,0 +1,12 @@
+@import "@castfy/ui/globals.css";
+
+/* The window chrome is the app's own ground, not a page on a white canvas. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}

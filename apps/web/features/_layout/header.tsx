@@ -64,7 +64,7 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
               variant={scrolled ? "default" : "secondary"}
             >
               <a
-                href="https://waitlist.castfy.app"
+                href={siteConfig.waitlistUrl}
                 rel="noopener"
                 target="_blank"
               >

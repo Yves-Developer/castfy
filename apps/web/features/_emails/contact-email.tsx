@@ -28,7 +28,7 @@ export const ContactEmail = ({
 
           <Section>
             {receiveUpdates && (
-              <Text>I would like to receive updates about Rathon.</Text>
+              <Text>I would like to receive updates about Castfy.</Text>
             )}
           </Section>
 

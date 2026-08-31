@@ -1,10 +1,6 @@
-// Origin of the playground backend. Configurable per-env; defaults to the
-
+import { api } from "@castfy/backend/api";
+import { getConvexClient } from "@/lib/convex";
 import type { AgentStep, SseEventData, SseHandlers } from "@/types";
-
-// port documented in apps/playground/.env.example (3001).
-const PLAYGROUND_API_URL =
-  process.env.NEXT_PUBLIC_PLAYGROUND_API_URL ?? "http://localhost:4000";
 
 // Choose which recorded variant to show first: clean audio > audio > clean > raw.
 export function pickInitialVideo(
@@ -21,20 +17,6 @@ export function pickInitialVideo(
     return { tab: "clean", url: videos.clean };
   }
   return { tab: "raw", url: videos.raw ?? fallbackUrl ?? "" };
-}
-
-async function readErrorMessage(response: Response): Promise<string> {
-  // Non-SSE failures (SSRF-block 400, at-capacity 429, 405) return a JSON
-  // { error } body — surface that instead of a bare status line.
-  try {
-    const body = (await response.json()) as { error?: string };
-    if (body?.error) {
-      return body.error;
-    }
-  } catch {
-    // Non-JSON body; fall through to the status-line fallback.
-  }
-  return `Server error: ${response.statusText}`;
 }
 
 function dispatchSseEvent(
@@ -64,71 +46,177 @@ function dispatchSseEvent(
   }
 }
 
-function parseAndDispatch(
-  event: string,
-  dataStr: string,
-  handlers: SseHandlers
+interface JobEvent {
+  data?: unknown;
+  message?: string;
+  seq: number;
+  type: string;
+}
+
+/** Flattens a stored event back into the payload shape the handlers expect. */
+function toSseData(event: JobEvent): SseEventData {
+  const base =
+    typeof event.data === "object" && event.data !== null
+      ? (event.data as Record<string, unknown>)
+      : {};
+  return {
+    ...base,
+    ...(event.message ? { message: event.message } : {}),
+  } as SseEventData;
+}
+
+/**
+ * The query returns the job's whole log every time, so dispatch only what's
+ * past the cursor — that way a reconnect replays silently instead of
+ * re-emitting every step the UI has already rendered.
+ */
+function drainEvents(
+  events: JobEvent[],
+  cursor: { dispatched: number },
+  handlers: SseHandlers,
+  finish: () => void
 ): void {
-  if (!dataStr) {
-    return;
-  }
-  try {
-    dispatchSseEvent(event, JSON.parse(dataStr) as SseEventData, handlers);
-  } catch (e) {
-    console.error("Failed to parse SSE event data:", dataStr, e);
+  for (const event of events) {
+    if (event.seq <= cursor.dispatched) {
+      continue;
+    }
+    cursor.dispatched = event.seq;
+    dispatchSseEvent(event.type, toSseData(event), handlers);
+    if (event.type === "completed" || event.type === "error") {
+      finish();
+    }
   }
 }
 
-async function readSseStream(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
+/**
+ * The id of the run this browser is watching. A job outlives the page now, so
+ * without somewhere to write this down a refresh loses sight of a recording
+ * that is still going — the events stay in Convex, but nothing asks for them.
+ */
+const ACTIVE_JOB_KEY = "castfy.activeJobId";
+
+export function readActiveJobId(): string | null {
+  try {
+    return localStorage.getItem(ACTIVE_JOB_KEY);
+  } catch {
+    // Private mode or storage disabled; resuming is a nicety, not a
+    // requirement, so fall back to behaving like a fresh page.
+    return null;
+  }
+}
+
+function rememberActiveJob(jobId: string): void {
+  try {
+    localStorage.setItem(ACTIVE_JOB_KEY, jobId);
+  } catch {
+    // See readActiveJobId.
+  }
+}
+
+export function forgetActiveJob(): void {
+  try {
+    localStorage.removeItem(ACTIVE_JOB_KEY);
+  } catch {
+    // See readActiveJobId.
+  }
+}
+
+/**
+ * Subscribe to a job that already exists and replay its whole log.
+ *
+ * Because the events query returns every row from seq 0, reattaching after a
+ * refresh rebuilds the timeline from the start — the steps that happened while
+ * the page was gone included. This is the payoff for making jobs durable.
+ */
+export function followJob(
+  jobId: string,
   handlers: SseHandlers
 ): Promise<void> {
-  const decoder = new TextDecoder("utf-8");
-  let buffer = "";
-  let currentEvent = "";
+  return new Promise((resolve) => {
+    const cursor = { dispatched: 0 };
+    let unsubscribe: (() => void) | undefined;
+    let settled = false;
 
-  while (true) {
-    const { value: chunk, done } = await reader.read();
-    if (done) {
-      break;
-    }
-
-    buffer += decoder.decode(chunk, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith("event: ")) {
-        currentEvent = trimmed.slice(7).trim();
-      } else if (trimmed.startsWith("data: ")) {
-        parseAndDispatch(currentEvent, trimmed.slice(6).trim(), handlers);
+    const finish = () => {
+      if (settled) {
+        return;
       }
+      settled = true;
+      unsubscribe?.();
+      forgetActiveJob();
+      resolve();
+    };
+
+    let client: ReturnType<typeof getConvexClient>;
+    try {
+      client = getConvexClient();
+    } catch (err) {
+      handlers.onError(
+        err instanceof Error ? err.message : "Convex is not configured."
+      );
+      finish();
+      return;
     }
+
+    unsubscribe = client.onUpdate(
+      api.jobs.events,
+      { jobId: jobId as never },
+      (events: JobEvent[]) => {
+        drainEvents(events, cursor, handlers, finish);
+      }
+    );
+  });
+}
+
+/**
+ * Look up a remembered job and decide whether it is still worth watching.
+ * Returns its status, or null if there is nothing to resume.
+ */
+export async function inspectActiveJob(
+  jobId: string
+): Promise<{ status: string; videos?: Record<string, string> } | null> {
+  try {
+    const job = await getConvexClient().query(api.jobs.get, {
+      jobId: jobId as never,
+    });
+    return job ?? null;
+  } catch {
+    // A stale id from an older deployment, or Convex unreachable.
+    return null;
   }
 }
 
-export async function generateDemo(
+/** Enqueue a recording and follow it. */
+export function generateDemo(
   params: URLSearchParams,
-  handlers: SseHandlers
+  handlers: SseHandlers & { onJobId?: (jobId: string) => void }
 ): Promise<void> {
+  let client: ReturnType<typeof getConvexClient>;
   try {
-    const response = await fetch(
-      `${PLAYGROUND_API_URL}/api/generate?${params.toString()}`
-    );
-    if (!response.ok) {
-      throw new Error(await readErrorMessage(response));
-    }
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("ReadableStream is not supported by your browser.");
-    }
-    await readSseStream(reader, handlers);
+    client = getConvexClient();
   } catch (err) {
     handlers.onError(
-      err instanceof Error ? err.message : "Failed to generate demo."
+      err instanceof Error ? err.message : "Convex is not configured."
     );
+    return Promise.resolve();
   }
+
+  return client
+    .mutation(api.jobs.enqueue, {
+      headless: params.get("headless") !== "false",
+      promptGoal: params.get("promptGoal") ?? "",
+      url: params.get("url") ?? "",
+    })
+    .then((jobId: string) => {
+      rememberActiveJob(jobId);
+      handlers.onJobId?.(jobId);
+      return followJob(jobId, handlers);
+    })
+    .catch((err: unknown) => {
+      handlers.onError(
+        err instanceof Error ? err.message : "Failed to generate demo."
+      );
+    });
 }
 
 const VIDEO_TABS: { key: string; label: string }[] = [

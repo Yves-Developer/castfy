@@ -6,16 +6,17 @@ export interface TUseCase {
   type: string;
 }
 
-export interface Testimonial {
-  company: string;
-  content: string;
-  country: string;
-  image?: string;
-  name: string;
-  title: string;
-}
-
 export interface FAQItem {
   answer: string;
   question: string;
+}
+
+export interface PricingTier {
+  cta: string;
+  desc: string;
+  features: string[];
+  note?: string;
+  price: string;
+  title: string;
+  was?: string;
 }

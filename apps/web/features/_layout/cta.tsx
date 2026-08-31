@@ -2,6 +2,7 @@ import { Button } from "@castfy/ui/components/button";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { siteConfig } from "@/config/site";
 import ctaImg from "@/public/design.jpg";
 export function ImgCta() {
   return (
@@ -19,11 +20,11 @@ export function ImgCta() {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" />
       <div className="container relative z-10 flex max-w-300 flex-col items-center justify-center gap-10 py-20">
         <h3 className="max-w-2xl text-balance text-center font-medium text-4xl text-white leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5">
-          Drop a URL. Get a demo. → Ship faster.
+          Demo the app you can’t put on the internet.
         </h3>
         <Button asChild size="xl">
-          <a href="https://waitlist.castfy.app" rel="noopener" target="_blank">
-            <span className="text-inherit text-sm">Join Waitlist</span>
+          <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
+            <span className="text-inherit text-sm">Join the waitlist</span>
           </a>
         </Button>
       </div>

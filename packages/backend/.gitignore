@@ -1,0 +1,9 @@
+
+.env.local
+
+# Vendored Convex agent-skill bundles (~456K across 82 files), re-installable
+# with `npx convex ai-files install`. No .claude/ or .agents/ directory is
+# tracked anywhere else in this repo, so they stay untracked here too.
+.agents/
+.claude/
+skills-lock.json

@@ -3,8 +3,6 @@ import { ArrowUpRightIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { BsOpenai } from "react-icons/bs";
-import { RiClaudeLine, RiGeminiFill } from "react-icons/ri";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { footerNavs, footerSocialIcons } from "@/config/data";
 import { siteConfig } from "@/config/site";
@@ -58,35 +56,6 @@ export function SiteFooter({ className }: { className?: string }) {
                 <item.icon className="size-4" />
               </a>
             ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3.75">
-          <p className="text-muted-foreground text-xs">AI summary</p>
-          <div className="flex items-center gap-2.5">
-            <a
-              href="https://chatgpt.com/?q=Tell%20me%20about%20Rathon%2C%20a%20web%20design%20agency%20in%20Rwanda."
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <BsOpenai className="size-4" />
-            </a>
-
-            <a
-              href="https://gemini.google.com/app?q=Tell%20me%20about%20Rathon%2C%20a%20web%20design%20agency%20in%20Rwanda."
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <RiGeminiFill className="size-4" />
-            </a>
-
-            <a
-              href="https://claude.ai/new?q=Tell%20me%20about%20Rathon%2C%20a%20web%20design%20agency%20in%20Rwanda."
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <RiClaudeLine className="size-4" />
-            </a>
           </div>
         </div>
 

@@ -37,3 +37,8 @@ npm-debug.log*
 
 # Playground
 apps/playground/output/
+
+# Working marketing docs — this repo is public, these stay local
+brand-context.md
+positioning-*.md
+copy-*.md

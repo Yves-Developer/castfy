@@ -1,0 +1,31 @@
+# Ignore rules for apps/playground/Dockerfile.
+#
+# The name matters. This image builds with the REPO ROOT as context, and Docker
+# looks for the ignore file at the CONTEXT root — so a file at
+# apps/playground/.dockerignore is silently never read, and the whole monorepo
+# (every node_modules) gets sent to the daemon. BuildKit also honours
+# "<dockerfile>.dockerignore", which is this file: it stays next to the
+# Dockerfile it belongs to without imposing rules on other builds from the root.
+#
+# Patterns are context-relative, i.e. relative to the repo root.
+
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/build
+
+# Rendered demos — hundreds of MB of local scratch, never part of an image.
+apps/playground/output
+
+# Secrets must arrive via BuildKit secrets or runtime env, never a layer.
+**/.env
+**/.env.*
+!**/.env.example
+
+.git
+.github
+.vscode
+.claude
+**/*.log
+**/coverage

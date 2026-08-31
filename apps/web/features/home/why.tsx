@@ -1,69 +1,47 @@
 import { Button } from "@castfy/ui/components/button";
-import { Separator } from "@castfy/ui/components/separator";
-import { cn } from "@castfy/ui/lib/utils";
-import { CheckIcon, OctagonXIcon } from "lucide-react";
-import { comparisonData } from "@/config/data";
+import { comparison } from "@/config/data";
+import { siteConfig } from "@/config/site";
 
 export function WhyCastfy() {
   return (
     <section className="container flex flex-col gap-10" id="why-us">
-      <h2 className="text-center text-h2">Why teams switch to Castfy</h2>
+      <div className="flex max-w-xl flex-col gap-4">
+        <h2 className="text-h2">Against a hosted demo tool</h2>
+        <p className="text-muted-foreground">
+          The other tools in this category are good. They all run your product
+          on their infrastructure, which decides what they can and cannot reach.
+        </p>
+      </div>
 
-      <div className="mx-auto grid max-w-4xl grid-cols-1 rounded-xl border md:grid-cols-2">
-        {comparisonData.map((c, i) => (
-          <div
-            className={cn(
-              "flex flex-1 flex-col gap-1.25 p-5",
-              i === 1 && "border-y lg:border-x lg:border-y-0"
-            )}
-            key={c.title}
-          >
-            <div className="text-lg leading-6">
-              <p>{c.title}</p>
-              <p className="text-muted-foreground">{c.label}</p>
-            </div>
-            <div className="flex h-7.5 items-center">
-              <Separator />
-            </div>
-            <ul className="flex flex-col gap-3">
-              {c.items.map((item) => (
-                <li
-                  className="flex items-start gap-4 text-muted-foreground"
-                  key={item}
-                >
-                  <span className="mt-1 shrink-0">
-                    {c.type === "positive" ? (
-                      <CheckIcon
-                        className="size-4 text-blue-500"
-                        strokeWidth={2.5}
-                      />
-                    ) : (
-                      <OctagonXIcon
-                        className="size-4 text-red-500"
-                        strokeWidth={2.5}
-                      />
-                    )}
-                  </span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+      <div className="overflow-x-auto rounded-xl border">
+        <table className="w-full min-w-160 border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b">
+              <th className="p-4 font-medium text-muted-foreground">{""}</th>
+              <th className="p-4 font-medium text-muted-foreground">
+                Cloud demo tools
+              </th>
+              <th className="p-4 font-medium">Castfy</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparison.map((row) => (
+              <tr className="border-b last:border-b-0" key={row.axis}>
+                <td className="p-4 text-muted-foreground">{row.axis}</td>
+                <td className="p-4 text-muted-foreground">{row.cloud}</td>
+                <td className="p-4 font-medium">{row.castfy}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-            {c.cta && (
-              <div className="mt-auto pt-5">
-                <Button asChild className="w-full" size="xl">
-                  <a
-                    href="https://waitlist.castfy.app"
-                    rel="noopener"
-                    target="_blank"
-                  >
-                    <span className="text-inherit text-sm">{c.cta}</span>
-                  </a>
-                </Button>
-              </div>
-            )}
-          </div>
-        ))}
+      <div>
+        <Button asChild size="lg">
+          <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
+            <span className="text-inherit text-sm">Join the waitlist</span>
+          </a>
+        </Button>
       </div>
     </section>
   );

@@ -8,18 +8,18 @@ import { fontVariables } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Turn your url into demo`,
+    default: `${siteConfig.name} — Product demos, made on your machine`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   authors: [
     {
-      name: "Rathon",
-      url: "https://rathon-rw.com",
+      name: "Yves",
+      url: siteConfig.links.x,
     },
   ],
-  creator: "Lecon & Evye",
+  creator: "Yves",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -37,10 +37,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — Turn your url into demo`,
+    title: `${siteConfig.name} — Product demos, made on your machine`,
     description: siteConfig.description,
     images: [`${siteConfig.ogImage}`],
-    creator: "@lecon",
+    creator: "@YvesDC0",
   },
   icons: {
     icon: "/favicon.ico",
@@ -54,11 +54,7 @@ const jsonLd = {
   name: siteConfig.name,
   url: siteConfig.url,
   logo: `${siteConfig.url}/favicon.ico`,
-  sameAs: [
-    "https://x.com/castfy",
-    "https://github.com/castfy",
-    "https://linkedin.com/company/castfy",
-  ],
+  sameAs: [siteConfig.links.x, siteConfig.links.github, siteConfig.links.youtube],
   description: siteConfig.description,
 };
 export default function RootLayout({

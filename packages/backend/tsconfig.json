@@ -1,0 +1,18 @@
+{
+  "extends": "@castfy/tsconfig/base.json",
+  "compilerOptions": {
+    // Local first: pnpm installs this package's @types/node under its own
+    // node_modules, and the workspace root only carries eslint types.
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
+    // Convex functions read deployment env vars through `process.env` (what
+    // `npx convex env set` populates), so the Node globals need declaring even
+    // though these run in Convex's runtime rather than Node.
+    "types": ["node"],
+    "strictNullChecks": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "skipLibCheck": true
+  },
+  "include": ["convex"],
+  "exclude": ["node_modules", "convex/_generated"]
+}

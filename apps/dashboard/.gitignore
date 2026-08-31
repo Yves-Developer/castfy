@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...opting in: .env.example holds no secrets and documents the vars the
+# playground proxy needs. Matches how apps/playground ships its own example.
+!.env.example
 
 # vercel
 .vercel

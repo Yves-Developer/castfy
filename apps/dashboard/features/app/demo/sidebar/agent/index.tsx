@@ -29,11 +29,18 @@ import {
   Volume1Icon,
   VolumeXIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { useBackgroundStore } from "@/lib/store";
-import type { AgentStep, AIProvider } from "@/types";
-import { generateDemo, pickInitialVideo } from "./generate";
+import type { AgentStep, AIProvider, SseHandlers } from "@/types";
+import {
+  followJob,
+  forgetActiveJob,
+  generateDemo,
+  inspectActiveJob,
+  pickInitialVideo,
+  readActiveJobId,
+} from "./generate";
 import { SelectModel } from "./models";
 import { StepsTimeline } from "./step";
 
@@ -55,6 +62,75 @@ export function AgentTab() {
   const [videos, setVideos] = useState<Record<string, string>>({});
   const [activeVideoTab, setActiveVideoTab] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Shared by a fresh submit and by reattaching after a refresh, so both paths
+  // render progress identically. Every setter is stable, hence no deps.
+  const handlers = useMemo<SseHandlers>(
+    () => ({
+      onStatus: setCurrentStatusMessage,
+      onStep: (step) => setSteps((prev) => [...prev, step]),
+      onCompleted: (data) => {
+        if (data.videos) {
+          setVideos(data.videos);
+          const initial = pickInitialVideo(data.videos, data.videoUrl);
+          setActiveVideoTab(initial.tab);
+          setVideoUrl(initial.url);
+          // expose generated URL to global store so player can pick it up
+          useBackgroundStore.getState().setGeneratedVideoUrl(initial.url);
+        } else if (data.videoUrl) {
+          setVideoUrl(data.videoUrl);
+          useBackgroundStore.getState().setGeneratedVideoUrl(data.videoUrl);
+        }
+        if (data.steps) {
+          setSteps(data.steps);
+        }
+        setStatus("completed");
+      },
+      onError: (message) => {
+        setErrorMessage(message);
+        setStatus("error");
+      },
+    }),
+    []
+  );
+
+  /**
+   * Reattach to a run that outlived the page. The job kept going in the worker;
+   * replaying its event log from seq 0 rebuilds the timeline, including the
+   * steps that happened while this tab was closed.
+   */
+  useEffect(() => {
+    const jobId = readActiveJobId();
+    if (!jobId) {
+      return;
+    }
+
+    let abandoned = false;
+    inspectActiveJob(jobId)
+      .then((job) => {
+        if (abandoned) {
+          return;
+        }
+        if (!job) {
+          // Stale id — a different deployment, or the row is gone.
+          forgetActiveJob();
+          return;
+        }
+        setStatus("generating");
+        setCurrentStatusMessage("Reattaching to a recording in progress…");
+        return followJob(jobId, handlers);
+      })
+      .catch((err: unknown) => {
+        if (!abandoned) {
+          console.error("Failed to reattach to job:", err);
+          forgetActiveJob();
+        }
+      });
+
+    return () => {
+      abandoned = true;
+    };
+  }, [handlers]);
 
   const form = useForm({
     defaultValues: {
@@ -83,31 +159,7 @@ export function AgentTab() {
         provider: selectedModel,
       });
 
-      generateDemo(params, {
-        onStatus: setCurrentStatusMessage,
-        onStep: (step) => setSteps((prev) => [...prev, step]),
-        onCompleted: (data) => {
-          if (data.videos) {
-            setVideos(data.videos);
-            const initial = pickInitialVideo(data.videos, data.videoUrl);
-            setActiveVideoTab(initial.tab);
-            setVideoUrl(initial.url);
-            // expose generated URL to global store so player can pick it up
-            useBackgroundStore.getState().setGeneratedVideoUrl(initial.url);
-          } else if (data.videoUrl) {
-            setVideoUrl(data.videoUrl);
-            useBackgroundStore.getState().setGeneratedVideoUrl(data.videoUrl);
-          }
-          if (data.steps) {
-            setSteps(data.steps);
-          }
-          setStatus("completed");
-        },
-        onError: (message) => {
-          setErrorMessage(message);
-          setStatus("error");
-        },
-      }).catch((err) => {
+      generateDemo(params, handlers).catch((err) => {
         console.error(err);
         setErrorMessage(
           err instanceof Error ? err.message : "Failed to start generation."
