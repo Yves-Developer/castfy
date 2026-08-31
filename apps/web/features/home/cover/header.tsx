@@ -16,7 +16,7 @@ export function CoverCmsHeader() {
           <ChevronDownIcon />
         </Button>
         <div>
-          <span className="font-medium text-xs"> Notion demo</span>
+          <span className="font-medium text-xs"> castfy.app demo</span>
         </div>
         <div className="flex items-center gap-2">
           <Button disabled size={"sm"} variant={"secondary"}>

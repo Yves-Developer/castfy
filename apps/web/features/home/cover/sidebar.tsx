@@ -73,7 +73,7 @@ export default function CoverCmsSidebar({ className }: { className?: string }) {
                     className="flex items-center gap-1 text-xs"
                     variant={"secondary"}
                   >
-                    GPT-4o
+                    Claude Code
                     <ChevronDownIcon className="size-3.5" strokeWidth={2.7} />
                   </Button>
 
