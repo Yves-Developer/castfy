@@ -17,7 +17,7 @@ export default function CoverCmsSidebar({ className }: { className?: string }) {
   const activeTab = "agent";
   return (
     <div className={cn("relative w-65 overflow-hidden border-r", className)}>
-      <div className="h-screen gap-0">
+      <div className="gap-0">
         <div className="flex h-13 items-center border-b px-2.5">
           <div className="flex items-center gap-1 bg-transparent">
             {tabs.map((tab) => (
@@ -37,7 +37,7 @@ export default function CoverCmsSidebar({ className }: { className?: string }) {
             ))}
           </div>
         </div>
-        <div className="h-[calc(100vh-52px)] p-2.5">
+        <div className="h-[calc(100vh-110px)] p-2.5">
           <div className="flex h-full flex-col justify-between">
             <InputGroup className="h-7.5">
               <InputGroupInput

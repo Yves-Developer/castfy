@@ -22,7 +22,9 @@ export function CoverCmsHeader() {
           <Button disabled size={"sm"} variant={"secondary"}>
             Save
           </Button>
-          <Button size="sm">Export</Button>
+          <Button disabled size="sm" variant={"brand"}>
+            Export
+          </Button>
         </div>
       </div>
     </header>

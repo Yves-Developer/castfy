@@ -12,7 +12,6 @@ import {
 import { Input } from "@castfy/ui/components/input";
 import { Textarea } from "@castfy/ui/components/textarea";
 import { useForm } from "@tanstack/react-form";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { siteConfig } from "@/config/site";
@@ -274,13 +273,6 @@ export function SupportForm() {
           {isSubmitting ? "Submitting..." : "Submit"}
         </Button>
       </form>
-      <p className="font-medium text-muted-foreground text-sm">
-        For other inquiries,{" "}
-        <Link className="underline underline-offset-4" href="/">
-          book a call
-        </Link>
-        .
-      </p>
     </div>
   );
 }

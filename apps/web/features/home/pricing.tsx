@@ -3,14 +3,14 @@ import { Separator } from "@castfy/ui/components/separator";
 import { cn } from "@castfy/ui/lib/utils";
 import { CheckIcon } from "lucide-react";
 import { pricing, pricingKicker } from "@/config/data";
-import type { PricingTier } from "@/types";
 import { siteConfig } from "@/config/site";
+import type { PricingTier } from "@/types";
 
 const tiers: PricingTier[] = [pricing.free, pricing.paid];
 
 export function PricingCards() {
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
       <div className="grid grid-cols-1 gap-y-6 rounded-xl border lg:grid-cols-2">
         {tiers.map((tier, i) => (
           <div
@@ -20,9 +20,9 @@ export function PricingCards() {
             )}
             key={tier.title}
           >
-            <div className="text-lg leading-6">
+            <div className="flex flex-col text-lg leading-6">
               <p>{tier.title}</p>
-              <p className="text-muted-foreground">{tier.desc}</p>
+              <p className="mt-auto text-muted-foreground">{tier.desc}</p>
             </div>
             <div className="flex h-7.5 items-center">
               <Separator />
@@ -64,13 +64,9 @@ export function PricingCards() {
                 asChild
                 className="w-full"
                 size="lg"
-                variant={i === 1 ? "default" : "secondary"}
+                variant={i === 1 ? "brand" : "secondary"}
               >
-                <a
-                  href={siteConfig.waitlistUrl}
-                  rel="noopener"
-                  target="_blank"
-                >
+                <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
                   <span className="text-inherit text-sm">{tier.cta}</span>
                 </a>
               </Button>
