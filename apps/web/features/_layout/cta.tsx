@@ -3,7 +3,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import ctaImg from "@/public/design.jpg";
+import ctaImg from "@/public/mac-asset-2.jpg";
 export function ImgCta() {
   return (
     <section
@@ -20,9 +20,9 @@ export function ImgCta() {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" />
       <div className="container relative z-10 flex max-w-300 flex-col items-center justify-center gap-10 py-20">
         <h3 className="max-w-2xl text-balance text-center font-medium text-4xl text-white leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5">
-          Demo the app you can’t put on the internet.
+          Demo the app you can&apos;t put on the internet.
         </h3>
-        <Button asChild size="xl">
+        <Button asChild className="dark" size="xl">
           <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
             <span className="text-inherit text-sm">Join the waitlist</span>
           </a>

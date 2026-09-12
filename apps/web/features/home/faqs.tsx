@@ -1,5 +1,10 @@
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@castfy/ui/components/accordion";
 import { faqs } from "@/config/data";
-
 export default function HomeFaqs() {
   return (
     <section className="container" id="faqs">
@@ -8,12 +13,18 @@ export default function HomeFaqs() {
           FAQ
         </h2>
         <div className="flex flex-col gap-10">
-          {faqs.map((f) => (
-            <div className="flex flex-col gap-2.5" key={f.question}>
-              <p className="text-lg">{f.question}</p>
-              <p className="text-muted-foreground">{f.answer}</p>
-            </div>
-          ))}
+          <Accordion collapsible defaultValue={faqs[0].question} type="single">
+            {faqs.map((f) => (
+              <AccordionItem key={f.question} value={f.question}>
+                <AccordionTrigger className="text-lg">
+                  {f.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-base text-muted-foreground">
+                  {f.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>

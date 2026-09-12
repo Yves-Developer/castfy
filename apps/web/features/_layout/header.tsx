@@ -61,13 +61,9 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
             <Button
               asChild
               className="hidden lg:flex"
-              variant={scrolled ? "default" : "secondary"}
+              variant={scrolled ? "brand" : "secondary"}
             >
-              <a
-                href={siteConfig.waitlistUrl}
-                rel="noopener"
-                target="_blank"
-              >
+              <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
                 Get started
               </a>
             </Button>

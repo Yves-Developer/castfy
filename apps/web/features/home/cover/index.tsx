@@ -1,5 +1,7 @@
 import Image from "next/image";
-import cover from "@/public/hero-cover.jpg";
+import coverDark from "@/public/cover-dark.png";
+import coverLight from "@/public/cover-light.png";
+
 import { StudioEditor } from "./editor";
 import { CoverCmsHeader } from "./header";
 import CoverCmsSidebar from "./sidebar";
@@ -16,14 +18,25 @@ export function HeroCover() {
           </main>
         </div>
       </div>
-      <div className="aspect-[1.5277] xl:hidden">
+      <div className="hidden xl:hidden dark:block dark:xl:hidden">
         <Image
           alt="Hero cover"
           className="size-full rounded-lg object-cover"
-          height="1516"
+          height={1516}
           sizes="1161.0554px"
-          src={cover}
-          width="2316"
+          src={coverDark}
+          width={2316}
+        />
+      </div>
+
+      <div className="block xl:hidden dark:hidden">
+        <Image
+          alt="Hero cover"
+          className="size-full rounded-lg object-cover"
+          height={1516}
+          sizes="1161.0554px"
+          src={coverLight}
+          width={2316}
         />
       </div>
     </>

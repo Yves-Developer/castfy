@@ -63,15 +63,14 @@ export const proof = {
   ],
   caveat:
     "That last row is a demo with almost no dead time in it, so almost nothing came out. A tool that only ever showed you the 48x result would be showing you the best day.",
-  cost:
-    "The castfy.app tour ran on a Claude subscription, so it cost nothing beyond the plan. Priced at API rates instead, the same run would have been about $1.00.",
+  cost: "The castfy.app tour ran on a Claude subscription, so it cost nothing beyond the plan. Priced at API rates instead, the same run would have been about $1.00.",
 };
 
 export const pricing: { free: PricingTier; paid: PricingTier } = {
   free: {
     title: "Try it",
     price: "5 demos, free",
-    desc: "Full quality. No watermark, no card, no account, no expiry.",
+    desc: "No watermark, no card, no account, no expiry.",
     features: [
       "The full app, every feature",
       "1080p export with no watermark",
@@ -166,7 +165,7 @@ export const features = [
     icon: MessageSquareIcon,
     title: "You describe it. Nobody records it.",
     description:
-      "A URL and a sentence. No re-recording yourself because you said \"um\" at 0:14.",
+      'A URL and a sentence. No re-recording yourself because you said "um" at 0:14.',
   },
   {
     icon: RefreshCwIcon,
@@ -189,8 +188,7 @@ export const features = [
 ];
 
 /** Roadmap. Approved for public mention as "coming" only — see brand-context.md. */
-export const featuresComing =
-  "Coming: automatic zoom and pan that follows the cursor.";
+export const featuresComing = "";
 
 export const footerNavs = [
   {
@@ -214,7 +212,11 @@ export const footerNavs = [
         title: "Company",
         navs: [
           { label: "Contact", href: "/contact", external: false },
-          { label: "Waitlist", href: "https://waitlist.castfy.app", external: true },
+          {
+            label: "Waitlist",
+            href: "https://waitlist.castfy.app",
+            external: true,
+          },
         ],
       },
     ],

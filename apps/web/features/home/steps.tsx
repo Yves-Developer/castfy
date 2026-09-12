@@ -1,25 +1,26 @@
-/**
- * PLACEHOLDER FOOTAGE — swap before launch.
- *
- * All three clips are real Castfy output, but they are the only recordings that
- * do not show the pre-rebuild castfy.app (old $32/mo pricing, old FAQ copy).
- * 02 and 03 are the same session: the raw capture, then the composited export.
- */
+import Image from "next/image";
+import cover1 from "@/public/asset-1.jpg";
+import cover3 from "@/public/mac-asset-2.jpg";
+import cover2 from "@/public/mac-asset-5.jpg";
+
 const processes = [
   {
     title: "Paste a URL and say what to show",
     desc: "Two fields. No script, no storyboard, no take.",
     video: "/steps/01-prompt.mp4",
+    cover: cover1,
   },
   {
     title: "Your agent runs it",
     desc: "Castfy hands the job to Claude Code, Codex or Cursor, headless. A real browser opens on your machine and works through the flow.",
     video: "/steps/02-agent.mp4",
+    cover: cover2,
   },
   {
     title: "Edit and export",
     desc: "The dead time is already cut and the narration is written. Pick a background, set the ratio, export to your disk.",
     video: "/steps/03-export.mp4",
+    cover: cover3,
   },
 ];
 
@@ -39,15 +40,16 @@ export function HomeSteps() {
               </div>
               <div className="flex max-w-sm flex-col gap-4">
                 <p className="text-xl tracking-tight lg:text-2xl">{p.title}</p>
-                <p className="text-muted-foreground text-sm leading-6 tracking-tight lg:text-lg">
+                <p className="font-normal text-muted-foreground text-sm leading-6 tracking-tight lg:text-lg">
                   {p.desc}
                 </p>
               </div>
             </div>
-            <div className="relative aspect-video w-full">
+            <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden p-10">
+              <Image alt="video cover" className="absolute" src={p.cover} />
               <video
                 autoPlay
-                className="size-full rounded-lg object-cover"
+                className="relative z-2 size-full rounded-lg object-cover"
                 controls={false}
                 loop
                 muted
