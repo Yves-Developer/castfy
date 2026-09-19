@@ -25,10 +25,11 @@ export const AGENTS = [
       path.join(appData, 'npm/claude.cmd'),
     ],
     /**
-     * -p is headless. --allowedTools matters because a headless run cannot show
-     * an approval prompt: an un-allowlisted tool call just stalls.
+     * -p is headless, and the prompt arrives on stdin. --allowedTools matters
+     * because a headless run cannot show an approval prompt: an un-allowlisted
+     * tool call just stalls.
      */
-    buildArgs: (prompt) => ['-p', prompt, '--allowedTools', 'mcp__castfy0'],
+    buildArgs: () => ['-p', '--allowedTools', 'mcp__castfy0'],
   },
   {
     id: 'codex',
@@ -38,14 +39,27 @@ export const AGENTS = [
       path.join(home, '.codex/bin/codex.exe'),
       'codex',
     ],
-    /** `codex exec` is its non-interactive mode. */
-    buildArgs: (prompt) => ['exec', prompt],
+    /**
+     * `codex exec -` is non-interactive, reading the prompt from stdin.
+     *
+     * Unattended MCP use needs the bypass flag. In exec mode the approval policy
+     * is "never", so any tool call fails with "requires approval, but approval
+     * policy is never" — and nothing gentler lifts it: per-tool approval_mode is
+     * ignored there, and --approve-for-me times out on its own review.
+     *
+     * It disables Codex's sandbox for the whole run, not just castfy0's tools,
+     * so it stays off until someone turns it on.
+     */
+    buildArgs: ({ allowUnsandboxed } = {}) =>
+      allowUnsandboxed
+        ? ['exec', '--dangerously-bypass-approvals-and-sandbox', '-']
+        : ['exec', '-'],
   },
   {
     id: 'cursor',
     label: 'Cursor',
     binaries: [path.join(home, '.local/bin/cursor-agent.exe'), 'cursor-agent'],
-    buildArgs: (prompt) => ['-p', prompt],
+    buildArgs: () => ['-p'],
   },
 ];
 
@@ -104,13 +118,18 @@ export async function detectAgents() {
   );
 }
 
-/** Command line for a run, or null when that agent cannot be driven. */
-export async function buildCommand(agentId, prompt) {
+/**
+ * Command line for a run, or null when that agent cannot be driven.
+ *
+ * The prompt is not here on purpose — every agent reads it from stdin, so it
+ * never passes through argument parsing or a shell.
+ */
+export async function buildCommand(agentId, options = {}) {
   const agent = AGENTS.find((a) => a.id === agentId);
   if (!agent) return null;
   const binary = await resolveBinary(agentId);
   if (!binary) return null;
-  return { binary, args: agent.buildArgs(prompt), label: agent.label };
+  return { binary, args: agent.buildArgs(options), label: agent.label };
 }
 
 /**

@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('castfy', {
   saveEditor: (id, editor) => ipcRenderer.invoke('projects:saveEditor', id, editor),
   saveCuts: (id, cuts) => ipcRenderer.invoke('projects:saveCuts', id, cuts),
   recut: (sessionId, cuts) => ipcRenderer.invoke('export:recut', sessionId, cuts),
+  ensureSource: (sessionId) => ipcRenderer.invoke('media:ensureSource', sessionId),
 
   // export
   render: (sessionId, spec) => ipcRenderer.invoke('export:render', sessionId, spec),
@@ -35,6 +36,8 @@ contextBridge.exposeInMainWorld('castfy', {
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   agents: () => ipcRenderer.invoke('agents:list'),
   selectAgent: (id) => ipcRenderer.invoke('agents:select', id),
+  settings: () => ipcRenderer.invoke('settings:get'),
+  setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
 
   // new demo
   compose: (input) => ipcRenderer.invoke('demo:compose', input),

@@ -1,6 +1,6 @@
 export type SessionStatus = 'complete' | 'recording' | 'failed' | 'abandoned';
 
-export type VideoVariant = 'audioClean' | 'audio' | 'clean' | 'raw';
+export type VideoVariant = 'audioClean' | 'audio' | 'clean' | 'source' | 'raw';
 
 export interface SessionSummary {
   totalSteps: number;
@@ -78,6 +78,12 @@ export interface AgentRow {
   binary: string | null;
   /** Whether Castfy can start a run with it, as opposed to only registering it. */
   drivable: boolean;
+}
+
+export interface AppSettings {
+  activeAgent: string | null;
+  /** Lets Codex run tools unattended, at the cost of its sandbox. */
+  allowUnsandboxed: boolean;
 }
 
 export interface Run {
@@ -163,6 +169,12 @@ export interface CastfyBridge {
     cleanDurationMs?: number;
     narrationStale?: boolean;
   }>;
+  /**
+   * Transcodes the raw capture to a seek-friendly editing source if one is not
+   * already there, resolving to its media URL. Null means the recording has no
+   * raw footage, or the transcode failed and the raw file should be used.
+   */
+  ensureSource(sessionId: string): Promise<string | null>;
 
   render(
     sessionId: string,
@@ -178,6 +190,8 @@ export interface CastfyBridge {
   openExternal(url: string): Promise<void>;
   agents(): Promise<{ agents: AgentRow[]; activeAgent: string | null }>;
   selectAgent(id: string): Promise<string | null>;
+  settings(): Promise<AppSettings>;
+  setSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
 
   compose(input: DemoInput): Promise<string>;
   copyPrompt(input: DemoInput): Promise<boolean>;

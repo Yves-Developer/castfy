@@ -10,6 +10,7 @@ import { connectClient, detectClients, disconnectClient } from './clients.js';
 import { exportRecording } from './export.js';
 import { ProjectStore } from './projects.js';
 import { recutSession } from './recut.js';
+import { ensureSourceVideo } from './ensure-source.js';
 import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
 
@@ -52,8 +53,9 @@ function mcpEntry() {
 }
 
 /**
- * Codex approves MCP tools individually, so a registration that does not list
- * them turns a recording into an approval prompt per action.
+ * The tools castfy0 exposes. Kept for reference and for allowlisting in clients
+ * that support it — Codex is not one of them: in exec mode it ignores per-tool
+ * approval settings entirely.
  */
 const CASTFY0_TOOLS = [
   'castfy0_start',
@@ -78,11 +80,18 @@ const CASTFY0_TOOLS = [
   'castfy0_mark_retake',
 ];
 
-/** Best variant first; the renderer plays the first one present. */
+/**
+ * Best variant first; the renderer plays the first one present.
+ *
+ * `source` sits below the finished variants on purpose. It is uncut footage, so
+ * it must never win "show me the result" — but it is the untrimmed timeline the
+ * editor measures cuts against, and editingSource() picks it there.
+ */
 const VIDEO_VARIANTS = [
   ['audioClean', 'demo-with-audio-clean.mp4'],
   ['audio', 'demo-with-audio.mp4'],
   ['clean', 'demo-clean.webm'],
+  ['source', 'demo-source.mp4'],
   ['raw', 'demo.webm'],
 ];
 
@@ -383,6 +392,29 @@ export function explainAgentFailure({ code, stdout = '', stderr = '' }) {
     return {
       message: 'That agent is not signed in.',
       hint: 'Sign in to it, then try again.',
+    };
+  }
+
+  /**
+   * Agents relay provider errors as raw JSON, sometimes twice in one line. The
+   * useful sentence is the "message" field; the envelope around it is noise.
+   */
+  const jsonMessage = text.match(/"message"\s*:\s*"([^"]+)"/);
+  if (jsonMessage) {
+    const message = jsonMessage[1].trim();
+    const unsupportedModel = /model is not supported/i.test(message);
+    return {
+      message,
+      hint: unsupportedModel
+        ? 'Set a model your account can use in ~/.codex/config.toml, e.g. model = "gpt-5.6-terra"'
+        : null,
+    };
+  }
+
+  if (/approval policy is never|requires approval/i.test(text)) {
+    return {
+      message: 'Codex blocked the recording tools.',
+      hint: 'Codex will not run tools unattended unless its sandbox is bypassed. Turn that on in Settings → Agents.',
     };
   }
 
@@ -852,6 +884,24 @@ ipcMain.handle('projects:remove', (_e, id) => {
   return true;
 });
 
+/**
+ * Backfills demo-source.mp4 for a recording made before the packager wrote one.
+ * Returns the media URL when it is ready so the editor can switch to it, or
+ * null to stay on the raw capture.
+ */
+ipcMain.handle('media:ensureSource', async (_e, sessionId) => {
+  const root = libraryRoot();
+  const dir = resolveWithin(root, sessionId);
+  if (!dir) return null;
+
+  const produced = await ensureSourceVideo({ sessionDir: dir, entryPoint: mcpEntry() });
+  if (!produced) return null;
+
+  return `castfy://app/${MEDIA_PREFIX}${encodeURIComponent(sessionId)}/${encodeURIComponent(
+    path.basename(produced)
+  )}`;
+});
+
 ipcMain.handle('export:recut', async (_e, sessionId, cuts) => {
   const root = libraryRoot();
   const dir = resolveWithin(root, sessionId);
@@ -909,6 +959,12 @@ ipcMain.handle('agents:list', async () => ({
   activeAgent: await pickAgent(settings.state.activeAgent),
 }));
 
+ipcMain.handle('settings:get', () => settings.state);
+ipcMain.handle('settings:set', async (_e, patch) => {
+  await settings.set(patch ?? {});
+  return settings.state;
+});
+
 ipcMain.handle('agents:select', async (_e, id) => {
   await settings.set({ activeAgent: id });
   return settings.state.activeAgent;
@@ -961,19 +1017,28 @@ ipcMain.handle('demo:run', async (_e, input) => {
   }
 
   const prompt = composePrompt(input);
-  const command = await buildCommand(agentId, prompt);
+  const command = await buildCommand(agentId, {
+    allowUnsandboxed: Boolean(settings.state.allowUnsandboxed),
+  });
   if (!command) return { ok: false, error: `${agentId} is no longer installed.` };
 
   const send = (channel, payload) => win?.webContents.send(channel, payload);
 
   running = spawn(command.binary, command.args, {
+    // .cmd shims cannot be executed without a shell on Windows.
     shell: command.binary.endsWith('.cmd') || command.binary.endsWith('.bat'),
     windowsHide: true,
-    // stdin must be closed, not inherited: `claude -p` waits ~3s for piped
-    // input before giving up, and an inherited handle never closes.
-    stdio: ['ignore', 'pipe', 'pipe'],
+    // stdin is a pipe because the prompt goes through it. Passing it as an
+    // argument meant cmd.exe re-split a multi-line prompt into separate
+    // arguments, and Codex rejected the run before it began.
+    stdio: ['pipe', 'pipe', 'pipe'],
     env: { ...process.env, CASTFY0_OUTPUT_DIR: libraryRoot() },
   });
+
+  // Written and closed immediately: agents wait on stdin and will not start
+  // until it ends.
+  running.stdin.write(prompt);
+  running.stdin.end();
 
   // Opened here and closed on exit, so a folder that appears in between can be
   // attributed to this run and a crash leaves a record instead of a folder that

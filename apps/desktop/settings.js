@@ -8,7 +8,15 @@ import path from 'node:path';
 export class SettingsStore {
   constructor(file) {
     this.file = file;
-    this.state = { version: 1, activeAgent: null };
+    this.state = {
+      version: 1,
+      activeAgent: null,
+      /**
+       * Lets Codex run tools unattended by bypassing its sandbox. Off by
+       * default: it applies to the whole run, not only castfy0's tools.
+       */
+      allowUnsandboxed: false,
+    };
   }
 
   async load() {

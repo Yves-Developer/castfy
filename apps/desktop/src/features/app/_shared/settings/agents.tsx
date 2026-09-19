@@ -4,7 +4,7 @@ import { Badge } from "@castfy/ui/components/badge";
 import { cn } from "@castfy/ui/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import type { AgentRow, ClientRow, Detection } from "@/lib/bridge";
+import type { AgentRow, AppSettings, ClientRow, Detection } from "@/lib/bridge";
 import { bridge } from "@/lib/bridge";
 import { CLIENTS_CHANGED } from "@/lib/events";
 import { CLIENT_ICONS, McpIcon } from "@/features/app/onboarding/icons";
@@ -33,6 +33,7 @@ export function AccountAgents() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
 
   const refresh = useCallback(() => {
     bridge.detect().then(setDetection).catch((e) => setError(String(e)));
@@ -43,6 +44,7 @@ export function AccountAgents() {
         setActiveAgent(active);
       })
       .catch(() => setAgents([]));
+    bridge.settings().then(setSettings).catch(() => setSettings(null));
   }, []);
 
   useEffect(refresh, [refresh]);
@@ -105,6 +107,31 @@ export function AccountAgents() {
       )}
 
       {error ? <p className="text-destructive text-xs">{error}</p> : null}
+
+      {settings ? (
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border p-3.5">
+          <input
+            checked={settings.allowUnsandboxed}
+            className="mt-0.5 size-3.5 accent-foreground"
+            onChange={(e) => {
+              const next = { allowUnsandboxed: e.target.checked };
+              setSettings((s) => (s ? { ...s, ...next } : s));
+              bridge.setSettings(next).then(setSettings).catch(() => {
+                // Preference only; the next run reads whatever was saved.
+              });
+            }}
+            type="checkbox"
+          />
+          <span className="flex flex-col gap-0.5">
+            <span className="font-medium text-[13px]">Let Codex run tools unattended</span>
+            <span className="text-[11px] text-muted-foreground">
+              Codex refuses tool calls in headless runs unless its sandbox is
+              bypassed, so recording cannot start without this. It applies to the
+              whole run, not only Castfy's tools. Claude Code does not need it.
+            </span>
+          </span>
+        </label>
+      ) : null}
 
       <p className="mt-auto text-[11px] text-muted-foreground">
         Each config is backed up before it is changed. Disconnecting removes only

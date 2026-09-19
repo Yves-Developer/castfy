@@ -349,7 +349,10 @@ export function AgentTab() {
       )}
 
       {status !== "idle" && (
-        <div>
+        // min-h-0 is load-bearing: a flex child refuses to shrink below its
+        // content without it, so overflow-y-auto alone never scrolls and a long
+        // step timeline just runs off the bottom of the panel.
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className="border-b py-2">
             <div className="flex items-center justify-between">
               <div>

@@ -158,10 +158,16 @@ function serverBlockJson(mcpEntry, outputDir) {
   };
 }
 
-function serverBlockToml(mcpEntry, outputDir, tools) {
-  const perTool = tools
-    .map((t) => `[mcp_servers.castfy0.tools.${t}]\napproval_mode = "allow"\n`)
-    .join('\n');
+/**
+ * Deliberately writes no per-tool approval settings.
+ *
+ * An earlier version wrote approval_mode = "allow" for all twenty tools,
+ * guessing at an undocumented enum. Codex accepts only auto/prompt/writes/
+ * approve, so the file stopped parsing — which broke Codex entirely, not just
+ * Castfy. Approval belongs to how a run is invoked, not to a config file we
+ * write opinions into on someone's behalf.
+ */
+function serverBlockToml(mcpEntry, outputDir) {
   return [
     '[mcp_servers.castfy0]',
     'command = "node"',
@@ -173,7 +179,6 @@ function serverBlockToml(mcpEntry, outputDir, tools) {
     '[mcp_servers.castfy0.env]',
     `CASTFY0_OUTPUT_DIR = "${posix(outputDir)}"`,
     '',
-    perTool,
   ].join('\n');
 }
 
@@ -207,7 +212,7 @@ async function allowInClaudeSettings() {
  * .claude.json in particular holds a lot of unrelated state, and a bad write
  * there costs the user their whole config.
  */
-export async function connectClient(id, { mcpEntry, outputDir, tools = [] }) {
+export async function connectClient(id, { mcpEntry, outputDir }) {
   const client = CLIENTS.find((c) => c.id === id);
   if (!client) throw new Error(`unknown client: ${id}`);
 
@@ -231,7 +236,7 @@ export async function connectClient(id, { mcpEntry, outputDir, tools = [] }) {
   }
 
   // TOML: replace an existing castfy0 section wholesale, else append.
-  const block = serverBlockToml(mcpEntry, outputDir, tools);
+  const block = serverBlockToml(mcpEntry, outputDir);
   let next;
   if (raw && /^\s*\[mcp_servers\.castfy0/m.test(raw)) {
     const stripped = raw.replace(
