@@ -1,0 +1,63 @@
+# Refreshes pnpm-lock.yaml after a package.json change, and commits it back.
+#
+# The lockfile includes the private @yves-developer/castfy0-mcp package, so it
+# can only be regenerated with a token for GitHub Packages. This runs where that
+# token lives — the NODE_AUTH_TOKEN repository secret — instead of needing it on
+# every machine that changes a dependency.
+#
+# Only metadata is read: `--lockfile-only` resolves versions without downloading
+# packages or running any install script, so no third-party code ever executes
+# next to the token.
+#
+# Runs on pushes to any branch but main that touch a manifest, and by hand from
+# the Actions tab. A commit pushed with GITHUB_TOKEN does not start further
+# workflow runs, so this cannot loop.
+
+name: Update lockfile
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+      - "!main"
+    paths:
+      - "**/package.json"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/update-lockfile.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-lockfile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve dependencies
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+        run: pnpm install --lockfile-only
+
+      - name: Commit the lockfile if it changed
+        run: |
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "Lockfile already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git commit -m "update pnpm-lock.yaml"
+          git push
