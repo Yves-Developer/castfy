@@ -10,6 +10,7 @@ import { browserStatus, installBrowsers } from './browsers.js';
 import { connectClient, detectClients, disconnectClient } from './clients.js';
 import { ProjectStore } from './projects.js';
 import { ensureSourceVideo } from './ensure-source.js';
+import { PROGRESS_FILE, ProgressTail } from './progress.js';
 import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
 import { adoptLoginShellPath, killRunTree, mcpLaunch, spawnOptionsForRun } from './platform.js';
@@ -644,6 +645,24 @@ function watchLibrary() {
   watcher.on('addDir', (dir) => {
     if (path.dirname(dir) === root) runs.observe(path.basename(dir));
   });
+
+  /**
+   * The live view of a run. castfy0 appends to <session>/progress.jsonl as it
+   * goes; each new line is forwarded to the window as it lands. Seeing the file
+   * also attributes its folder to the live run, in case the folder appeared
+   * before the watcher noticed it.
+   */
+  const tail = new ProgressTail((sessionId, events) => {
+    runs.observe(sessionId);
+    win?.webContents.send('demo:progress', { sessionId, events });
+  });
+  const onFile = (file) => {
+    const isProgress =
+      path.basename(file) === PROGRESS_FILE && path.dirname(path.dirname(file)) === root;
+    if (isProgress) tail.read(file);
+  };
+  watcher.on('add', onFile);
+  watcher.on('change', onFile);
 
   const ping = () => {
     clearTimeout(timer);

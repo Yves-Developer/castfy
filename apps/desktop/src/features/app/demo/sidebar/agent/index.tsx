@@ -33,7 +33,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { z } from "zod";
 import { useBackgroundStore } from "@/lib/store";
-import type { AgentStep, AIProvider, SseHandlers } from "@/types";
+import type {
+  AgentStep,
+  AIProvider,
+  PackagingStage,
+  SseHandlers,
+} from "@/types";
 import {
   followJob,
   forgetActiveJob,
@@ -43,7 +48,7 @@ import {
   readActiveJobId,
 } from "./generate";
 import { SelectModel } from "./models";
-import { StepsTimeline } from "./step";
+import { PackagingProgress, StepsTimeline } from "./step";
 
 const formSchema = z.object({
   webUrl: z.url("Please enter a valid URL."),
@@ -58,6 +63,7 @@ export function AgentTab() {
     "idle" | "generating" | "completed" | "error"
   >("idle");
   const [steps, setSteps] = useState<AgentStep[]>([]);
+  const [stages, setStages] = useState<PackagingStage[]>([]);
   const [currentStatusMessage, setCurrentStatusMessage] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [videos, setVideos] = useState<Record<string, string>>({});
@@ -71,6 +77,10 @@ export function AgentTab() {
     () => ({
       onStatus: setCurrentStatusMessage,
       onStep: (step) => setSteps((prev) => [...prev, step]),
+      onStage: (stage) =>
+        setStages((prev) =>
+          prev.some((s) => s.key === stage.key) ? prev : [...prev, stage]
+        ),
       onCompleted: (data) => {
         if (data.videos) {
           setVideos(data.videos);
@@ -83,8 +93,10 @@ export function AgentTab() {
           setVideoUrl(data.videoUrl);
           useBackgroundStore.getState().setGeneratedVideoUrl(data.videoUrl);
         }
+        // The live steps carry timing and cut markers that steps.json's
+        // summary does not, so only fall back to it when nothing streamed.
         if (data.steps) {
-          setSteps(data.steps);
+          setSteps((prev) => (prev.length > 0 ? prev : (data.steps ?? [])));
         }
         setStatus("completed");
       },
@@ -146,6 +158,7 @@ export function AgentTab() {
     onSubmit: ({ value }) => {
       setStatus("generating");
       setSteps([]);
+      setStages([]);
       setVideoUrl("");
       setVideos({});
       setActiveVideoTab("");
@@ -379,8 +392,12 @@ export function AgentTab() {
           </div>
 
           <div className="space-y-6 pt-6">
-            {/* Real-time Steps Timeline */}
-            <StepsTimeline steps={steps} />
+            {/* Real-time steps, then packaging once castfy0_end starts */}
+            <StepsTimeline live={status === "generating"} steps={steps} />
+            <PackagingProgress
+              finished={status === "completed"}
+              stages={stages}
+            />
 
             {/* Error Message display */}
             {status === "error" && (
@@ -399,6 +416,7 @@ export function AgentTab() {
                     setErrorMessage("");
                     setCurrentStatusMessage("");
                     setSteps([]);
+                    setStages([]);
                   }}
                   size="sm"
                   type="button"

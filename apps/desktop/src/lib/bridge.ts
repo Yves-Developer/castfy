@@ -163,6 +163,23 @@ export interface SetupProgress {
   label: string;
 }
 
+/** One line of castfy0's progress.jsonl. Unknown types are ignored. */
+export type ProgressEvent =
+  | { type: 'session'; t: string; sessionId: string; title: string; url: string }
+  | {
+      type: 'step';
+      t: string;
+      id: number;
+      action: string;
+      description: string;
+      success: boolean;
+      error?: string;
+      excluded?: boolean;
+    }
+  | { type: 'stage'; t: string; key: string; label: string }
+  | { type: 'done'; t: string; outputDir: string }
+  | { type: 'error'; t: string; message: string };
+
 export interface CastfyBridge {
   list(): Promise<Library>;
   get(id: string): Promise<Session | null>;
@@ -217,6 +234,8 @@ export interface CastfyBridge {
   run(input: DemoInput): Promise<{ ok: boolean; error?: string; bin?: string; runId?: string }>;
   cancel(): Promise<boolean>;
   onLog(cb: (chunk: string) => void): () => void;
+  /** Live events from the recording being made, as castfy0 writes them. */
+  onProgress(cb: (p: { sessionId: string; events: ProgressEvent[] }) => void): () => void;
   onDone(
     cb: (r: {
       code: number;

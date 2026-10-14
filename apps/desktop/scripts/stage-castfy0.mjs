@@ -39,6 +39,41 @@ async function exists(p) {
   }
 }
 
+/**
+ * What the desktop app needs from castfy0, checked against the build itself.
+ *
+ * The first installers bundled a castfy0 from before these existed: it saved
+ * recordings to a temp folder the app never looks in ("its recording could not
+ * be found") and had no live progress. A version number would not have caught
+ * that — the app was built from a branch — so check for the features directly.
+ */
+const REQUIRED_FEATURES = [
+  {
+    file: 'dist/session/manager.js',
+    marker: 'CASTFY0_OUTPUT_DIR',
+    what: 'saving recordings into the folder Castfy reads (CASTFY0_OUTPUT_DIR)',
+  },
+  {
+    file: 'dist/session/progress.js',
+    marker: 'progress.jsonl',
+    what: 'the live progress file the app shows steps from',
+  },
+];
+
+async function assertSupported(source) {
+  const missing = [];
+  for (const { file, marker, what } of REQUIRED_FEATURES) {
+    const text = await fs.readFile(path.join(source, file), 'utf8').catch(() => '');
+    if (!text.includes(marker)) missing.push(`  - ${what}`);
+  }
+  if (missing.length) {
+    throw new Error(
+      `The castfy0 at ${source} is too old for this app. It lacks:\n${missing.join('\n')}\n` +
+        'Build castfy0 from its current main branch.'
+    );
+  }
+}
+
 async function findSource() {
   const candidates = [
     process.env.CASTFY0_DIR,
@@ -70,6 +105,7 @@ function run(command, args, options) {
 
 async function main() {
   const source = await findSource();
+  await assertSupported(source);
   const arch = process.env.TARGET_ARCH || process.arch;
   const { version } = JSON.parse(await fs.readFile(path.join(source, 'package.json'), 'utf8'));
 

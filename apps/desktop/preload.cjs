@@ -51,4 +51,5 @@ contextBridge.exposeInMainWorld('castfy', {
   cancel: () => ipcRenderer.invoke('demo:cancel'),
   onLog: on('demo:log'),
   onDone: on('demo:done'),
+  onProgress: on('demo:progress'),
 });
