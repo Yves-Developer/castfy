@@ -1,0 +1,80 @@
+# Packaging for the Castfy desktop app.
+#
+#   pnpm dist:dir   unpacked app in release/, for a quick local check
+#   pnpm dist:win   Windows installer (.exe)  — build on Windows
+#   pnpm dist:mac   macOS disk image (.dmg)   — build on macOS
+#
+# Each platform and architecture builds on its own machine: castfy0's ffmpeg,
+# Remotion's compositor and esbuild all install a native binary for the host
+# only, so a cross-built package would carry the wrong ones.
+
+appId: app.castfy.desktop
+productName: Castfy
+copyright: Copyright © Castfy
+
+directories:
+  output: release
+  buildResources: build-resources
+
+# Not an archive. Remotion bundles the export composition with webpack at
+# runtime and launches native compositor binaries, and neither works from inside
+# app.asar. Revisit once the composition is pre-bundled at build time (Phase 2).
+asar: false
+
+files:
+  - package.json
+  - "*.js"
+  - preload.cjs
+  - remotion/**
+  - dist-renderer/**
+  - "!scripts/**"
+  - "!src/**"
+  - "!public/**"
+  - "!build/**"
+  - "!release/**"
+  - "!vite.config.ts"
+  - "!tsconfig.json"
+
+# The recording engine, staged by scripts/stage-castfy0.mjs, is copied into
+# <resources>/castfy0-mcp by this hook (not extraResources, which drops its
+# node_modules).
+afterPack: scripts/after-pack.cjs
+
+icon: public/web-app-manifest-512x512.png
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Castfy
+
+mac:
+  target:
+    - target: dmg
+  category: public.app-category.video
+  # Signing and notarisation are configured in Phase 5. Until then builds are
+  # unsigned: macOS needs right-click → Open the first time.
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  # castfy0 runs as Castfy itself in Node mode (ELECTRON_RUN_AS_NODE), which the
+  # hardened runtime only allows with JIT entitlements.
+  entitlements: build-resources/entitlements.mac.plist
+  entitlementsInherit: build-resources/entitlements.mac.plist
+
+dmg:
+  sign: false
+
+linux:
+  # Otherwise named after the workspace package ("@workspacedesktop").
+  executableName: castfy
+  target:
+    - target: AppImage
+  category: Video

@@ -39,6 +39,11 @@ contextBridge.exposeInMainWorld('castfy', {
   settings: () => ipcRenderer.invoke('settings:get'),
   setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
 
+  // recorder setup
+  browserStatus: () => ipcRenderer.invoke('setup:browsers'),
+  installBrowsers: () => ipcRenderer.invoke('setup:installBrowsers'),
+  onSetupProgress: on('setup:progress'),
+
   // new demo
   compose: (input) => ipcRenderer.invoke('demo:compose', input),
   copyPrompt: (input) => ipcRenderer.invoke('demo:copy', input),

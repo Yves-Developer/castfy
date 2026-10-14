@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { bundle } from '@remotion/bundler';
 import { getVideoMetadata, renderMedia, selectComposition } from '@remotion/renderer';
+import { findHeadlessShell } from './browsers.js';
 
 /**
  * Local export.
@@ -60,43 +61,6 @@ function keepRangesFromCuts(cuts, totalDurationMs) {
   }
 
   return keeps.filter((keep) => keep.endMs > keep.startMs);
-}
-
-/**
- * Remotion renders in Chrome Headless Shell. Playwright already ships one for
- * the recording engine, so pointing at it avoids a second ~150MB download and
- * one more thing to get wrong at packaging time. Falls back to Remotion's own
- * managed browser when no Playwright install is present.
- */
-export async function findHeadlessShell(browsersPath) {
-  const roots = [
-    browsersPath,
-    process.env.PLAYWRIGHT_BROWSERS_PATH,
-    path.join(process.env.LOCALAPPDATA || '', 'ms-playwright'),
-  ].filter(Boolean);
-
-  for (const root of roots) {
-    let entries = [];
-    try {
-      entries = await fs.readdir(root);
-    } catch {
-      continue;
-    }
-    const shells = entries
-      .filter((e) => e.startsWith('chromium_headless_shell-'))
-      .sort((a, b) => Number(b.split('-')[1] || 0) - Number(a.split('-')[1] || 0));
-
-    for (const shell of shells) {
-      const exe = path.join(root, shell, 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
-      try {
-        await fs.access(exe);
-        return exe;
-      } catch {
-        // try the next revision
-      }
-    }
-  }
-  return null;
 }
 
 /** Cached bundles, keyed by what their publicDir contained when built. */

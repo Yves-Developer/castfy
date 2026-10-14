@@ -1,3 +1,4 @@
+import { constants as fsConstants } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,15 +15,27 @@ import path from 'node:path';
 const home = os.homedir();
 const appData = process.env.APPDATA || path.join(home, 'AppData/Roaming');
 
+/** Outside Windows a file on PATH only counts if it can actually be executed. */
+const RUNNABLE = process.platform === 'win32' ? fsConstants.F_OK : fsConstants.X_OK;
+
 export const AGENTS = [
   {
     id: 'claude-code',
     label: 'Claude Code',
-    /** First match wins. The native installer drops an .exe; npm leaves a .cmd. */
+    /**
+     * First match wins. The native installer drops an .exe on Windows and a
+     * binary in ~/.local/bin elsewhere; npm leaves a .cmd shim on Windows; the
+     * older "local" install lives under ~/.claude/local. A bare name is looked
+     * up on PATH, which on macOS is the login shell's (see platform.js).
+     */
     binaries: [
       path.join(home, '.local/bin/claude.exe'),
       path.join(home, '.local/bin/claude'),
       path.join(appData, 'npm/claude.cmd'),
+      path.join(home, '.claude/local/claude'),
+      '/opt/homebrew/bin/claude',
+      '/usr/local/bin/claude',
+      'claude',
     ],
     /**
      * -p is headless, and the prompt arrives on stdin. --allowedTools matters
@@ -37,6 +50,8 @@ export const AGENTS = [
     binaries: [
       path.join(appData, 'npm/codex.cmd'),
       path.join(home, '.codex/bin/codex.exe'),
+      '/opt/homebrew/bin/codex',
+      '/usr/local/bin/codex',
       'codex',
     ],
     /**
@@ -58,7 +73,11 @@ export const AGENTS = [
   {
     id: 'cursor',
     label: 'Cursor',
-    binaries: [path.join(home, '.local/bin/cursor-agent.exe'), 'cursor-agent'],
+    binaries: [
+      path.join(home, '.local/bin/cursor-agent.exe'),
+      path.join(home, '.local/bin/cursor-agent'),
+      'cursor-agent',
+    ],
     buildArgs: () => ['-p'],
   },
 ];
@@ -68,12 +87,16 @@ export const GUI_ONLY = new Set(['claude-desktop']);
 
 async function onPath(name) {
   const dirs = (process.env.PATH || '').split(path.delimiter).filter(Boolean);
-  const exts = (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';').filter(Boolean);
+  // Executable extensions are a Windows idea; elsewhere the bare name is the file.
+  const exts =
+    process.platform === 'win32'
+      ? (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';').filter(Boolean)
+      : [];
   for (const dir of dirs) {
     for (const ext of ['', ...exts]) {
       const candidate = path.join(dir, name + ext);
       try {
-        await fs.access(candidate);
+        await fs.access(candidate, RUNNABLE);
         return candidate;
       } catch {
         // keep looking
@@ -95,7 +118,7 @@ export async function resolveBinary(agentId) {
       continue;
     }
     try {
-      await fs.access(candidate);
+      await fs.access(candidate, RUNNABLE);
       return candidate;
     } catch {
       // keep looking

@@ -148,6 +148,21 @@ export interface DemoInput {
   agentId?: string | null;
 }
 
+/** Whether the browser the recorder and exporter run on is downloaded. */
+export interface BrowserStatus {
+  ready: boolean;
+  /** Browser folders still to download, when not ready. */
+  missing?: string[];
+  error?: string;
+  browsersPath?: string;
+}
+
+export interface SetupProgress {
+  /** Across every download, 0–100. */
+  percent: number;
+  label: string;
+}
+
 export interface CastfyBridge {
   list(): Promise<Library>;
   get(id: string): Promise<Session | null>;
@@ -192,6 +207,10 @@ export interface CastfyBridge {
   selectAgent(id: string): Promise<string | null>;
   settings(): Promise<AppSettings>;
   setSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
+
+  browserStatus(): Promise<BrowserStatus>;
+  installBrowsers(): Promise<{ ok: boolean; error?: string }>;
+  onSetupProgress(cb: (p: SetupProgress) => void): () => void;
 
   compose(input: DemoInput): Promise<string>;
   copyPrompt(input: DemoInput): Promise<boolean>;

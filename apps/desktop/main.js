@@ -6,15 +6,26 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { app, BrowserWindow, clipboard, ipcMain, net, protocol, shell } from 'electron';
 import chokidar from 'chokidar';
 import { buildCommand, detectAgents, pickAgent } from './agents.js';
+import { browserStatus, installBrowsers } from './browsers.js';
 import { connectClient, detectClients, disconnectClient } from './clients.js';
-import { exportRecording } from './export.js';
 import { ProjectStore } from './projects.js';
-import { recutSession } from './recut.js';
 import { ensureSourceVideo } from './ensure-source.js';
 import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
+import { adoptLoginShellPath, killRunTree, mcpLaunch, spawnOptionsForRun } from './platform.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Export and re-cut load on first use, not at startup.
+ *
+ * export.js pulls in Remotion's bundler and renderer — rspack, esbuild and a
+ * native compositor. Imported eagerly, any one of those failing to load took
+ * the whole app down before a window opened; loaded here, the same failure is
+ * an error on the Export button and everything else still works.
+ */
+const loadExport = () => import('./export.js');
+const loadRecut = () => import('./recut.js');
 
 /** Assigned once the app is ready and userData has a real path. */
 let runs = new RunStore('');
@@ -79,6 +90,20 @@ const CASTFY0_TOOLS = [
   'castfy0_exclude_step',
   'castfy0_mark_retake',
 ];
+
+/**
+ * What a correct castfy0 registration looks like for this install. Connecting
+ * writes it; detection compares against it, so a registration made by an older
+ * build reads as "needs reconnecting" instead of failing at record time.
+ */
+function expectedRegistration() {
+  return {
+    mcpEntry: mcpEntry(),
+    outputDir: libraryRoot(),
+    browsersPath: browsersPath(),
+    launch: mcpLaunch({ packaged: app.isPackaged, execPath: process.execPath }),
+  };
+}
 
 /**
  * Best variant first; the renderer plays the first one present.
@@ -650,7 +675,8 @@ function remotionEntry() {
   return path.join(dirname, 'remotion', 'index.ts');
 }
 
-function runExport(sessionId, spec = {}, onProgress) {
+async function runExport(sessionId, spec = {}, onProgress) {
+  const { exportRecording } = await loadExport();
   return exportRecording({
     sessionId,
     libraryRoot: libraryRoot(),
@@ -777,6 +803,7 @@ if (process.argv.includes('--recut')) {
     const cutsFile = argValue('--cuts');
     try {
       const cuts = JSON.parse(await fs.readFile(cutsFile, 'utf8'));
+      const { recutSession } = await loadRecut();
       const result = await recutSession({
         sessionDir: path.join(libraryRoot(), id),
         entryPoint: mcpEntry(),
@@ -839,6 +866,10 @@ app.whenReady().then(async () => {
   ) {
     return;
   }
+
+  // Before anything looks for an agent CLI: a Dock-launched Mac app otherwise
+  // cannot see ~/.local/bin or Homebrew.
+  await adoptLoginShellPath();
 
   registerAppProtocol();
   await fs.mkdir(libraryRoot(), { recursive: true }).catch(() => {});
@@ -907,6 +938,7 @@ ipcMain.handle('export:recut', async (_e, sessionId, cuts) => {
   const dir = resolveWithin(root, sessionId);
   if (!dir) return { ok: false, error: 'Unknown recording.' };
   try {
+    const { recutSession } = await loadRecut();
     const result = await recutSession({
       sessionDir: dir,
       entryPoint: mcpEntry(),
@@ -944,7 +976,7 @@ ipcMain.handle('clients:detect', async () => ({
     .then(() => true)
     .catch(() => false),
   outputDir: libraryRoot(),
-  clients: await detectClients(mcpEntry()),
+  clients: await detectClients(expectedRegistration()),
 }));
 
 ipcMain.handle('clients:disconnect', (_e, id) => disconnectClient(id));
@@ -971,7 +1003,22 @@ ipcMain.handle('agents:select', async (_e, id) => {
 });
 
 ipcMain.handle('clients:connect', async (_e, id) =>
-  connectClient(id, { mcpEntry: mcpEntry(), outputDir: libraryRoot(), tools: CASTFY0_TOOLS })
+  connectClient(id, expectedRegistration())
+);
+
+// --- recorder setup ------------------------------------------------------------
+
+/** Whether the recording browser is downloaded; the first-run gate asks this. */
+ipcMain.handle('setup:browsers', () =>
+  browserStatus({ mcpEntry: mcpEntry(), browsersPath: browsersPath() })
+);
+
+ipcMain.handle('setup:installBrowsers', () =>
+  installBrowsers({
+    mcpEntry: mcpEntry(),
+    browsersPath: browsersPath(),
+    onProgress: (progress) => win?.webContents.send('setup:progress', progress),
+  })
 );
 
 // --- new demo ----------------------------------------------------------------
@@ -1016,6 +1063,13 @@ ipcMain.handle('demo:run', async (_e, input) => {
     };
   }
 
+  // Without the browser the agent would start, connect, and fail on its first
+  // castfy0_start — a minute in. Saying so up front is kinder.
+  const browsers = await browserStatus({ mcpEntry: mcpEntry(), browsersPath: browsersPath() });
+  if (!browsers.ready) {
+    return { ok: false, error: 'The recording browser is not installed yet. Finish setup first.' };
+  }
+
   const prompt = composePrompt(input);
   const command = await buildCommand(agentId, {
     allowUnsandboxed: Boolean(settings.state.allowUnsandboxed),
@@ -1027,12 +1081,17 @@ ipcMain.handle('demo:run', async (_e, input) => {
   running = spawn(command.binary, command.args, {
     // .cmd shims cannot be executed without a shell on Windows.
     shell: command.binary.endsWith('.cmd') || command.binary.endsWith('.bat'),
-    windowsHide: true,
+    // Its own process group outside Windows, so Cancel can stop the browser too.
+    ...spawnOptionsForRun(),
     // stdin is a pipe because the prompt goes through it. Passing it as an
     // argument meant cmd.exe re-split a multi-line prompt into separate
     // arguments, and Codex rejected the run before it began.
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: { ...process.env, CASTFY0_OUTPUT_DIR: libraryRoot() },
+    env: {
+      ...process.env,
+      CASTFY0_OUTPUT_DIR: libraryRoot(),
+      PLAYWRIGHT_BROWSERS_PATH: browsersPath(),
+    },
   });
 
   // Written and closed immediately: agents wait on stdin and will not start
@@ -1090,9 +1149,13 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
 ipcMain.handle('demo:cancel', () => {
   if (!running) return false;
-  // Windows needs the whole tree killed: claude spawns the MCP, which spawns
-  // Chromium and ffmpeg. SIGTERM to the parent alone orphans the browser.
-  if (process.platform === 'win32') spawn('taskkill', ['/pid', String(running.pid), '/f', '/t']);
-  else running.kill('SIGTERM');
+  // The whole tree: claude spawns the MCP, which spawns Chromium and ffmpeg.
+  // Signalling the parent alone orphans the browser.
+  killRunTree(running, spawn);
   return true;
+});
+
+// A run is its own process group, so quitting would otherwise leave it going.
+app.on('before-quit', () => {
+  if (running) killRunTree(running, spawn);
 });

@@ -1,0 +1,129 @@
+# Builds the Castfy desktop installers.
+#
+# Run it by hand from the Actions tab, or push a tag like `desktop-v0.1.0` to
+# also attach the installers to a draft GitHub Release.
+#
+# Each target builds on its own runner: castfy0's ffmpeg, Remotion's compositor,
+# rspack and esbuild all install a native binary for the host only.
+#
+# Needs one repository secret:
+#   CASTFY0_TOKEN  a GitHub token that can read Yves-Developer/castfy0
+#                  (fine-grained, Contents: read-only on that repository).
+#
+# Builds are unsigned until signing certificates are added (Phase 5).
+
+name: Desktop release
+
+on:
+  workflow_dispatch:
+    inputs:
+      castfy0_ref:
+        description: castfy0 branch or tag to bundle
+        default: main
+  push:
+    tags:
+      - "desktop-v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            runner: windows-latest
+            script: dist:win
+            arch: x64
+          - name: macOS Apple Silicon
+            runner: macos-15
+            script: dist:mac
+            arch: arm64
+          - name: macOS Intel
+            runner: macos-15-intel
+            script: dist:mac
+            arch: x64
+
+    steps:
+      - name: Check out castfy
+        uses: actions/checkout@v4
+        with:
+          path: castfy
+
+      - name: Check out castfy0
+        uses: actions/checkout@v4
+        with:
+          repository: Yves-Developer/castfy0
+          ref: ${{ inputs.castfy0_ref || 'main' }}
+          token: ${{ secrets.CASTFY0_TOKEN }}
+          path: castfy0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: castfy/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: castfy/pnpm-lock.yaml
+
+      - name: Build castfy0
+        working-directory: castfy0
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      # Filtered to the desktop app and what it uses, which also skips the
+      # playground's private registry dependency — no NODE_AUTH_TOKEN needed.
+      - name: Install dependencies
+        working-directory: castfy
+        run: pnpm install --frozen-lockfile --filter "@workspace/desktop..."
+
+      - name: Typecheck
+        working-directory: castfy
+        run: pnpm --filter @workspace/desktop typecheck
+
+      - name: Package
+        working-directory: castfy
+        env:
+          CASTFY0_DIR: ${{ github.workspace }}/castfy0
+          TARGET_ARCH: ${{ matrix.arch }}
+          # No certificates yet: build unsigned instead of failing to find one.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: pnpm --filter @workspace/desktop ${{ matrix.script }} --${{ matrix.arch }} --publish never
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: castfy-${{ runner.os }}-${{ matrix.arch }}
+          path: |
+            castfy/apps/desktop/release/*.exe
+            castfy/apps/desktop/release/*.dmg
+          if-no-files-found: error
+
+  release:
+    name: Draft GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: installers/*
