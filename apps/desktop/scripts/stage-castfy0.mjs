@@ -58,6 +58,11 @@ const REQUIRED_FEATURES = [
     marker: 'progress.jsonl',
     what: 'the live progress file the app shows steps from',
   },
+  {
+    file: 'dist/collector/step-frame.js',
+    marker: 'pendingFrames',
+    what: 'step screenshots taken from the video (live ones glitch the recording)',
+  },
 ];
 
 async function assertSupported(source) {
