@@ -4,6 +4,7 @@ import Providers from '@/components/providers';
 import { CLIENTS_CHANGED } from '@/lib/events';
 import { bridge } from '@/lib/bridge';
 import { Onboarding } from '@/features/app/onboarding';
+import { RecorderSetup } from '@/features/app/onboarding/recorder-setup';
 import ArchivedDemos from './routes/archived';
 import DemoPage from './routes/demo';
 import DemoLayout from './routes/demo-layout';
@@ -37,6 +38,21 @@ function SetupRoute({ onDone }: { onDone: () => void }) {
  */
 export default function App() {
   const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
+  /**
+   * Checked before the agent gate: without the browser nothing can record or
+   * export, whichever agent is connected. Asked once per launch — it only
+   * changes when the download below finishes.
+   */
+  const [browsersReady, setBrowsersReady] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    bridge
+      .browserStatus()
+      .then((status) => setBrowsersReady(status.ready))
+      .catch(() => setBrowsersReady(false));
+  }, []);
+
+  const markBrowsersReady = useCallback(() => setBrowsersReady(true), []);
 
   const evaluateGate = useCallback(() => {
     // Detection is the only thing that decides this. A remembered "setup is
@@ -65,9 +81,22 @@ export default function App() {
     setNeedsSetup(false);
   }, []);
 
+  // Both checks are asynchronous; render nothing rather than flash a screen.
+  if (browsersReady === null || needsSetup === null) {
+    return <Providers>{null}</Providers>;
+  }
+
+  if (!browsersReady) {
+    return (
+      <Providers>
+        <RecorderSetup onReady={markBrowsersReady} />
+      </Providers>
+    );
+  }
+
   return (
     <Providers>
-      {needsSetup === null ? null : needsSetup ? (
+      {needsSetup ? (
         <Onboarding onDone={finishSetup} />
       ) : (
         <Routes>

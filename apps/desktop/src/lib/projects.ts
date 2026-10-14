@@ -52,8 +52,12 @@ export function bestVideo(session: Session | null | undefined): string | undefin
  * Deliberately the opposite preference to bestVideo. Cut ranges are measured
  * against the raw footage, so editing on top of an already-cut variant applies
  * them twice. Falls back to the finished variant only when no raw file exists.
+ *
+ * `source` is preferred over `raw` because it is the same footage, transcoded
+ * to seek cheaply — same timeline, same cut offsets, roughly twice the decode
+ * throughput. Sessions recorded before it existed have only `raw`.
  */
 export function editingSource(session: Session | null | undefined): string | undefined {
   if (!session) return undefined;
-  return session.videos.raw ?? bestVideo(session);
+  return session.videos.source ?? session.videos.raw ?? bestVideo(session);
 }

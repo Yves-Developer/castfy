@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { bridge } from './bridge';
-import type { Session } from './bridge';
+import type { ProgressEvent, Session } from './bridge';
 import type { FunctionRef } from './local-api';
 
 /**
@@ -131,6 +131,27 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
     }
   });
 
+  /**
+   * castfy0's own record of the run, line by line as it happens. This is what
+   * makes the sidebar live: the agent's stdout is empty until it exits.
+   *
+   * Follows the newest recording the run starts. An agent that begins on a
+   * typo'd URL calls castfy0_start again, and the second recording is the real
+   * one — pinning to the first showed nothing from it. Starting over clears the
+   * list, so steps from the abandoned attempt do not mix in.
+   */
+  let liveSessionId: string | null = null;
+  const offProgress = bridge.onProgress(({ sessionId, events: incoming }) => {
+    for (const event of incoming) {
+      if (event.type === 'session' && sessionId !== liveSessionId) {
+        if (liveSessionId) push('reset', 'The agent started the recording again');
+        liveSessionId = sessionId;
+      }
+      if (sessionId !== liveSessionId) continue;
+      dispatchProgress(event, push);
+    }
+  });
+
   const offDone = bridge.onDone(async ({ code, error, hint, sessionId }) => {
     if (code !== 0 || error) {
       // The agent's own words, plus context when we recognised the situation.
@@ -140,7 +161,10 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
 
     // Use the session this run actually produced rather than guessing at the
     // newest one — two runs close together would otherwise cross wires.
-    const session = sessionId ? await bridge.get(sessionId).catch(() => null) : null;
+    // The main process picks the run's finished recording; the live one is the
+    // fallback when it could not.
+    const recordedId = sessionId ?? liveSessionId;
+    const session = recordedId ? await bridge.get(recordedId).catch(() => null) : null;
     if (!session) {
       push('error', 'The run finished but its recording could not be found.');
       return;
@@ -167,8 +191,45 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
 
   return () => {
     offLog();
+    offProgress();
     offDone();
   };
+}
+
+/** Turns one progress line into the event the sidebar already understands. */
+function dispatchProgress(
+  event: ProgressEvent,
+  push: (type: string, message?: string, data?: unknown) => void
+): void {
+  switch (event.type) {
+    case 'session':
+      push('status', 'Recording started');
+      break;
+    case 'step':
+      push('step', undefined, {
+        id: event.id,
+        t: event.t,
+        action: event.action,
+        description: event.description,
+        status: event.success ? 'success' : 'error',
+        error: event.error,
+        excluded: event.excluded,
+      });
+      break;
+    case 'stage':
+      push('status', event.label);
+      push('stage', undefined, { key: event.key, label: event.label });
+      break;
+    case 'done':
+      push('status', 'Opening the recording…');
+      break;
+    case 'error':
+      push('status', `Packaging failed: ${event.message}`);
+      break;
+    default:
+      // A newer castfy0 may write event types this build does not know.
+      break;
+  }
 }
 
 function onUpdate(

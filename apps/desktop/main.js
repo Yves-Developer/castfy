@@ -6,14 +6,27 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { app, BrowserWindow, clipboard, ipcMain, net, protocol, shell } from 'electron';
 import chokidar from 'chokidar';
 import { buildCommand, detectAgents, pickAgent } from './agents.js';
+import { browserStatus, installBrowsers } from './browsers.js';
 import { connectClient, detectClients, disconnectClient } from './clients.js';
-import { exportRecording } from './export.js';
 import { ProjectStore } from './projects.js';
-import { recutSession } from './recut.js';
+import { ensureSourceVideo } from './ensure-source.js';
+import { PROGRESS_FILE, ProgressTail } from './progress.js';
 import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
+import { adoptLoginShellPath, killRunTree, mcpLaunch, spawnOptionsForRun } from './platform.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Export and re-cut load on first use, not at startup.
+ *
+ * export.js pulls in Remotion's bundler and renderer — rspack, esbuild and a
+ * native compositor. Imported eagerly, any one of those failing to load took
+ * the whole app down before a window opened; loaded here, the same failure is
+ * an error on the Export button and everything else still works.
+ */
+const loadExport = () => import('./export.js');
+const loadRecut = () => import('./recut.js');
 
 /** Assigned once the app is ready and userData has a real path. */
 let runs = new RunStore('');
@@ -52,8 +65,9 @@ function mcpEntry() {
 }
 
 /**
- * Codex approves MCP tools individually, so a registration that does not list
- * them turns a recording into an approval prompt per action.
+ * The tools castfy0 exposes. Kept for reference and for allowlisting in clients
+ * that support it — Codex is not one of them: in exec mode it ignores per-tool
+ * approval settings entirely.
  */
 const CASTFY0_TOOLS = [
   'castfy0_start',
@@ -78,12 +92,39 @@ const CASTFY0_TOOLS = [
   'castfy0_mark_retake',
 ];
 
-/** Best variant first; the renderer plays the first one present. */
+/**
+ * What a correct castfy0 registration looks like for this install. Connecting
+ * writes it; detection compares against it, so a registration made by an older
+ * build reads as "needs reconnecting" instead of failing at record time.
+ */
+function expectedRegistration() {
+  return {
+    mcpEntry: mcpEntry(),
+    outputDir: libraryRoot(),
+    browsersPath: browsersPath(),
+    launch: mcpLaunch({ packaged: app.isPackaged, execPath: process.execPath }),
+  };
+}
+
+/**
+ * Best variant first; the renderer plays the first one present.
+ *
+ * `source` sits below the finished variants on purpose. It is uncut footage, so
+ * it must never win "show me the result" — but it is the untrimmed timeline the
+ * editor measures cuts against, and editingSource() picks it there.
+ */
 const VIDEO_VARIANTS = [
   ['audioClean', 'demo-with-audio-clean.mp4'],
   ['audio', 'demo-with-audio.mp4'],
   ['clean', 'demo-clean.webm'],
+  ['source', 'demo-source.mp4'],
   ['raw', 'demo.webm'],
+  /**
+   * The segment recorder's video. It is already the finished demo — nothing to
+   * cut — and already seek-friendly H.264, so it stands in as the raw footage
+   * the editor and every fallback read.
+   */
+  ['raw', 'demo.mp4'],
 ];
 
 async function exists(p) {
@@ -119,6 +160,7 @@ async function readSession(root, name) {
   }
 
   for (const [key, file] of VIDEO_VARIANTS) {
+    if (rec.videos[key]) continue;
     if (await exists(path.join(dir, file))) {
       rec.videos[key] = `castfy://app/${MEDIA_PREFIX}${encodeURIComponent(name)}/${encodeURIComponent(file)}`;
     }
@@ -386,6 +428,29 @@ export function explainAgentFailure({ code, stdout = '', stderr = '' }) {
     };
   }
 
+  /**
+   * Agents relay provider errors as raw JSON, sometimes twice in one line. The
+   * useful sentence is the "message" field; the envelope around it is noise.
+   */
+  const jsonMessage = text.match(/"message"\s*:\s*"([^"]+)"/);
+  if (jsonMessage) {
+    const message = jsonMessage[1].trim();
+    const unsupportedModel = /model is not supported/i.test(message);
+    return {
+      message,
+      hint: unsupportedModel
+        ? 'Set a model your account can use in ~/.codex/config.toml, e.g. model = "gpt-5.6-terra"'
+        : null,
+    };
+  }
+
+  if (/approval policy is never|requires approval/i.test(text)) {
+    return {
+      message: 'Codex blocked the recording tools.',
+      hint: 'Codex will not run tools unattended unless its sandbox is bypassed. Turn that on in Settings → Agents.',
+    };
+  }
+
   if (/unexpected argument|unrecognized|Usage:/i.test(text)) {
     return {
       message: 'The agent rejected the request.',
@@ -588,6 +653,25 @@ function watchLibrary() {
     if (path.dirname(dir) === root) runs.observe(path.basename(dir));
   });
 
+  /**
+   * The live view of a run. castfy0 appends to <session>/progress.jsonl as it
+   * goes; each new line is forwarded to the window as it lands. Seeing the file
+   * also attributes its folder to the live run, in case the folder appeared
+   * before the watcher noticed it.
+   */
+  progressTail = new ProgressTail((sessionId, events) => {
+    runs.observe(sessionId);
+    win?.webContents.send('demo:progress', { sessionId, events });
+  });
+  const tail = progressTail;
+  const onFile = (file) => {
+    const isProgress =
+      path.basename(file) === PROGRESS_FILE && path.dirname(path.dirname(file)) === root;
+    if (isProgress) tail.read(file);
+  };
+  watcher.on('add', onFile);
+  watcher.on('change', onFile);
+
   const ping = () => {
     clearTimeout(timer);
     timer = setTimeout(() => win?.webContents.send('library:changed'), 400);
@@ -618,7 +702,8 @@ function remotionEntry() {
   return path.join(dirname, 'remotion', 'index.ts');
 }
 
-function runExport(sessionId, spec = {}, onProgress) {
+async function runExport(sessionId, spec = {}, onProgress) {
+  const { exportRecording } = await loadExport();
   return exportRecording({
     sessionId,
     libraryRoot: libraryRoot(),
@@ -745,6 +830,7 @@ if (process.argv.includes('--recut')) {
     const cutsFile = argValue('--cuts');
     try {
       const cuts = JSON.parse(await fs.readFile(cutsFile, 'utf8'));
+      const { recutSession } = await loadRecut();
       const result = await recutSession({
         sessionDir: path.join(libraryRoot(), id),
         entryPoint: mcpEntry(),
@@ -808,6 +894,10 @@ app.whenReady().then(async () => {
     return;
   }
 
+  // Before anything looks for an agent CLI: a Dock-launched Mac app otherwise
+  // cannot see ~/.local/bin or Homebrew.
+  await adoptLoginShellPath();
+
   registerAppProtocol();
   await fs.mkdir(libraryRoot(), { recursive: true }).catch(() => {});
   await initStores();
@@ -852,11 +942,30 @@ ipcMain.handle('projects:remove', (_e, id) => {
   return true;
 });
 
+/**
+ * Backfills demo-source.mp4 for a recording made before the packager wrote one.
+ * Returns the media URL when it is ready so the editor can switch to it, or
+ * null to stay on the raw capture.
+ */
+ipcMain.handle('media:ensureSource', async (_e, sessionId) => {
+  const root = libraryRoot();
+  const dir = resolveWithin(root, sessionId);
+  if (!dir) return null;
+
+  const produced = await ensureSourceVideo({ sessionDir: dir, entryPoint: mcpEntry() });
+  if (!produced) return null;
+
+  return `castfy://app/${MEDIA_PREFIX}${encodeURIComponent(sessionId)}/${encodeURIComponent(
+    path.basename(produced)
+  )}`;
+});
+
 ipcMain.handle('export:recut', async (_e, sessionId, cuts) => {
   const root = libraryRoot();
   const dir = resolveWithin(root, sessionId);
   if (!dir) return { ok: false, error: 'Unknown recording.' };
   try {
+    const { recutSession } = await loadRecut();
     const result = await recutSession({
       sessionDir: dir,
       entryPoint: mcpEntry(),
@@ -894,7 +1003,7 @@ ipcMain.handle('clients:detect', async () => ({
     .then(() => true)
     .catch(() => false),
   outputDir: libraryRoot(),
-  clients: await detectClients(mcpEntry()),
+  clients: await detectClients(expectedRegistration()),
 }));
 
 ipcMain.handle('clients:disconnect', (_e, id) => disconnectClient(id));
@@ -909,13 +1018,34 @@ ipcMain.handle('agents:list', async () => ({
   activeAgent: await pickAgent(settings.state.activeAgent),
 }));
 
+ipcMain.handle('settings:get', () => settings.state);
+ipcMain.handle('settings:set', async (_e, patch) => {
+  await settings.set(patch ?? {});
+  return settings.state;
+});
+
 ipcMain.handle('agents:select', async (_e, id) => {
   await settings.set({ activeAgent: id });
   return settings.state.activeAgent;
 });
 
 ipcMain.handle('clients:connect', async (_e, id) =>
-  connectClient(id, { mcpEntry: mcpEntry(), outputDir: libraryRoot(), tools: CASTFY0_TOOLS })
+  connectClient(id, expectedRegistration())
+);
+
+// --- recorder setup ------------------------------------------------------------
+
+/** Whether the recording browser is downloaded; the first-run gate asks this. */
+ipcMain.handle('setup:browsers', () =>
+  browserStatus({ mcpEntry: mcpEntry(), browsersPath: browsersPath() })
+);
+
+ipcMain.handle('setup:installBrowsers', () =>
+  installBrowsers({
+    mcpEntry: mcpEntry(),
+    browsersPath: browsersPath(),
+    onProgress: (progress) => win?.webContents.send('setup:progress', progress),
+  })
 );
 
 // --- new demo ----------------------------------------------------------------
@@ -940,6 +1070,26 @@ function composePrompt({ url, goal }) {
 
 let running = null;
 
+/** Follows castfy0's progress files; created by watchLibrary(). */
+let progressTail = null;
+
+/**
+ * The recording a run produced, out of every folder it created.
+ *
+ * One run can create several: an agent that starts on a typo'd URL and then
+ * calls castfy0_start again leaves an empty first folder behind. Taking the
+ * first one linked the project to that empty folder — no steps, no video.
+ * The newest finished recording is the one the agent meant; failing that, the
+ * newest folder at all.
+ */
+async function pickRunRecording(sessionIds) {
+  const root = libraryRoot();
+  for (const id of [...sessionIds].reverse()) {
+    if (await exists(path.join(root, id, 'steps.json'))) return id;
+  }
+  return sessionIds.at(-1) ?? null;
+}
+
 ipcMain.handle('demo:compose', (_e, input) => composePrompt(input));
 
 ipcMain.handle('demo:copy', (_e, input) => {
@@ -960,30 +1110,71 @@ ipcMain.handle('demo:run', async (_e, input) => {
     };
   }
 
+  // Without the browser the agent would start, connect, and fail on its first
+  // castfy0_start — a minute in. Saying so up front is kinder.
+  const browsers = await browserStatus({ mcpEntry: mcpEntry(), browsersPath: browsersPath() });
+  if (!browsers.ready) {
+    return { ok: false, error: 'The recording browser is not installed yet. Finish setup first.' };
+  }
+
   const prompt = composePrompt(input);
-  const command = await buildCommand(agentId, prompt);
+  const command = await buildCommand(agentId, {
+    allowUnsandboxed: Boolean(settings.state.allowUnsandboxed),
+  });
   if (!command) return { ok: false, error: `${agentId} is no longer installed.` };
 
   const send = (channel, payload) => win?.webContents.send(channel, payload);
 
   running = spawn(command.binary, command.args, {
+    // .cmd shims cannot be executed without a shell on Windows.
     shell: command.binary.endsWith('.cmd') || command.binary.endsWith('.bat'),
-    windowsHide: true,
-    // stdin must be closed, not inherited: `claude -p` waits ~3s for piped
-    // input before giving up, and an inherited handle never closes.
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, CASTFY0_OUTPUT_DIR: libraryRoot() },
+    // Its own process group outside Windows, so Cancel can stop the browser too.
+    ...spawnOptionsForRun(),
+    // stdin is a pipe because the prompt goes through it. Passing it as an
+    // argument meant cmd.exe re-split a multi-line prompt into separate
+    // arguments, and Codex rejected the run before it began.
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      CASTFY0_OUTPUT_DIR: libraryRoot(),
+      PLAYWRIGHT_BROWSERS_PATH: browsersPath(),
+    },
   });
+
+  // Written and closed immediately: agents wait on stdin and will not start
+  // until it ends.
+  running.stdin.write(prompt);
+  running.stdin.end();
 
   // Opened here and closed on exit, so a folder that appears in between can be
   // attributed to this run and a crash leaves a record instead of a folder that
   // reads as "recording" forever.
   const run = runs.start({ url: input.url, goal: input.goal, projectId: input.projectId ?? null });
 
+  /**
+   * Re-reads the run's progress files every second, alongside the watcher.
+   * File-change notifications are not guaranteed on every platform and file
+   * system, and the live panel must not depend on them; reading an unchanged
+   * file costs one stat. Stopped in settle().
+   */
+  const progressPoll = setInterval(() => {
+    const root = libraryRoot();
+    for (const id of runs.active?.sessionIds ?? []) {
+      progressTail?.read(path.join(root, id, PROGRESS_FILE));
+    }
+  }, 1000);
+
   let stderr = '';
   let stdout = '';
-  const settle = (code, error) => {
+  const settle = async (code, error) => {
     running = null;
+    clearInterval(progressPoll);
+    // One last read, so lines written just before the agent exited still land.
+    await Promise.all(
+      (runs.active?.sessionIds ?? []).map((id) =>
+        progressTail?.read(path.join(libraryRoot(), id, PROGRESS_FILE))
+      )
+    );
 
     // Agents explain themselves on stdout as often as stderr.
     const explained =
@@ -992,10 +1183,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
     const finished = runs.finish({ code, error: message });
 
-    // The watcher attributed any folder created during the run; the first one
-    // is this project's recording. Linking here is what turns a project the
-    // user typed a title for into a playable demo.
-    const sessionId = finished?.sessionIds?.[0] ?? null;
+    // Linking here is what turns a project the user typed a title for into a
+    // playable demo. See pickRunRecording for which folder that is.
+    const sessionId = await pickRunRecording(finished?.sessionIds ?? []);
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
 
     send('demo:done', {
@@ -1025,9 +1215,13 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
 ipcMain.handle('demo:cancel', () => {
   if (!running) return false;
-  // Windows needs the whole tree killed: claude spawns the MCP, which spawns
-  // Chromium and ffmpeg. SIGTERM to the parent alone orphans the browser.
-  if (process.platform === 'win32') spawn('taskkill', ['/pid', String(running.pid), '/f', '/t']);
-  else running.kill('SIGTERM');
+  // The whole tree: claude spawns the MCP, which spawns Chromium and ffmpeg.
+  // Signalling the parent alone orphans the browser.
+  killRunTree(running, spawn);
   return true;
+});
+
+// A run is its own process group, so quitting would otherwise leave it going.
+app.on('before-quit', () => {
+  if (running) killRunTree(running, spawn);
 });

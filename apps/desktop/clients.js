@@ -1,11 +1,12 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { appConfigDir } from './platform.js';
 
 /**
  * Every client stores MCP servers somewhere different, but the payload is the
  * same three things: a command, its args, and the env that pins
- * CASTFY0_OUTPUT_DIR. Paths are written with forward slashes — node accepts them
+ * CASTFY0_OUTPUT_DIR and the browser folder. Paths are written with forward slashes — node accepts them
  * on Windows, and it avoids escaping backslashes differently in JSON vs TOML.
  */
 const home = os.homedir();
@@ -28,10 +29,7 @@ export const CLIENTS = [
     id: 'claude-desktop',
     label: 'Claude Desktop',
     kind: 'json',
-    file: path.join(
-      process.env.APPDATA || path.join(home, 'AppData/Roaming'),
-      'Claude/claude_desktop_config.json'
-    ),
+    file: path.join(appConfigDir(), 'Claude/claude_desktop_config.json'),
     requiresFile: true,
     install: {
       cli: false,
@@ -101,7 +99,8 @@ function samePath(a, b) {
  * whose entrypoint is gone is worse than none, because the client reports a
  * broken server rather than a missing one. That case reports as `stale`.
  */
-async function inspect(client, mcpEntry) {
+async function inspect(client, expected) {
+  const { mcpEntry, launch, browsersPath } = expected;
   const installed = client.requiresDir
     ? await exists(client.requiresDir)
     : client.requiresFile
@@ -124,8 +123,18 @@ async function inspect(client, mcpEntry) {
 
     const entryPath = srv.args?.find((a) => a.endsWith('.js') || a.endsWith('.mjs')) ?? null;
     if (entryPath && !(await exists(entryPath))) return { status: 'stale', entryPath };
+    // An absolute command that has gone away is an app that was moved or
+    // uninstalled; the client would fail to start the server at all.
+    if (path.isAbsolute(srv.command ?? '') && !(await exists(srv.command))) {
+      return { status: 'stale', entryPath };
+    }
     if (!srv.env?.CASTFY0_OUTPUT_DIR) return { status: 'needs-env', entryPath };
-    return { status: samePath(entryPath, mcpEntry) ? 'connected' : 'other-entry', entryPath };
+    if (!samePath(entryPath, mcpEntry)) return { status: 'other-entry', entryPath };
+    // Registered before this build: right server, but launched the old way or
+    // without the browser folder, so a recording would fail to find Chromium.
+    const outdated =
+      srv.command !== launch.command || !samePath(srv.env?.PLAYWRIGHT_BROWSERS_PATH, browsersPath);
+    return { status: outdated ? 'needs-env' : 'connected', entryPath };
   }
 
   // TOML: a shallow probe, enough to tell registered from not.
@@ -134,46 +143,66 @@ async function inspect(client, mcpEntry) {
   const entryPath = m ? m[1].replace(/["'\s]/g, '') : null;
   if (entryPath && !(await exists(entryPath))) return { status: 'stale', entryPath };
   const hasEnv = /\[mcp_servers\.castfy0\.env\]/.test(raw);
-  return { status: hasEnv ? 'connected' : 'needs-env', entryPath };
+  const hasBrowsers = raw.includes(`PLAYWRIGHT_BROWSERS_PATH = "${posix(browsersPath)}"`);
+  return { status: hasEnv && hasBrowsers ? 'connected' : 'needs-env', entryPath };
 }
 
-export async function detectClients(mcpEntry) {
+/**
+ * @param expected  What a correct registration looks like for this install:
+ *                  { mcpEntry, launch: { command, env }, browsersPath }.
+ */
+export async function detectClients(expected) {
   return Promise.all(
     CLIENTS.map(async (c) => ({
       id: c.id,
       label: c.label,
       file: c.file,
       install: c.install ?? null,
-      ...(await inspect(c, mcpEntry)),
+      ...(await inspect(c, expected)),
     }))
   );
 }
 
-function serverBlockJson(mcpEntry, outputDir) {
+/** The env every registration carries, whichever client it is for. */
+function serverEnv({ outputDir, browsersPath, launch }) {
   return {
-    type: 'stdio',
-    command: 'node',
-    args: [posix(mcpEntry)],
-    env: { CASTFY0_OUTPUT_DIR: posix(outputDir) },
+    ...launch.env,
+    CASTFY0_OUTPUT_DIR: posix(outputDir),
+    PLAYWRIGHT_BROWSERS_PATH: posix(browsersPath),
   };
 }
 
-function serverBlockToml(mcpEntry, outputDir, tools) {
-  const perTool = tools
-    .map((t) => `[mcp_servers.castfy0.tools.${t}]\napproval_mode = "allow"\n`)
-    .join('\n');
+function serverBlockJson(opts) {
+  return {
+    type: 'stdio',
+    command: posix(opts.launch.command),
+    args: [posix(opts.mcpEntry)],
+    env: serverEnv(opts),
+  };
+}
+
+/**
+ * Deliberately writes no per-tool approval settings.
+ *
+ * An earlier version wrote approval_mode = "allow" for all twenty tools,
+ * guessing at an undocumented enum. Codex accepts only auto/prompt/writes/
+ * approve, so the file stopped parsing — which broke Codex entirely, not just
+ * Castfy. Approval belongs to how a run is invoked, not to a config file we
+ * write opinions into on someone's behalf.
+ */
+function serverBlockToml(opts) {
+  const envLines = Object.entries(serverEnv(opts)).map(([k, v]) => `${k} = "${v}"`);
   return [
     '[mcp_servers.castfy0]',
-    'command = "node"',
-    `args = ["${posix(mcpEntry)}"]`,
+    `command = "${posix(opts.launch.command)}"`,
+    `args = ["${posix(opts.mcpEntry)}"]`,
     'enabled = true',
     'startup_timeout_sec = 60',
     'tool_timeout_sec = 600',
     '',
     '[mcp_servers.castfy0.env]',
-    `CASTFY0_OUTPUT_DIR = "${posix(outputDir)}"`,
+    ...envLines,
     '',
-    perTool,
   ].join('\n');
 }
 
@@ -207,7 +236,10 @@ async function allowInClaudeSettings() {
  * .claude.json in particular holds a lot of unrelated state, and a bad write
  * there costs the user their whole config.
  */
-export async function connectClient(id, { mcpEntry, outputDir, tools = [] }) {
+/**
+ * @param opts  { mcpEntry, outputDir, browsersPath, launch: { command, env } }
+ */
+export async function connectClient(id, opts) {
   const client = CLIENTS.find((c) => c.id === id);
   if (!client) throw new Error(`unknown client: ${id}`);
 
@@ -218,7 +250,7 @@ export async function connectClient(id, { mcpEntry, outputDir, tools = [] }) {
   if (client.kind === 'json') {
     const cfg = raw ? JSON.parse(raw) : {};
     cfg.mcpServers = cfg.mcpServers || {};
-    cfg.mcpServers.castfy0 = serverBlockJson(mcpEntry, outputDir);
+    cfg.mcpServers.castfy0 = serverBlockJson(opts);
     if (id === 'claude-code') {
       // Permissions do NOT live in .claude.json — that file holds servers and
       // project state. Writing them here looks like it worked and is silently
@@ -231,7 +263,7 @@ export async function connectClient(id, { mcpEntry, outputDir, tools = [] }) {
   }
 
   // TOML: replace an existing castfy0 section wholesale, else append.
-  const block = serverBlockToml(mcpEntry, outputDir, tools);
+  const block = serverBlockToml(opts);
   let next;
   if (raw && /^\s*\[mcp_servers\.castfy0/m.test(raw)) {
     const stripped = raw.replace(

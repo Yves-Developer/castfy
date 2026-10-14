@@ -1,3 +1,4 @@
+import { constants as fsConstants } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,21 +15,34 @@ import path from 'node:path';
 const home = os.homedir();
 const appData = process.env.APPDATA || path.join(home, 'AppData/Roaming');
 
+/** Outside Windows a file on PATH only counts if it can actually be executed. */
+const RUNNABLE = process.platform === 'win32' ? fsConstants.F_OK : fsConstants.X_OK;
+
 export const AGENTS = [
   {
     id: 'claude-code',
     label: 'Claude Code',
-    /** First match wins. The native installer drops an .exe; npm leaves a .cmd. */
+    /**
+     * First match wins. The native installer drops an .exe on Windows and a
+     * binary in ~/.local/bin elsewhere; npm leaves a .cmd shim on Windows; the
+     * older "local" install lives under ~/.claude/local. A bare name is looked
+     * up on PATH, which on macOS is the login shell's (see platform.js).
+     */
     binaries: [
       path.join(home, '.local/bin/claude.exe'),
       path.join(home, '.local/bin/claude'),
       path.join(appData, 'npm/claude.cmd'),
+      path.join(home, '.claude/local/claude'),
+      '/opt/homebrew/bin/claude',
+      '/usr/local/bin/claude',
+      'claude',
     ],
     /**
-     * -p is headless. --allowedTools matters because a headless run cannot show
-     * an approval prompt: an un-allowlisted tool call just stalls.
+     * -p is headless, and the prompt arrives on stdin. --allowedTools matters
+     * because a headless run cannot show an approval prompt: an un-allowlisted
+     * tool call just stalls.
      */
-    buildArgs: (prompt) => ['-p', prompt, '--allowedTools', 'mcp__castfy0'],
+    buildArgs: () => ['-p', '--allowedTools', 'mcp__castfy0'],
   },
   {
     id: 'codex',
@@ -36,16 +50,35 @@ export const AGENTS = [
     binaries: [
       path.join(appData, 'npm/codex.cmd'),
       path.join(home, '.codex/bin/codex.exe'),
+      '/opt/homebrew/bin/codex',
+      '/usr/local/bin/codex',
       'codex',
     ],
-    /** `codex exec` is its non-interactive mode. */
-    buildArgs: (prompt) => ['exec', prompt],
+    /**
+     * `codex exec -` is non-interactive, reading the prompt from stdin.
+     *
+     * Unattended MCP use needs the bypass flag. In exec mode the approval policy
+     * is "never", so any tool call fails with "requires approval, but approval
+     * policy is never" — and nothing gentler lifts it: per-tool approval_mode is
+     * ignored there, and --approve-for-me times out on its own review.
+     *
+     * It disables Codex's sandbox for the whole run, not just castfy0's tools,
+     * so it stays off until someone turns it on.
+     */
+    buildArgs: ({ allowUnsandboxed } = {}) =>
+      allowUnsandboxed
+        ? ['exec', '--dangerously-bypass-approvals-and-sandbox', '-']
+        : ['exec', '-'],
   },
   {
     id: 'cursor',
     label: 'Cursor',
-    binaries: [path.join(home, '.local/bin/cursor-agent.exe'), 'cursor-agent'],
-    buildArgs: (prompt) => ['-p', prompt],
+    binaries: [
+      path.join(home, '.local/bin/cursor-agent.exe'),
+      path.join(home, '.local/bin/cursor-agent'),
+      'cursor-agent',
+    ],
+    buildArgs: () => ['-p'],
   },
 ];
 
@@ -54,12 +87,16 @@ export const GUI_ONLY = new Set(['claude-desktop']);
 
 async function onPath(name) {
   const dirs = (process.env.PATH || '').split(path.delimiter).filter(Boolean);
-  const exts = (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';').filter(Boolean);
+  // Executable extensions are a Windows idea; elsewhere the bare name is the file.
+  const exts =
+    process.platform === 'win32'
+      ? (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';').filter(Boolean)
+      : [];
   for (const dir of dirs) {
     for (const ext of ['', ...exts]) {
       const candidate = path.join(dir, name + ext);
       try {
-        await fs.access(candidate);
+        await fs.access(candidate, RUNNABLE);
         return candidate;
       } catch {
         // keep looking
@@ -81,7 +118,7 @@ export async function resolveBinary(agentId) {
       continue;
     }
     try {
-      await fs.access(candidate);
+      await fs.access(candidate, RUNNABLE);
       return candidate;
     } catch {
       // keep looking
@@ -104,13 +141,18 @@ export async function detectAgents() {
   );
 }
 
-/** Command line for a run, or null when that agent cannot be driven. */
-export async function buildCommand(agentId, prompt) {
+/**
+ * Command line for a run, or null when that agent cannot be driven.
+ *
+ * The prompt is not here on purpose — every agent reads it from stdin, so it
+ * never passes through argument parsing or a shell.
+ */
+export async function buildCommand(agentId, options = {}) {
   const agent = AGENTS.find((a) => a.id === agentId);
   if (!agent) return null;
   const binary = await resolveBinary(agentId);
   if (!binary) return null;
-  return { binary, args: agent.buildArgs(prompt), label: agent.label };
+  return { binary, args: agent.buildArgs(options), label: agent.label };
 }
 
 /**

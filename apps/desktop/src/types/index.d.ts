@@ -20,9 +20,21 @@ export interface AgentStep {
   action: string;
   description: string;
   error?: string;
+  /** Dropped from the clean cut — a retry, a mistake, or marked by the agent. */
+  excluded?: boolean;
+  /** castfy0's step number, when the step came from its live progress file. */
+  id?: number;
   ref?: string;
   status: "success" | "error";
+  /** When the step happened, as an ISO timestamp. */
+  t?: string;
   value?: string;
+}
+
+/** One stage of packaging the recording at castfy0_end. */
+export interface PackagingStage {
+  key: string;
+  label: string;
 }
 
 export type AIProvider = "anthropic" | "openai" | "gemini";
@@ -46,6 +58,10 @@ export interface SseHandlers {
   onError: (message: string) => void;
   onStatus: (message: string) => void;
   onStep: (step: AgentStep) => void;
+  /** Packaging moved on to a new stage. */
+  onStage?: (stage: PackagingStage) => void;
+  /** The agent abandoned its recording and started a new one. */
+  onReset?: () => void;
 }
 
 export type TSettingPages = "agents" | "profile" | "sessions" | "billing";

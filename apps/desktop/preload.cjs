@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('castfy', {
   saveEditor: (id, editor) => ipcRenderer.invoke('projects:saveEditor', id, editor),
   saveCuts: (id, cuts) => ipcRenderer.invoke('projects:saveCuts', id, cuts),
   recut: (sessionId, cuts) => ipcRenderer.invoke('export:recut', sessionId, cuts),
+  ensureSource: (sessionId) => ipcRenderer.invoke('media:ensureSource', sessionId),
 
   // export
   render: (sessionId, spec) => ipcRenderer.invoke('export:render', sessionId, spec),
@@ -35,6 +36,13 @@ contextBridge.exposeInMainWorld('castfy', {
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   agents: () => ipcRenderer.invoke('agents:list'),
   selectAgent: (id) => ipcRenderer.invoke('agents:select', id),
+  settings: () => ipcRenderer.invoke('settings:get'),
+  setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
+
+  // recorder setup
+  browserStatus: () => ipcRenderer.invoke('setup:browsers'),
+  installBrowsers: () => ipcRenderer.invoke('setup:installBrowsers'),
+  onSetupProgress: on('setup:progress'),
 
   // new demo
   compose: (input) => ipcRenderer.invoke('demo:compose', input),
@@ -43,4 +51,5 @@ contextBridge.exposeInMainWorld('castfy', {
   cancel: () => ipcRenderer.invoke('demo:cancel'),
   onLog: on('demo:log'),
   onDone: on('demo:done'),
+  onProgress: on('demo:progress'),
 });

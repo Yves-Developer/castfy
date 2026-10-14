@@ -1,6 +1,11 @@
 import { api } from "@/lib/local-api";
 import { getConvexClient } from "@/lib/local-query";
-import type { AgentStep, SseEventData, SseHandlers } from "@/types";
+import type {
+  AgentStep,
+  PackagingStage,
+  SseEventData,
+  SseHandlers,
+} from "@/types";
 
 // Choose which recorded variant to show first: clean audio > audio > clean > raw.
 export function pickInitialVideo(
@@ -32,6 +37,12 @@ function dispatchSseEvent(
       break;
     case "step":
       handlers.onStep(data as AgentStep);
+      break;
+    case "reset":
+      handlers.onReset?.();
+      break;
+    case "stage":
+      handlers.onStage?.(data as unknown as PackagingStage);
       break;
     case "completed":
       handlers.onCompleted(data);

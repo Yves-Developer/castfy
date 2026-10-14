@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { bundle } from '@remotion/bundler';
 import { getVideoMetadata, renderMedia, selectComposition } from '@remotion/renderer';
+import { findHeadlessShell } from './browsers.js';
 
 /**
  * Local export.
@@ -19,43 +20,48 @@ const SOURCE_PREFERENCE = [
   'demo-with-audio.mp4',
   'demo-clean.webm',
   'demo.webm',
+  'demo.mp4',
 ];
 
 /**
- * Remotion renders in Chrome Headless Shell. Playwright already ships one for
- * the recording engine, so pointing at it avoids a second ~150MB download and
- * one more thing to get wrong at packaging time. Falls back to Remotion's own
- * managed browser when no Playwright install is present.
+ * Untrimmed footage, best first, for when the cut is applied at render time.
+ *
+ * These carry no narration: the audio variants are built against the clean
+ * cut's timings, so pairing them with a different cut would desync the voice.
+ * A trimmed export is silent until narration can be re-timed.
  */
-export async function findHeadlessShell(browsersPath) {
-  const roots = [
-    browsersPath,
-    process.env.PLAYWRIGHT_BROWSERS_PATH,
-    path.join(process.env.LOCALAPPDATA || '', 'ms-playwright'),
-  ].filter(Boolean);
+const UNCUT_SOURCE_PREFERENCE = ['demo-source.mp4', 'demo.webm', 'demo.mp4'];
 
-  for (const root of roots) {
-    let entries = [];
-    try {
-      entries = await fs.readdir(root);
-    } catch {
-      continue;
-    }
-    const shells = entries
-      .filter((e) => e.startsWith('chromium_headless_shell-'))
-      .sort((a, b) => Number(b.split('-')[1] || 0) - Number(a.split('-')[1] || 0));
+/**
+ * The kept spans for a cut, in source time.
+ *
+ * `cuts` are the ranges to remove. Passing them rather than keep ranges matches
+ * what the editor edits, and inverting here means one definition of "the gaps
+ * between the cuts" instead of two that can disagree.
+ */
+function keepRangesFromCuts(cuts, totalDurationMs) {
+  const ordered = [...cuts]
+    .filter((cut) => cut.endMs > cut.startMs)
+    .sort((a, b) => a.startMs - b.startMs);
 
-    for (const shell of shells) {
-      const exe = path.join(root, shell, 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
-      try {
-        await fs.access(exe);
-        return exe;
-      } catch {
-        // try the next revision
-      }
+  const keeps = [];
+  let cursor = 0;
+
+  for (const cut of ordered) {
+    // Overlapping cuts are normal after dragging; take the union by only ever
+    // moving the cursor forward.
+    if (cut.startMs > cursor) {
+      keeps.push({ id: `keep-${cursor}`, startMs: cursor, endMs: Math.min(cut.startMs, totalDurationMs) });
     }
+    cursor = Math.max(cursor, cut.endMs);
+    if (cursor >= totalDurationMs) break;
   }
-  return null;
+
+  if (cursor < totalDurationMs) {
+    keeps.push({ id: `keep-${cursor}`, startMs: cursor, endMs: totalDurationMs });
+  }
+
+  return keeps.filter((keep) => keep.endMs > keep.startMs);
 }
 
 /** Cached bundles, keyed by what their publicDir contained when built. */
@@ -146,17 +152,33 @@ export async function exportRecording({
   radius = 12,
   width = 1920,
   height = 1080,
+  /**
+   * Ranges to remove, in raw-footage time. Given these, the export renders from
+   * the untrimmed capture and applies the cut itself, so no clean file has to
+   * exist first. Omitted, it exports the most finished file on disk — which is
+   * what every export did before, narration included.
+   */
+  cuts = null,
   browsersPath,
   onProgress,
 }) {
   const sessionDir = path.join(libraryRoot, sessionId);
 
-  const sourceFile = await firstExisting(sessionDir, SOURCE_PREFERENCE);
+  const trimming = Array.isArray(cuts) && cuts.length > 0;
+  const sourceFile = await firstExisting(
+    sessionDir,
+    trimming ? UNCUT_SOURCE_PREFERENCE : SOURCE_PREFERENCE
+  );
   if (!sourceFile) throw new Error('This recording has no video to export.');
 
   const source = path.join(sessionDir, sourceFile);
   const { durationInSeconds } = await getVideoMetadata(source);
   const durationInFrames = Math.max(1, Math.round(durationInSeconds * FPS));
+  const keeps = trimming ? keepRangesFromCuts(cuts, durationInSeconds * 1000) : [];
+
+  if (trimming && keeps.length === 0) {
+    throw new Error('That edit removes the whole recording.');
+  }
 
   onProgress?.('Preparing assets…');
   const bgAsset = await materialiseAsset(publicRoot, sessionDir, backgroundImage);
@@ -187,6 +209,7 @@ export async function exportRecording({
     durationInFrames,
     width,
     height,
+    keeps,
   };
 
   onProgress?.('Rendering…');
@@ -214,7 +237,11 @@ export async function exportRecording({
     outputLocation,
     size,
     sourceFile,
-    durationInFrames,
+    // What the render actually produced, which is the composition's length when
+    // trimming rather than the source's.
+    durationInFrames: composition.durationInFrames,
+    keptRanges: keeps.length,
+    sourceDurationInFrames: durationInFrames,
     width,
     height,
     hasBackgroundImage: Boolean(bgAsset),

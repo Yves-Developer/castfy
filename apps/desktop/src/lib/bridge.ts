@@ -1,6 +1,6 @@
 export type SessionStatus = 'complete' | 'recording' | 'failed' | 'abandoned';
 
-export type VideoVariant = 'audioClean' | 'audio' | 'clean' | 'raw';
+export type VideoVariant = 'audioClean' | 'audio' | 'clean' | 'source' | 'raw';
 
 export interface SessionSummary {
   totalSteps: number;
@@ -80,6 +80,12 @@ export interface AgentRow {
   drivable: boolean;
 }
 
+export interface AppSettings {
+  activeAgent: string | null;
+  /** Lets Codex run tools unattended, at the cost of its sandbox. */
+  allowUnsandboxed: boolean;
+}
+
 export interface Run {
   id: string;
   url: string;
@@ -142,6 +148,38 @@ export interface DemoInput {
   agentId?: string | null;
 }
 
+/** Whether the browser the recorder and exporter run on is downloaded. */
+export interface BrowserStatus {
+  ready: boolean;
+  /** Browser folders still to download, when not ready. */
+  missing?: string[];
+  error?: string;
+  browsersPath?: string;
+}
+
+export interface SetupProgress {
+  /** Across every download, 0–100. */
+  percent: number;
+  label: string;
+}
+
+/** One line of castfy0's progress.jsonl. Unknown types are ignored. */
+export type ProgressEvent =
+  | { type: 'session'; t: string; sessionId: string; title: string; url: string }
+  | {
+      type: 'step';
+      t: string;
+      id: number;
+      action: string;
+      description: string;
+      success: boolean;
+      error?: string;
+      excluded?: boolean;
+    }
+  | { type: 'stage'; t: string; key: string; label: string }
+  | { type: 'done'; t: string; outputDir: string }
+  | { type: 'error'; t: string; message: string };
+
 export interface CastfyBridge {
   list(): Promise<Library>;
   get(id: string): Promise<Session | null>;
@@ -163,6 +201,12 @@ export interface CastfyBridge {
     cleanDurationMs?: number;
     narrationStale?: boolean;
   }>;
+  /**
+   * Transcodes the raw capture to a seek-friendly editing source if one is not
+   * already there, resolving to its media URL. Null means the recording has no
+   * raw footage, or the transcode failed and the raw file should be used.
+   */
+  ensureSource(sessionId: string): Promise<string | null>;
 
   render(
     sessionId: string,
@@ -178,12 +222,20 @@ export interface CastfyBridge {
   openExternal(url: string): Promise<void>;
   agents(): Promise<{ agents: AgentRow[]; activeAgent: string | null }>;
   selectAgent(id: string): Promise<string | null>;
+  settings(): Promise<AppSettings>;
+  setSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
+
+  browserStatus(): Promise<BrowserStatus>;
+  installBrowsers(): Promise<{ ok: boolean; error?: string }>;
+  onSetupProgress(cb: (p: SetupProgress) => void): () => void;
 
   compose(input: DemoInput): Promise<string>;
   copyPrompt(input: DemoInput): Promise<boolean>;
   run(input: DemoInput): Promise<{ ok: boolean; error?: string; bin?: string; runId?: string }>;
   cancel(): Promise<boolean>;
   onLog(cb: (chunk: string) => void): () => void;
+  /** Live events from the recording being made, as castfy0 writes them. */
+  onProgress(cb: (p: { sessionId: string; events: ProgressEvent[] }) => void): () => void;
   onDone(
     cb: (r: {
       code: number;

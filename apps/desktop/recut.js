@@ -34,13 +34,29 @@ async function engine(entryPoint) {
 
 
 
+async function firstExisting(paths) {
+  for (const p of paths) {
+    try {
+      await fs.access(p);
+      return p;
+    } catch {
+      // try the next
+    }
+  }
+  return null;
+}
+
 /**
  * @param cuts  The ranges to remove, in raw-footage time. Normalised here, so a
  *              caller can hand over overlapping or tiny ranges from dragging.
  */
 export async function recutSession({ sessionDir, entryPoint, cuts, onProgress }) {
-  const source = path.join(sessionDir, 'demo.webm');
-  await fs.access(source);
+  // demo.webm from the continuous recorder, demo.mp4 from the segment recorder.
+  const source = await firstExisting([
+    path.join(sessionDir, 'demo.webm'),
+    path.join(sessionDir, 'demo.mp4'),
+  ]);
+  if (!source) throw new Error('This recording has no video to cut.');
 
   const { computeKeepRanges, mergeCutRanges, generateCleanVideo } = await engine(entryPoint);
 

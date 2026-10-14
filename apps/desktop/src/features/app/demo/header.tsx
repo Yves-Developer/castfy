@@ -10,8 +10,20 @@ export default function DemoHeader() {
   const { project } = useStudioProject();
   const exporter = useExport(project?.sessionId);
 
-  // Nothing to export until a recording exists.
-  const canExport = Boolean(project?.sessionId && project.session?.status === "complete");
+  /**
+   * Export renders the recording on disk, so a finished video is the real
+   * precondition. Status alone was too strict: it is derived from steps.json
+   * existing, and a session whose file landed after this view mounted stayed
+   * "recording" until something forced a refetch — leaving Export dead with
+   * nothing on screen saying why.
+   */
+  const session = project?.session;
+  const hasVideo = Boolean(
+    session?.videos && Object.keys(session.videos).length > 0
+  );
+  const canExport = Boolean(
+    project?.sessionId && (session?.status === "complete" || hasVideo)
+  );
 
   /**
    * The export renders the finished cut on disk. Applying an edit rewrites that
