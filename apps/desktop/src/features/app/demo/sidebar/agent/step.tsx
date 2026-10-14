@@ -164,7 +164,7 @@ export function StepsTimeline({
 
       {steps.length === 0 ? (
         <div className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-4 text-muted-foreground text-xs">
-          <Loader2Icon className="size-3.5 animate-spin" />
+          {live ? <Loader2Icon className="size-3.5 animate-spin" /> : null}
           {live ? "Opening the browser…" : "No actions recorded."}
         </div>
       ) : (

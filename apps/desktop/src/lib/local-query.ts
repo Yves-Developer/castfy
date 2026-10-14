@@ -135,13 +135,18 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
    * castfy0's own record of the run, line by line as it happens. This is what
    * makes the sidebar live: the agent's stdout is empty until it exits.
    *
-   * Pinned to the first recording seen after the run starts, so an older
-   * recording finishing in the background cannot interleave its events.
+   * Follows the newest recording the run starts. An agent that begins on a
+   * typo'd URL calls castfy0_start again, and the second recording is the real
+   * one — pinning to the first showed nothing from it. Starting over clears the
+   * list, so steps from the abandoned attempt do not mix in.
    */
   let liveSessionId: string | null = null;
   const offProgress = bridge.onProgress(({ sessionId, events: incoming }) => {
     for (const event of incoming) {
-      if (event.type === 'session' && !liveSessionId) liveSessionId = sessionId;
+      if (event.type === 'session' && sessionId !== liveSessionId) {
+        if (liveSessionId) push('reset', 'The agent started the recording again');
+        liveSessionId = sessionId;
+      }
       if (sessionId !== liveSessionId) continue;
       dispatchProgress(event, push);
     }
@@ -156,8 +161,8 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
 
     // Use the session this run actually produced rather than guessing at the
     // newest one — two runs close together would otherwise cross wires.
-    // Fall back to the recording the progress file named, if the run record
-    // never linked one.
+    // The main process picks the run's finished recording; the live one is the
+    // fallback when it could not.
     const recordedId = sessionId ?? liveSessionId;
     const session = recordedId ? await bridge.get(recordedId).catch(() => null) : null;
     if (!session) {

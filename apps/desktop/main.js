@@ -652,10 +652,11 @@ function watchLibrary() {
    * also attributes its folder to the live run, in case the folder appeared
    * before the watcher noticed it.
    */
-  const tail = new ProgressTail((sessionId, events) => {
+  progressTail = new ProgressTail((sessionId, events) => {
     runs.observe(sessionId);
     win?.webContents.send('demo:progress', { sessionId, events });
   });
+  const tail = progressTail;
   const onFile = (file) => {
     const isProgress =
       path.basename(file) === PROGRESS_FILE && path.dirname(path.dirname(file)) === root;
@@ -1062,6 +1063,26 @@ function composePrompt({ url, goal }) {
 
 let running = null;
 
+/** Follows castfy0's progress files; created by watchLibrary(). */
+let progressTail = null;
+
+/**
+ * The recording a run produced, out of every folder it created.
+ *
+ * One run can create several: an agent that starts on a typo'd URL and then
+ * calls castfy0_start again leaves an empty first folder behind. Taking the
+ * first one linked the project to that empty folder — no steps, no video.
+ * The newest finished recording is the one the agent meant; failing that, the
+ * newest folder at all.
+ */
+async function pickRunRecording(sessionIds) {
+  const root = libraryRoot();
+  for (const id of [...sessionIds].reverse()) {
+    if (await exists(path.join(root, id, 'steps.json'))) return id;
+  }
+  return sessionIds.at(-1) ?? null;
+}
+
 ipcMain.handle('demo:compose', (_e, input) => composePrompt(input));
 
 ipcMain.handle('demo:copy', (_e, input) => {
@@ -1123,10 +1144,30 @@ ipcMain.handle('demo:run', async (_e, input) => {
   // reads as "recording" forever.
   const run = runs.start({ url: input.url, goal: input.goal, projectId: input.projectId ?? null });
 
+  /**
+   * Re-reads the run's progress files every second, alongside the watcher.
+   * File-change notifications are not guaranteed on every platform and file
+   * system, and the live panel must not depend on them; reading an unchanged
+   * file costs one stat. Stopped in settle().
+   */
+  const progressPoll = setInterval(() => {
+    const root = libraryRoot();
+    for (const id of runs.active?.sessionIds ?? []) {
+      progressTail?.read(path.join(root, id, PROGRESS_FILE));
+    }
+  }, 1000);
+
   let stderr = '';
   let stdout = '';
-  const settle = (code, error) => {
+  const settle = async (code, error) => {
     running = null;
+    clearInterval(progressPoll);
+    // One last read, so lines written just before the agent exited still land.
+    await Promise.all(
+      (runs.active?.sessionIds ?? []).map((id) =>
+        progressTail?.read(path.join(libraryRoot(), id, PROGRESS_FILE))
+      )
+    );
 
     // Agents explain themselves on stdout as often as stderr.
     const explained =
@@ -1135,10 +1176,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
     const finished = runs.finish({ code, error: message });
 
-    // The watcher attributed any folder created during the run; the first one
-    // is this project's recording. Linking here is what turns a project the
-    // user typed a title for into a playable demo.
-    const sessionId = finished?.sessionIds?.[0] ?? null;
+    // Linking here is what turns a project the user typed a title for into a
+    // playable demo. See pickRunRecording for which folder that is.
+    const sessionId = await pickRunRecording(finished?.sessionIds ?? []);
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
 
     send('demo:done', {

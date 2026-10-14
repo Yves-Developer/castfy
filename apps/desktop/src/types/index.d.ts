@@ -60,6 +60,8 @@ export interface SseHandlers {
   onStep: (step: AgentStep) => void;
   /** Packaging moved on to a new stage. */
   onStage?: (stage: PackagingStage) => void;
+  /** The agent abandoned its recording and started a new one. */
+  onReset?: () => void;
 }
 
 export type TSettingPages = "agents" | "profile" | "sessions" | "billing";

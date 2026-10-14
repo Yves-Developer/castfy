@@ -77,6 +77,10 @@ export function AgentTab() {
     () => ({
       onStatus: setCurrentStatusMessage,
       onStep: (step) => setSteps((prev) => [...prev, step]),
+      onReset: () => {
+        setSteps([]);
+        setStages([]);
+      },
       onStage: (stage) =>
         setStages((prev) =>
           prev.some((s) => s.key === stage.key) ? prev : [...prev, stage]

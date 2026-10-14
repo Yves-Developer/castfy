@@ -38,6 +38,9 @@ function dispatchSseEvent(
     case "step":
       handlers.onStep(data as AgentStep);
       break;
+    case "reset":
+      handlers.onReset?.();
+      break;
     case "stage":
       handlers.onStage?.(data as unknown as PackagingStage);
       break;
