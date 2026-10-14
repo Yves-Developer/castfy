@@ -1,7 +1,11 @@
 # Builds the Castfy desktop installers.
 #
-# Run it by hand from the Actions tab, or push a tag like `desktop-v0.1.0` to
-# also attach the installers to a draft GitHub Release.
+# Three ways to start it:
+#   - by hand from the Actions tab (once this file is on main);
+#   - push a tag like `desktop-v0.1.0`;
+#   - push a branch like `release/desktop-v0.1.0`, for when tags cannot be
+#     pushed. The release job then creates the `desktop-v0.1.0` tag itself.
+# Tags and release branches also get a draft GitHub Release with the installers.
 #
 # Each target builds on its own runner: castfy0's ffmpeg, Remotion's compositor,
 # rspack and esbuild all install a native binary for the host only.
@@ -28,6 +32,8 @@ on:
   push:
     tags:
       - "desktop-v*"
+    branches:
+      - "release/desktop-v*"
 
 permissions:
   contents: write
@@ -122,7 +128,7 @@ jobs:
   release:
     name: Draft GitHub Release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    if: startsWith(github.ref, 'refs/tags/desktop-v') || startsWith(github.ref, 'refs/heads/release/desktop-v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -130,7 +136,15 @@ jobs:
           path: installers
           merge-multiple: true
 
+      # From a tag, that tag. From release/desktop-vX, the tag desktop-vX,
+      # which the release step creates on the built commit.
+      - name: Work out the tag
+        id: tag
+        run: echo "name=${GITHUB_REF_NAME#release/}" >> "$GITHUB_OUTPUT"
+
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
+          tag_name: ${{ steps.tag.outputs.name }}
+          target_commitish: ${{ github.sha }}
           files: installers/*
