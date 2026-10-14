@@ -119,6 +119,12 @@ const VIDEO_VARIANTS = [
   ['clean', 'demo-clean.webm'],
   ['source', 'demo-source.mp4'],
   ['raw', 'demo.webm'],
+  /**
+   * The segment recorder's video. It is already the finished demo — nothing to
+   * cut — and already seek-friendly H.264, so it stands in as the raw footage
+   * the editor and every fallback read.
+   */
+  ['raw', 'demo.mp4'],
 ];
 
 async function exists(p) {
@@ -154,6 +160,7 @@ async function readSession(root, name) {
   }
 
   for (const [key, file] of VIDEO_VARIANTS) {
+    if (rec.videos[key]) continue;
     if (await exists(path.join(dir, file))) {
       rec.videos[key] = `castfy://app/${MEDIA_PREFIX}${encodeURIComponent(name)}/${encodeURIComponent(file)}`;
     }

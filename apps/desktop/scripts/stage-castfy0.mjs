@@ -63,6 +63,11 @@ const REQUIRED_FEATURES = [
     marker: 'pendingFrames',
     what: 'step screenshots taken from the video (live ones glitch the recording)',
   },
+  {
+    file: 'dist/generator/segments-package.js',
+    marker: 'segments.json',
+    what: 'the segment recorder (demo.mp4, filmed without dead time)',
+  },
 ];
 
 async function assertSupported(source) {

@@ -20,6 +20,7 @@ const SOURCE_PREFERENCE = [
   'demo-with-audio.mp4',
   'demo-clean.webm',
   'demo.webm',
+  'demo.mp4',
 ];
 
 /**
@@ -29,7 +30,7 @@ const SOURCE_PREFERENCE = [
  * cut's timings, so pairing them with a different cut would desync the voice.
  * A trimmed export is silent until narration can be re-timed.
  */
-const UNCUT_SOURCE_PREFERENCE = ['demo-source.mp4', 'demo.webm'];
+const UNCUT_SOURCE_PREFERENCE = ['demo-source.mp4', 'demo.webm', 'demo.mp4'];
 
 /**
  * The kept spans for a cut, in source time.
