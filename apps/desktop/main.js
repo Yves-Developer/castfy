@@ -3,7 +3,17 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { app, BrowserWindow, clipboard, ipcMain, net, protocol, shell } from 'electron';
+import {
+  app,
+  BaseWindow,
+  BrowserWindow,
+  clipboard,
+  ipcMain,
+  net,
+  protocol,
+  shell,
+  WebContentsView,
+} from 'electron';
 import chokidar from 'chokidar';
 import { buildCommand, detectAgents, pickAgent } from './agents.js';
 import { browserStatus, installBrowsers } from './browsers.js';
@@ -555,24 +565,44 @@ function startRoute() {
 }
 
 let win = null;
+/** The studio's web contents: what the app's UI runs in. */
+let ui = null;
 
+/**
+ * The main window holds the studio as a view of its own, so the recording
+ * browser can sit underneath it (recording-window.js).
+ */
 function createWindow() {
-  win = new BrowserWindow({
+  win = new BaseWindow({
     width: 1180,
     height: 780,
     backgroundColor: '#0b0b0d',
     title: 'Castfy',
-    webPreferences: { preload: path.join(dirname, 'preload.cjs') },
   });
+  const studio = new WebContentsView({ webPreferences: { preload: path.join(dirname, 'preload.cjs') } });
+  studio.setBackgroundColor('#0b0b0d');
+  win.contentView.addChildView(studio);
+  const fit = () => {
+    const { width, height } = win.getContentBounds();
+    studio.setBounds({ x: 0, y: 0, width, height });
+  };
+  fit();
+  win.on('resize', fit);
+  win.on('closed', () => {
+    if (!studio.webContents.isDestroyed()) studio.webContents.close();
+    win = null;
+    ui = null;
+  });
+  ui = studio.webContents;
 
   // Renderer errors otherwise only exist inside devtools, which is no help when
   // the window is being driven headlessly or by someone reporting a bug.
-  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+  ui.on('console-message', (_event, level, message, line, sourceId) => {
     if (level < 2) return; // warnings and errors only
     const where = sourceId ? ` (${path.basename(sourceId)}:${line})` : '';
     console.error(`[renderer] ${message}${where}`);
   });
-  win.webContents.on('render-process-gone', (_e, details) => {
+  ui.on('render-process-gone', (_e, details) => {
     console.error('[renderer] process gone:', details.reason);
   });
 
@@ -580,27 +610,27 @@ function createWindow() {
   // the build from disk.
   const devServer = process.env.CASTFY_DEV_SERVER;
   if (devServer) {
-    win.loadURL(devServer);
-    win.webContents.openDevTools({ mode: 'detach' });
+    ui.loadURL(devServer);
+    ui.openDevTools({ mode: 'detach' });
   } else {
     // Not loadFile: file:// would break every root-absolute asset path.
-    win.loadURL(`castfy://app/index.html${startRoute()}`);
+    ui.loadURL(`castfy://app/index.html${startRoute()}`);
   }
 
   const shot = argValue('--shot');
   if (shot) {
-    win.webContents.once('did-finish-load', async () => {
+    ui.once('did-finish-load', async () => {
       // Wait for content, not just for load: the gate resolves asynchronously
       // and renders nothing until it knows whether setup is needed.
       const deadline = Date.now() + 20000;
       let markup = 0;
       while (Date.now() < deadline) {
-        markup = await win.webContents
+        markup = await ui
           .executeJavaScript('document.getElementById("root")?.innerHTML.length ?? 0')
           .catch(() => 0);
         // The gate and the detect() spinner both render early; wait for the
         // screen's own copy so the capture is not of a loading state.
-        const settled = await win.webContents
+        const settled = await ui
           .executeJavaScript(
             `(() => {
               const t = document.body.innerText;
@@ -618,7 +648,7 @@ function createWindow() {
       // Optionally scrub to a position first, so a specific moment can be seen.
       const seekRatio = Number(argValue('--seek-ratio'));
       if (Number.isFinite(seekRatio)) {
-        await win.webContents
+        await ui
           .executeJavaScript(
             `(() => {
               const el = document.querySelector('[data-castfy="scrubber"]');
@@ -639,8 +669,8 @@ function createWindow() {
       // One more beat so fonts and images settle before the frame is grabbed.
       await new Promise((r) => setTimeout(r, 1200));
 
-      const url = await win.webContents.executeJavaScript('location.href').catch(() => '?');
-      const text = await win.webContents
+      const url = await ui.executeJavaScript('location.href').catch(() => '?');
+      const text = await ui
         .executeJavaScript('document.body.innerText.slice(0, 300)')
         .catch(() => '');
       console.log(`--- on screen ---\n${text}\n-----------------`);
@@ -651,7 +681,7 @@ function createWindow() {
       await new Promise((r) => setTimeout(r, 800));
 
       const bounds = win.getContentBounds();
-      const image = await win.webContents.capturePage({
+      const image = await ui.capturePage({
         x: 0,
         y: 0,
         width: bounds.width,
@@ -691,7 +721,15 @@ function watchLibrary() {
    */
   progressTail = new ProgressTail((sessionId, events) => {
     runs.observe(sessionId);
-    win?.webContents.send('demo:progress', { sessionId, events });
+    ui?.send('demo:progress', { sessionId, events });
+    // castfy0 says which browser it records in. When it is its own, the
+    // recording view would only ever show its placeholder: close it, so the
+    // studio shows castfy0's live frame instead.
+    const chosen = events.findLast((e) => e.type === 'browser');
+    if (chosen && !chosen.host && recording) {
+      if (chosen.error) console.error(`[recording] castfy0 uses its own browser: ${chosen.error}`);
+      closeRecording();
+    }
   });
   const tail = progressTail;
   const onFile = (file) => {
@@ -704,7 +742,7 @@ function watchLibrary() {
 
   const ping = () => {
     clearTimeout(timer);
-    timer = setTimeout(() => win?.webContents.send('library:changed'), 400);
+    timer = setTimeout(() => ui?.send('library:changed'), 400);
   };
   watcher.on('all', ping);
   app.on('before-quit', () => watcher.close());
@@ -717,8 +755,24 @@ function watchLibrary() {
  */
 app.commandLine.appendSwitch('remote-debugging-port', '0');
 
-/** The open recording window, while a run is going. */
+/**
+ * A page that is never drawn on screen is not a normal page to Chromium on
+ * macOS. The recording view is covered by the studio and Castfy may be behind
+ * another app while it records; keep it rendering at full rate regardless.
+ */
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+
+/** The open recording browser, while a run is going. */
 let recording = null;
+
+/** Closes the recording browser and tells the studio its frames have stopped. */
+function closeRecording() {
+  recording?.close();
+  recording = null;
+  ui?.send('recording:frame', null);
+}
 
 /**
  * Where castfy0 learns about the recording window. The agent starts castfy0
@@ -731,7 +785,9 @@ const HOST_FILE = '.castfy-host.json';
 async function writeHostFile(endpoint, marker) {
   const file = path.join(libraryRoot(), HOST_FILE);
   await fs.mkdir(libraryRoot(), { recursive: true });
-  await fs.writeFile(file, JSON.stringify({ endpoint, marker, pid: process.pid }), 'utf8');
+  // Written beside it and renamed, so castfy0 never reads half a file.
+  await fs.writeFile(`${file}.tmp`, JSON.stringify({ endpoint, marker, pid: process.pid }), 'utf8');
+  await fs.rename(`${file}.tmp`, file);
 }
 
 function removeHostFile() {
@@ -803,6 +859,7 @@ if (process.argv.includes('--probe-timeline')) {
       show: true,
       webPreferences: { preload: path.join(dirname, 'preload.cjs') },
     });
+    ui = win.webContents;
     win.webContents.on('console-message', (_e, level, message) => {
       if (level >= 2) console.error('[renderer]', message);
     });
@@ -970,7 +1027,7 @@ app.whenReady().then(async () => {
   watchLibrary();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (!win) createWindow();
   });
 });
 
@@ -1035,7 +1092,7 @@ ipcMain.handle('export:recut', async (_e, sessionId, cuts) => {
       sessionDir: dir,
       entryPoint: mcpEntry(),
       cuts,
-      onProgress: (message) => win?.webContents.send('export:progress', { sessionId, message }),
+      onProgress: (message) => ui?.send('export:progress', { sessionId, message }),
     });
     return { ok: true, ...result };
   } catch (err) {
@@ -1046,7 +1103,7 @@ ipcMain.handle('export:recut', async (_e, sessionId, cuts) => {
 ipcMain.handle('export:render', async (_e, sessionId, spec) => {
   try {
     const result = await runExport(sessionId, spec ?? {}, (message) =>
-      win?.webContents.send('export:progress', { sessionId, message })
+      ui?.send('export:progress', { sessionId, message })
     );
     return { ok: true, ...result };
   } catch (err) {
@@ -1109,7 +1166,7 @@ ipcMain.handle('setup:installBrowsers', () =>
   installBrowsers({
     mcpEntry: mcpEntry(),
     browsersPath: browsersPath(),
-    onProgress: (progress) => win?.webContents.send('setup:progress', progress),
+    onProgress: (progress) => ui?.send('setup:progress', progress),
   })
 );
 
@@ -1225,14 +1282,15 @@ ipcMain.handle('demo:run', async (_e, input) => {
     };
   }
 
-  const send = (channel, payload) => win?.webContents.send(channel, payload);
+  const send = (channel, payload) => ui?.send(channel, payload);
 
-  // The browser castfy0 records in: Castfy's own window, shown in the studio.
-  // Without the DevTools endpoint castfy0 launches its own browser as before.
+  // The browser castfy0 records in: a view inside Castfy's window, shown in
+  // the studio. Without the DevTools endpoint castfy0 launches its own browser.
   const endpoint = await devtoolsEndpoint(app.getPath('userData'));
-  recording?.close();
+  closeRecording();
   recording = endpoint
     ? await openRecordingWindow({
+        host: win,
         runId: Date.now().toString(36),
         viewport: { width: 1280, height: 720 },
         visible: input.headless === false,
@@ -1280,35 +1338,14 @@ ipcMain.handle('demo:run', async (_e, input) => {
     for (const id of runs.active?.sessionIds ?? []) {
       progressTail?.read(path.join(root, id, PROGRESS_FILE));
     }
-    unusedRecordingWindow();
   }, 1000);
-
-  /**
-   * castfy0 navigates the recording window as it starts. A recording that has
-   * begun while the window still shows its placeholder is in castfy0's own
-   * browser (an older castfy0, or the window could not be reached): close the
-   * window, so the studio shows castfy0's live frame instead of a placeholder.
-   */
-  let sessionSeenAt = null;
-  const unusedRecordingWindow = () => {
-    if (!recording || !(runs.active?.sessionIds?.length > 0)) return;
-    sessionSeenAt ??= Date.now();
-    if (Date.now() - sessionSeenAt < 10_000) return;
-    const url = recording.window.isDestroyed() ? '' : recording.window.webContents.getURL();
-    if (!url.includes(recording.marker)) return;
-    recording.close();
-    recording = null;
-    send('recording:frame', null);
-  };
 
   let stderr = '';
   let stdout = '';
   const settle = async (code, error) => {
     running = null;
-    recording?.close();
-    recording = null;
+    closeRecording();
     await removeHostFile();
-    send('recording:frame', null);
     clearInterval(progressPoll);
     // One last read, so lines written just before the agent exited still land.
     await Promise.all(

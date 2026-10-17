@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, WebContentsView } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -7,13 +7,17 @@ import path from 'node:path';
  *
  * castfy0 used to launch its own Chrome. Placed off-screen it was still shown
  * on macOS (the system moves windows back on screen), and headless Chrome
- * captures at CSS size, losing the 2x picture. So Castfy keeps the browser:
- * a window of its own that is never shown, at the recording's viewport size
- * and the display's pixel ratio, which castfy0 drives over the DevTools
- * protocol (CASTFY0_HOST_CDP / CASTFY0_HOST_PAGE). The studio shows its frames
- * live and passes the user's clicks and keys through, so signing in to a site
- * happens right there. Logins stay in the browser's own profile between
- * recordings.
+ * captures at CSS size, losing the 2x picture. A Castfy window that is never
+ * shown did not work either: on macOS a DevTools client connecting to it got
+ * no answer, so castfy0 fell back to its own Chrome.
+ *
+ * So the browser is a view inside Castfy's own window, underneath the studio.
+ * To macOS and Chromium it is an ordinary page on screen: it paints at the
+ * display's pixel ratio and answers like any other. The user never sees it
+ * directly; the studio covers it and shows its frames live, passing clicks and
+ * keys through, so signing in to a site happens right there. castfy0 drives it
+ * over the DevTools protocol (see main.js, HOST_FILE). Logins stay in the
+ * browser's own profile between recordings.
  */
 
 /** Castfy's browser profile: kept on disk, apart from the app's own session. */
@@ -21,8 +25,13 @@ const PARTITION = 'persist:castfy-browser';
 /** The live view does not need every frame, or full size. */
 const LIVE_FPS = 10;
 const LIVE_WIDTH = 1280;
-/** How long a hidden window may take to paint before offscreen is used. */
-const PAINT_PROBE_MS = 2500;
+
+const WEB_PREFERENCES = {
+  partition: PARTITION,
+  // The page must run at full speed while it is filmed, also when Castfy is
+  // behind another app.
+  backgroundThrottling: false,
+};
 
 /** The DevTools endpoint, once the app is ready; null without one. */
 export async function devtoolsEndpoint(userData) {
@@ -35,7 +44,7 @@ export async function devtoolsEndpoint(userData) {
   }
 }
 
-/** The first page: a marker castfy0 finds the window by, that also animates so painting can be checked. */
+/** The first page: a marker castfy0 finds the browser by. */
 function markerPage(marker) {
   const html =
     '<body style="margin:0;background:#0b0b0d;color:#888;font:14px system-ui;display:grid;place-items:center;height:100vh">' +
@@ -44,100 +53,73 @@ function markerPage(marker) {
   return `data:text/html;charset=utf-8,${encodeURIComponent(html)}#${marker}`;
 }
 
-function createWindow({ viewport, visible, offscreen }) {
-  return new BrowserWindow({
-    width: viewport.width,
-    height: viewport.height,
-    useContentSize: true,
-    show: visible,
-    resizable: false,
-    title: 'Castfy recording',
-    webPreferences: {
-      partition: PARTITION,
-      // A hidden window is a background window to Chromium; the page must run
-      // at full speed while it is filmed.
-      backgroundThrottling: false,
-      offscreen,
-    },
-  });
-}
-
-/** Resolves true if the window delivers a frame within PAINT_PROBE_MS. */
-function paints(win, offscreen) {
-  return new Promise((resolve) => {
-    const done = (value) => {
-      clearTimeout(timer);
-      if (offscreen) win.webContents.off('paint', onPaint);
-      else win.webContents.endFrameSubscription();
-      resolve(value);
-    };
-    const onPaint = () => done(true);
-    const timer = setTimeout(() => done(false), PAINT_PROBE_MS);
-    if (offscreen) win.webContents.on('paint', onPaint);
-    else win.webContents.beginFrameSubscription(false, () => done(true));
-  });
-}
-
 /**
- * Opens the recording window for a run.
+ * Opens the recording browser for a run.
  *
- * `onFrame` receives JPEG frames for the live view. Returns null if no window
- * could be made to paint; the run then falls back to castfy0's own browser.
+ * In `host`, Castfy's main window, as a view under the studio; or, when the
+ * user wants to watch it (`visible`), as a window of its own. `onFrame`
+ * receives JPEG frames for the live view.
  */
-export async function openRecordingWindow({ runId, viewport, visible, onFrame }) {
+export async function openRecordingWindow({ host, runId, viewport, visible, onFrame }) {
   const marker = `castfy-recording-${runId}`;
-  let win = null;
-  let offscreen = false;
-  // A hidden window paints on the systems tried, but not every compositor has
-  // to: then an offscreen one, which renders without any native window.
-  for (const mode of visible ? [false] : [false, true]) {
-    win = createWindow({ viewport, visible, offscreen: mode });
-    if (mode) win.webContents.setFrameRate(60);
-    const painted = paints(win, mode);
-    await win.loadURL(markerPage(marker)).catch(() => {});
-    if (await painted) {
-      offscreen = mode;
-      break;
-    }
-    win.destroy();
-    win = null;
+  let window = null;
+  let view = null;
+  if (visible || !host || host.isDestroyed()) {
+    window = new BrowserWindow({
+      width: viewport.width,
+      height: viewport.height,
+      useContentSize: true,
+      resizable: false,
+      title: 'Castfy recording',
+      webPreferences: WEB_PREFERENCES,
+    });
+  } else {
+    view = new WebContentsView({ webPreferences: WEB_PREFERENCES });
+    view.setBounds({ x: 0, y: 0, width: viewport.width, height: viewport.height });
+    // Index 0: under the studio's own view, which covers it.
+    host.contentView.addChildView(view, 0);
   }
-  if (!win) return null;
+  const contents = (window ?? view).webContents;
+  await contents.loadURL(markerPage(marker)).catch(() => {});
 
-  // Pages the site opens (target=_blank, popups) stay hidden too, and castfy0
-  // sees them as tabs.
-  win.webContents.setWindowOpenHandler(() => ({
-    action: 'allow',
-    overrideBrowserWindowOptions: {
-      show: visible,
-      webPreferences: { partition: PARTITION, backgroundThrottling: false },
-    },
-  }));
+  // A link that opens a new window loads here instead: another window would
+  // be one the studio does not show, and macOS does not draw it.
+  contents.setWindowOpenHandler(({ url }) => {
+    if (visible) {
+      return { action: 'allow', overrideBrowserWindowOptions: { webPreferences: WEB_PREFERENCES } };
+    }
+    contents.loadURL(url).catch(() => {});
+    return { action: 'deny' };
+  });
 
   let lastSent = 0;
-  const onImage = (image) => {
+  contents.beginFrameSubscription(false, (image) => {
     const now = Date.now();
     if (now - lastSent < 1000 / LIVE_FPS || image.isEmpty()) return;
     lastSent = now;
     const size = image.getSize();
     const scaled = size.width > LIVE_WIDTH ? image.resize({ width: LIVE_WIDTH, quality: 'good' }) : image;
     onFrame?.({ runId, jpeg: scaled.toJPEG(75), viewport });
-  };
-  if (offscreen) win.webContents.on('paint', (_e, _dirty, image) => onImage(image));
-  else win.webContents.beginFrameSubscription(false, onImage);
+  });
 
+  let closed = false;
   return {
     marker,
-    window: win,
+    /** The page castfy0 records in. */
+    contents,
     /** Passes the studio's mouse and keyboard to the page. */
     input(event) {
-      if (win.isDestroyed()) return;
-      win.webContents.sendInputEvent(event);
+      if (!closed) contents.sendInputEvent(event);
     },
     close() {
-      if (win.isDestroyed()) return;
-      if (!offscreen) win.webContents.endFrameSubscription();
-      win.destroy();
+      if (closed) return;
+      closed = true;
+      if (!contents.isDestroyed()) contents.endFrameSubscription();
+      if (window && !window.isDestroyed()) window.destroy();
+      if (view) {
+        if (!host.isDestroyed()) host.contentView.removeChildView(view);
+        if (!contents.isDestroyed()) contents.close();
+      }
     },
   };
 }
