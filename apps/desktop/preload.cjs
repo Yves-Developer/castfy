@@ -54,4 +54,8 @@ contextBridge.exposeInMainWorld('castfy', {
   onLog: on('demo:log'),
   onDone: on('demo:done'),
   onProgress: on('demo:progress'),
+
+  // the recording browser, live in the studio
+  onRecordingFrame: on('recording:frame'),
+  recordingInput: (event) => ipcRenderer.send('recording:input', event),
 });
