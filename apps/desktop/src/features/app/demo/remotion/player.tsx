@@ -1,7 +1,9 @@
 "use client";
 import { Player, type PlayerRef } from "@remotion/player";
 import { useEffect, useState } from "react";
+import { useLive } from "@/lib/live-view";
 import { useBackgroundStore } from "@/lib/store";
+import { LiveView } from "./live-view";
 import { StudioComposition } from "./comp";
 import { calculateMetadata } from "./meta";
 export function RemotionPlayer({
@@ -19,8 +21,10 @@ export function RemotionPlayer({
   onVolumeChange?: (volume: number) => void;
   ref: React.RefObject<PlayerRef | null>;
 }) {
-  const { backgroundConfig, generatedVideoUrl, imageOverlays } =
+  const { backgroundConfig, generatedVideoUrl, imageOverlays, zoomTrack } =
     useBackgroundStore();
+  // While a run records, the page it is working on, from castfy0's live frame.
+  const live = useLive();
   const [durationInFrames, setDurationInFrames] = useState(1); // 1 frame @ 30fps = 00:00
 
   useEffect(() => {
@@ -104,6 +108,10 @@ export function RemotionPlayer({
     };
   }, [onFrameChange, onMuteChange, onPlaybackChange, onVolumeChange, ref]);
 
+  if (!generatedVideoUrl && live.sessionId) {
+    return <LiveView sessionId={live.sessionId} />;
+  }
+
   if (!generatedVideoUrl) {
     return (
       <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center">
@@ -131,6 +139,7 @@ export function RemotionPlayer({
         url: generatedVideoUrl ?? "",
         backgroundConfig,
         imageOverlays,
+        zoom: zoomTrack,
       }}
       loop
       ref={ref}

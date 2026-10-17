@@ -1,5 +1,6 @@
 "use client";
-import { AbsoluteFill, Img, staticFile, Video } from "remotion";
+import { AbsoluteFill, Img, staticFile, useCurrentFrame, Video } from "remotion";
+import { cameraAt, cameraStyle, planShots, type ZoomTrack } from "../../../../../remotion/zoom";
 import {
   type GradientKey,
   gradientColors,
@@ -104,15 +105,27 @@ function ShadowOverlay({ overlay }: { overlay: ImageOverlay }) {
   );
 }
 
+/** Studio frames run at 30 fps, like the export. */
+const FPS = 30;
+
 export const StudioComposition = ({
   url,
   backgroundConfig,
   imageOverlays = [],
+  zoom = null,
 }: {
   url: string;
   backgroundConfig: BackgroundConfig;
   imageOverlays?: ImageOverlay[];
+  zoom?: ZoomTrack | null;
 }) => {
+  const frame = useCurrentFrame();
+  // Older recordings open on a couple of seconds of blank page, which the
+  // preview skips. The segment recorder's demo.mp4 starts on the opening shot.
+  const trimBefore = url.includes("demo.mp4") ? 0 : 60;
+  const camera = cameraStyle(
+    cameraAt(((frame + trimBefore) / FPS) * 1000, planShots(zoom))
+  );
   return (
     <AbsoluteFill>
       {/* Background layer - bottom */}
@@ -127,11 +140,15 @@ export const StudioComposition = ({
 
       {/* Video layer - top */}
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-        <Video
-          src={url}
-          style={{ width: "80%", borderRadius: 12 }}
-          trimBefore={60}
-        />
+        <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
+          <div style={camera}>
+            <Video
+              src={url}
+              style={{ width: "100%", display: "block" }}
+              trimBefore={trimBefore}
+            />
+          </div>
+        </div>
       </AbsoluteFill>
     </AbsoluteFill>
   );

@@ -98,12 +98,20 @@ export function useStudioSource(
   const url =
     (mode === 'result' ? bestVideo(project?.session) : editingSource(project?.session)) ?? null;
 
+  const setZoomTrack = useBackgroundStore((s) => s.setZoomTrack);
+  // Auto-zoom is timed to demo.mp4 itself; a cut file has moved its frames.
+  const zoom = url?.includes('demo.mp4') ? (project?.session?.timeline?.zoom ?? null) : null;
+
   useEffect(() => {
     setGeneratedVideoUrl(url);
+    setZoomTrack(zoom);
     // Cleared on the way out, so a project that has not been recorded yet
     // cannot show the previous one's footage.
-    return () => setGeneratedVideoUrl(null);
-  }, [url, setGeneratedVideoUrl]);
+    return () => {
+      setGeneratedVideoUrl(null);
+      setZoomTrack(null);
+    };
+  }, [url, zoom, setGeneratedVideoUrl, setZoomTrack]);
 
   return url;
 }

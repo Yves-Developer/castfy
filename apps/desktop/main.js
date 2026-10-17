@@ -10,6 +10,7 @@ import { browserStatus, installBrowsers } from './browsers.js';
 import { connectClient, detectClients, disconnectClient } from './clients.js';
 import { ProjectStore } from './projects.js';
 import { ensureSourceVideo } from './ensure-source.js';
+import { agentEnv, openLogin, signedIn } from './agent-auth.js';
 import { PROGRESS_FILE, ProgressTail } from './progress.js';
 import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
@@ -268,7 +269,24 @@ async function readTimeline(dir, steps) {
       endMs: seg.endMs,
       text: seg.text,
     })),
+    zoom: await readZoomTrack(dir),
   };
+}
+
+/**
+ * Where auto-zoom should move to, from the segment recorder's clicks and
+ * hovers (segments.json). Null for recordings that have none.
+ */
+export async function readZoomTrack(dir) {
+  let manifest;
+  try {
+    manifest = JSON.parse(await fs.readFile(path.join(dir, 'segments.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+  const events = (manifest?.segments ?? []).flatMap((s) => s.events ?? []);
+  if (!manifest?.viewport || events.length === 0) return null;
+  return { viewport: manifest.viewport, events };
 }
 
 async function getSession(id) {
@@ -421,10 +439,21 @@ export function explainAgentFailure({ code, stdout = '', stderr = '' }) {
     };
   }
 
-  if (/not logged in|please (?:run )?login|authenticate|unauthorized/i.test(text)) {
+  /**
+   * Agents' own wording for a missing or expired sign-in. Deliberately not a
+   * bare "authenticate" or "unauthorized": castfy0 has a castfy0_authenticate
+   * tool, and a site under test can answer 401, and both read as "not signed
+   * in" to a looser pattern.
+   */
+  if (
+    /not logged in|please (?:run )?\/?login|failed to authenticate|oauth session expired|auth(?:entication)?_failed/i.test(
+      text
+    )
+  ) {
     return {
       message: 'That agent is not signed in.',
       hint: 'Sign in to it, then try again.',
+      needsLogin: true,
     };
   }
 
@@ -1092,6 +1121,22 @@ async function pickRunRecording(sessionIds) {
 
 ipcMain.handle('demo:compose', (_e, input) => composePrompt(input));
 
+/** Opens the agent's own login in a terminal; see agent-auth.js. */
+ipcMain.handle('agent:login', async (_e, agentId) => {
+  const id = agentId ?? (await pickAgent(settings.state.activeAgent));
+  const command = id ? await buildCommand(id, {}) : null;
+  if (!command) return { ok: false, error: 'That agent is not installed.' };
+  return openLogin(id, command.binary);
+});
+
+/** Whether the agent is signed in: true, false, or null when it cannot tell. */
+ipcMain.handle('agent:signedIn', async (_e, agentId) => {
+  const id = agentId ?? (await pickAgent(settings.state.activeAgent));
+  const command = id ? await buildCommand(id, {}) : null;
+  if (!command) return null;
+  return signedIn(id, command.binary, agentEnv(id, process.env));
+});
+
 ipcMain.handle('demo:copy', (_e, input) => {
   clipboard.writeText(composePrompt(input));
   return true;
@@ -1123,6 +1168,25 @@ ipcMain.handle('demo:run', async (_e, input) => {
   });
   if (!command) return { ok: false, error: `${agentId} is no longer installed.` };
 
+  const env = agentEnv(agentId, {
+    ...process.env,
+    CASTFY0_OUTPUT_DIR: libraryRoot(),
+    PLAYWRIGHT_BROWSERS_PATH: browsersPath(),
+    // The composer's switch: in the background (a hidden window, shown live
+    // in the studio) unless the user wants to watch the browser itself.
+    CASTFY0_BROWSER_WINDOW: input.headless === false ? 'visible' : 'hidden',
+  });
+
+  // A signed-out agent fails a minute in with an exit code; asking first means
+  // the user gets a Sign in button instead.
+  if ((await signedIn(agentId, command.binary, env)) === false) {
+    return {
+      ok: false,
+      error: `${command.label} is not signed in.`,
+      needsLogin: agentId,
+    };
+  }
+
   const send = (channel, payload) => win?.webContents.send(channel, payload);
 
   running = spawn(command.binary, command.args, {
@@ -1134,11 +1198,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
     // argument meant cmd.exe re-split a multi-line prompt into separate
     // arguments, and Codex rejected the run before it began.
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: {
-      ...process.env,
-      CASTFY0_OUTPUT_DIR: libraryRoot(),
-      PLAYWRIGHT_BROWSERS_PATH: browsersPath(),
-    },
+    env,
   });
 
   // Written and closed immediately: agents wait on stdin and will not start
@@ -1192,6 +1252,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
       code,
       error: message,
       hint: explained?.hint ?? null,
+      needsLogin: explained?.needsLogin ? agentId : null,
       runId: run.id,
       projectId: run.projectId,
       sessionId,

@@ -1,3 +1,4 @@
+import type { ZoomTrack } from '../../remotion/zoom';
 export type SessionStatus = 'complete' | 'recording' | 'failed' | 'abandoned';
 
 export type VideoVariant = 'audioClean' | 'audio' | 'clean' | 'source' | 'raw';
@@ -123,6 +124,8 @@ export interface Timeline {
   appliedCuts: CutRange[];
   steps: TimelineStep[];
   narration: Array<{ stepId: number; startMs: number; endMs: number; text: string }>;
+  /** Clicks and hovers auto-zoom follows; absent for older recordings. */
+  zoom?: ZoomTrack | null;
 }
 
 export interface Project {
@@ -146,6 +149,8 @@ export interface DemoInput {
   projectId?: string | null;
   /** Overrides the saved choice for this run. */
   agentId?: string | null;
+  /** False shows the recording browser on screen; otherwise it is hidden. */
+  headless?: boolean;
 }
 
 /** Whether the browser the recorder and exporter run on is downloaded. */
@@ -231,7 +236,13 @@ export interface CastfyBridge {
 
   compose(input: DemoInput): Promise<string>;
   copyPrompt(input: DemoInput): Promise<boolean>;
-  run(input: DemoInput): Promise<{ ok: boolean; error?: string; bin?: string; runId?: string }>;
+  run(
+    input: DemoInput
+  ): Promise<{ ok: boolean; error?: string; bin?: string; runId?: string; needsLogin?: string }>;
+  /** Opens the agent's own login in a terminal. */
+  login(agentId?: string | null): Promise<{ ok: boolean; error?: string; command?: string }>;
+  /** Whether the agent is signed in; null when it cannot tell. */
+  signedIn(agentId?: string | null): Promise<boolean | null>;
   cancel(): Promise<boolean>;
   onLog(cb: (chunk: string) => void): () => void;
   /** Live events from the recording being made, as castfy0 writes them. */

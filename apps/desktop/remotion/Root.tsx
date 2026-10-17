@@ -1,4 +1,5 @@
-import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile } from 'remotion';
+import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from 'remotion';
+import { cameraAt, cameraStyle, planShots, type ZoomTrack } from './zoom';
 
 /** A stretch of source footage to keep, in source time. */
 export interface KeepSpec {
@@ -46,6 +47,11 @@ export interface DemoProps extends Record<string, unknown> {
    * source needs, and what every export did before trimming moved in here.
    */
   keeps?: KeepSpec[];
+  /**
+   * Where to zoom, from the recording's clicks (see zoom.ts). Only applied to
+   * untrimmed footage: cuts would move the events out from under their times.
+   */
+  zoom?: ZoomTrack | null;
 }
 
 const FPS = 30;
@@ -111,10 +117,14 @@ export function Demo({
   padding,
   radius,
   keeps,
+  zoom,
 }: DemoProps) {
+  const frame = useCurrentFrame();
   const behind = overlays.filter((o) => o.layer === 'back');
   const front = overlays.filter((o) => o.layer !== 'back');
   const segments = keeps?.length ? planSegments(keeps).segments : null;
+  const shots = segments ? [] : planShots(zoom);
+  const camera = cameraStyle(cameraAt((frame / FPS) * 1000, shots));
 
   return (
     <AbsoluteFill style={{ background: backgroundCss }}>
@@ -156,7 +166,9 @@ export function Demo({
               </Sequence>
             ))
           ) : (
-            <OffthreadVideo src={staticFile(src)} style={{ width: '100%', display: 'block' }} />
+            <div style={camera}>
+              <OffthreadVideo src={staticFile(src)} style={{ width: '100%', display: 'block' }} />
+            </div>
           )}
         </div>
       </AbsoluteFill>
@@ -183,6 +195,7 @@ export function RemotionRoot() {
         width: 1920,
         height: 1080,
         keeps: [],
+        zoom: null,
       }}
       durationInFrames={FPS}
       fps={FPS}
