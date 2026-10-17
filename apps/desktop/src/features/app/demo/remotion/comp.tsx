@@ -1,5 +1,6 @@
 "use client";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame, Video } from "remotion";
+import { Pointer } from "../../../../../remotion/pointer";
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from "../../../../../remotion/zoom";
 import {
   type GradientKey,
@@ -123,9 +124,8 @@ export const StudioComposition = ({
   // Older recordings open on a couple of seconds of blank page, which the
   // preview skips. The segment recorder's demo.mp4 starts on the opening shot.
   const trimBefore = url.includes("demo.mp4") ? 0 : 60;
-  const camera = cameraStyle(
-    cameraAt(((frame + trimBefore) / FPS) * 1000, planShots(zoom))
-  );
+  const ms = ((frame + trimBefore) / FPS) * 1000;
+  const camera = cameraStyle(cameraAt(ms, planShots(zoom)));
   return (
     <AbsoluteFill>
       {/* Background layer - bottom */}
@@ -141,12 +141,13 @@ export const StudioComposition = ({
       {/* Video layer - top */}
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
         <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
-          <div style={camera}>
+          <div style={{ ...camera, position: "relative" }}>
             <Video
               src={url}
               style={{ width: "100%", display: "block" }}
               trimBefore={trimBefore}
             />
+            <Pointer ms={ms} track={zoom} />
           </div>
         </div>
       </AbsoluteFill>
