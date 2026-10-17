@@ -771,7 +771,7 @@ let recording = null;
 function closeRecording() {
   recording?.close();
   recording = null;
-  ui?.send('recording:frame', null);
+  ui?.send('recording:state', null);
 }
 
 /**
@@ -1294,10 +1294,11 @@ ipcMain.handle('demo:run', async (_e, input) => {
         runId: Date.now().toString(36),
         viewport: { width: 1280, height: 720 },
         visible: input.headless === false,
-        onFrame: (frame) => send('recording:frame', frame),
       })
     : null;
   if (recording) {
+    // The studio shows it live and passes the user's clicks and keys to it.
+    send('recording:state', { viewport: { width: 1280, height: 720 } });
     env.CASTFY0_HOST_CDP = endpoint;
     env.CASTFY0_HOST_PAGE = recording.marker;
     await writeHostFile(endpoint, recording.marker);

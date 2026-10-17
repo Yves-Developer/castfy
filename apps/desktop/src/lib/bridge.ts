@@ -247,8 +247,8 @@ export interface CastfyBridge {
   onLog(cb: (chunk: string) => void): () => void;
   /** Live events from the recording being made, as castfy0 writes them. */
   onProgress(cb: (p: { sessionId: string; events: ProgressEvent[] }) => void): () => void;
-  /** Frames of the recording browser while a run is going; null once it closes. */
-  onRecordingFrame(cb: (frame: RecordingFrame | null) => void): () => void;
+  /** The recording browser, while a run has one open; null once it closes. */
+  onRecordingState(cb: (state: RecordingState | null) => void): () => void;
   /** Passes a mouse or keyboard event to the recording browser. */
   recordingInput(event: RecordingInput): void;
   onDone(
@@ -265,10 +265,8 @@ export interface CastfyBridge {
   ): () => void;
 }
 
-/** One live frame of the browser a run records in (recording-window.js). */
-export interface RecordingFrame {
-  jpeg: Uint8Array;
-  runId: string;
+/** The browser a run records in (recording-window.js). */
+export interface RecordingState {
   viewport: { width: number; height: number };
 }
 

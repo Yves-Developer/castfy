@@ -14,17 +14,14 @@ import path from 'node:path';
  * So the browser is a view inside Castfy's own window, underneath the studio.
  * To macOS and Chromium it is an ordinary page on screen: it paints at the
  * display's pixel ratio and answers like any other. The user never sees it
- * directly; the studio covers it and shows its frames live, passing clicks and
- * keys through, so signing in to a site happens right there. castfy0 drives it
+ * directly; the studio covers it and shows it live (castfy0's live frame),
+ * passing clicks and keys through, so signing in to a site happens right there. castfy0 drives it
  * over the DevTools protocol (see main.js, HOST_FILE). Logins stay in the
  * browser's own profile between recordings.
  */
 
 /** Castfy's browser profile: kept on disk, apart from the app's own session. */
 const PARTITION = 'persist:castfy-browser';
-/** The live view does not need every frame, or full size. */
-const LIVE_FPS = 10;
-const LIVE_WIDTH = 1280;
 
 const WEB_PREFERENCES = {
   partition: PARTITION,
@@ -57,10 +54,14 @@ function markerPage(marker) {
  * Opens the recording browser for a run.
  *
  * In `host`, Castfy's main window, as a view under the studio; or, when the
- * user wants to watch it (`visible`), as a window of its own. `onFrame`
- * receives JPEG frames for the live view.
+ * user wants to watch it (`visible`), as a window of its own.
+ *
+ * Castfy does not take frames from it: on macOS a frame subscription on the
+ * page stopped DevTools clients from connecting, so castfy0 could not drive
+ * it. castfy0 films the page anyway and keeps its live frame (live.jpg) for
+ * the studio, which shows that.
  */
-export async function openRecordingWindow({ host, runId, viewport, visible, onFrame }) {
+export async function openRecordingWindow({ host, runId, viewport, visible }) {
   const marker = `castfy-recording-${runId}`;
   let window = null;
   let view = null;
@@ -92,16 +93,6 @@ export async function openRecordingWindow({ host, runId, viewport, visible, onFr
     return { action: 'deny' };
   });
 
-  let lastSent = 0;
-  contents.beginFrameSubscription(false, (image) => {
-    const now = Date.now();
-    if (now - lastSent < 1000 / LIVE_FPS || image.isEmpty()) return;
-    lastSent = now;
-    const size = image.getSize();
-    const scaled = size.width > LIVE_WIDTH ? image.resize({ width: LIVE_WIDTH, quality: 'good' }) : image;
-    onFrame?.({ runId, jpeg: scaled.toJPEG(75), viewport });
-  });
-
   let closed = false;
   return {
     marker,
@@ -114,7 +105,6 @@ export async function openRecordingWindow({ host, runId, viewport, visible, onFr
     close() {
       if (closed) return;
       closed = true;
-      if (!contents.isDestroyed()) contents.endFrameSubscription();
       if (window && !window.isDestroyed()) window.destroy();
       if (view) {
         if (!host.isDestroyed()) host.contentView.removeChildView(view);
