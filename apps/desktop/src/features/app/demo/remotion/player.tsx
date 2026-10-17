@@ -1,7 +1,7 @@
 "use client";
 import { Player, type PlayerRef } from "@remotion/player";
 import { useEffect, useState } from "react";
-import { useLive } from "@/lib/live-view";
+import { useLive, useRecordingFrame } from "@/lib/live-view";
 import { useBackgroundStore } from "@/lib/store";
 import { LiveView } from "./live-view";
 import { StudioComposition } from "./comp";
@@ -25,6 +25,8 @@ export function RemotionPlayer({
     useBackgroundStore();
   // While a run records, the page it is working on, from castfy0's live frame.
   const live = useLive();
+  // Castfy's own recording browser, from the moment the run opens it.
+  const recordingFrame = useRecordingFrame();
   const [durationInFrames, setDurationInFrames] = useState(1); // 1 frame @ 30fps = 00:00
 
   useEffect(() => {
@@ -108,7 +110,7 @@ export function RemotionPlayer({
     };
   }, [onFrameChange, onMuteChange, onPlaybackChange, onVolumeChange, ref]);
 
-  if (!generatedVideoUrl && live.sessionId) {
+  if (!generatedVideoUrl && (live.sessionId || recordingFrame)) {
     return <LiveView sessionId={live.sessionId} />;
   }
 
