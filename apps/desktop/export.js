@@ -94,6 +94,17 @@ export async function getSessionBundle({ entryPoint, sessionDir, key }) {
   }
 }
 
+/** The click and hover track auto-zoom follows; see remotion/zoom.ts. */
+async function readZoom(sessionDir) {
+  try {
+    const manifest = JSON.parse(await fs.readFile(path.join(sessionDir, 'segments.json'), 'utf8'));
+    const events = (manifest.segments ?? []).flatMap((s) => s.events ?? []);
+    return manifest.viewport && events.length ? { viewport: manifest.viewport, events } : null;
+  } catch {
+    return null;
+  }
+}
+
 async function firstExisting(dir, candidates) {
   for (const name of candidates) {
     try {
@@ -210,6 +221,9 @@ export async function exportRecording({
     width,
     height,
     keeps,
+    // Auto-zoom follows the recording's own clock, so only untrimmed footage
+    // from the segment recorder gets it.
+    zoom: !trimming && sourceFile === 'demo.mp4' ? await readZoom(sessionDir) : null,
   };
 
   onProgress?.('Rendering…');

@@ -48,6 +48,8 @@ contextBridge.exposeInMainWorld('castfy', {
   compose: (input) => ipcRenderer.invoke('demo:compose', input),
   copyPrompt: (input) => ipcRenderer.invoke('demo:copy', input),
   run: (input) => ipcRenderer.invoke('demo:run', input),
+  login: (agentId) => ipcRenderer.invoke('agent:login', agentId),
+  signedIn: (agentId) => ipcRenderer.invoke('agent:signedIn', agentId),
   cancel: () => ipcRenderer.invoke('demo:cancel'),
   onLog: on('demo:log'),
   onDone: on('demo:done'),

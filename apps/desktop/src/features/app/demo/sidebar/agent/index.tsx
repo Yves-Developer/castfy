@@ -47,6 +47,7 @@ import {
   pickInitialVideo,
   readActiveJobId,
 } from "./generate";
+import { bridge } from "@/lib/bridge";
 import { SelectModel } from "./models";
 import { PackagingProgress, StepsTimeline } from "./step";
 
@@ -413,6 +414,7 @@ export function AgentTab() {
                     <p className="mt-1">{errorMessage}</p>
                   </div>
                 </div>
+                {NOT_SIGNED_IN.test(errorMessage) && <SignInButton />}
                 <Button
                   className="w-full"
                   onClick={() => {
@@ -506,6 +508,49 @@ export function AgentTab() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** How the app words a signed-out agent, before a run or after one. */
+const NOT_SIGNED_IN = /not signed in/i;
+
+/**
+ * Opens the agent's own login in a terminal. The user signs in there, in
+ * their browser; Castfy never handles the credentials.
+ */
+function SignInButton() {
+  const [state, setState] = useState<"idle" | "opening" | "opened" | "failed">(
+    "idle"
+  );
+  const [detail, setDetail] = useState("");
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Button
+        className="w-full"
+        disabled={state === "opening"}
+        onClick={async () => {
+          setState("opening");
+          const result = await bridge.login(null).catch(() => null);
+          if (result?.ok) {
+            setState("opened");
+          } else {
+            setState("failed");
+            setDetail(result?.error ?? "Could not open a terminal.");
+          }
+        }}
+        size="sm"
+        variant="brand"
+      >
+        {state === "opening" ? "Opening Terminal…" : "Sign in"}
+      </Button>
+      {state === "opened" && (
+        <p className="text-muted-foreground">
+          Finish signing in in the Terminal window that opened, then try again.
+        </p>
+      )}
+      {state === "failed" && <p className="text-muted-foreground">{detail}</p>}
     </div>
   );
 }

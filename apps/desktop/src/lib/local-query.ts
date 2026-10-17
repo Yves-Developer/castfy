@@ -1,3 +1,4 @@
+import { setLive } from './live-view';
 import { useEffect, useState } from 'react';
 import { bridge } from './bridge';
 import type { ProgressEvent, Session } from './bridge';
@@ -84,6 +85,7 @@ async function mutation<T = any>(ref: FunctionRef, args: Args): Promise<T> {
         goal: String(args.promptGoal ?? ''),
         projectId: args.projectId ? String(args.projectId) : null,
         agentId: args.provider ? String(args.provider) : null,
+        headless: args.headless !== 'false' && args.headless !== false,
       });
       if (!result.ok) throw new Error(result.error ?? 'Could not start the recording.');
       // The caller treats this as a job id to follow; the run id is the only
@@ -146,13 +148,17 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
       if (event.type === 'session' && sessionId !== liveSessionId) {
         if (liveSessionId) push('reset', 'The agent started the recording again');
         liveSessionId = sessionId;
+        setLive({ sessionId, step: null });
       }
       if (sessionId !== liveSessionId) continue;
+      if (event.type === 'step' && event.success) setLive({ step: event.description });
+      if (event.type === 'done' || event.type === 'error') setLive({ sessionId: null, step: null });
       dispatchProgress(event, push);
     }
   });
 
   const offDone = bridge.onDone(async ({ code, error, hint, sessionId }) => {
+    setLive({ sessionId: null, step: null });
     if (code !== 0 || error) {
       // The agent's own words, plus context when we recognised the situation.
       push('error', [error, hint].filter(Boolean).join(' ') || `The recording failed (exit ${code}).`);
@@ -193,6 +199,7 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
     offLog();
     offProgress();
     offDone();
+    setLive({ sessionId: null, step: null });
   };
 }
 

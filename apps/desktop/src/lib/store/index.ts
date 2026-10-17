@@ -1,4 +1,5 @@
 "use client";
+import type { ZoomTrack } from "../../../remotion/zoom";
 
 import { temporal } from "zundo";
 import { create } from "zustand";
@@ -41,6 +42,9 @@ export interface BackgroundState extends EditorState {
   addImageOverlay: (overlay: Omit<ImageOverlay, "id">) => void;
   /** Not part of EditorState: it belongs to the recording, not the look. */
   generatedVideoUrl: string | null;
+  /** Where auto-zoom moves to in the current recording; null for none. */
+  zoomTrack: ZoomTrack | null;
+  setZoomTrack: (track: ZoomTrack | null) => void;
   removeImageOverlay: (id: string) => void;
   setAspectRatio: (aspectRatio: AspectRatioKey) => void;
 
@@ -83,6 +87,10 @@ export const useBackgroundStore = create<BackgroundState>()(
     generatedVideoUrl: null,
     setGeneratedVideoUrl: (url: string | null) => {
       set({ generatedVideoUrl: url });
+    },
+    zoomTrack: null,
+    setZoomTrack: (track: ZoomTrack | null) => {
+      set({ zoomTrack: track });
     },
     setAspectRatio: (aspectRatio: AspectRatioKey) => {
       //   trackAspectRatioChange(aspectRatio);
