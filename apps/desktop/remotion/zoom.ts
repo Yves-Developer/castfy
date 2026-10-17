@@ -2,16 +2,21 @@
  * Auto-zoom: move in toward what the agent clicks, then back out.
  *
  * castfy0 records every click and hover with its position and its time in the
- * finished video (segments.json, `events`). This turns those into a camera:
+ * finished video (segments.json, `events`), and the pointer's moves between
+ * them (drawn by pointer.tsx). This turns the clicks and hovers into a camera:
  * at any moment, how far to zoom and where to. It is pure and shared, so the
  * studio preview and the exported video zoom exactly alike.
  */
 
 export interface ZoomEvent {
+  /** A move's length; with fromX and fromY, where it starts. */
+  durationMs?: number;
+  fromX?: number;
+  fromY?: number;
   /** Time in the video, ms. */
   ms: number;
-  type: "click" | "hover";
-  /** CSS pixels in the recorded viewport. */
+  type: "click" | "hover" | "move";
+  /** CSS pixels in the recorded viewport; for a move, where it ends. */
   x: number;
   y: number;
 }
@@ -28,11 +33,11 @@ export interface Camera {
   scale: number;
 }
 
-const SCALE = { click: 1.6, hover: 1.35 } as const;
+const SCALE = { click: 1.8, hover: 1.5 } as const;
 /** How early the move in starts before the event. */
 const LEAD_MS = 450;
 /** How long the result stays zoomed after the event. */
-const HOLD_MS = 1400;
+const HOLD_MS = 1800;
 /** How long the move back out takes. */
 const OUT_MS = 600;
 /** Events closer than this stay zoomed and pan between each other. */
@@ -62,6 +67,9 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
   const shots: Shot[] = [];
 
   for (const event of events) {
+    if (event.type === "move") {
+      continue;
+    }
     const point = { ms: event.ms, x: event.x / width, y: event.y / height };
     const last = shots.at(-1);
     if (last && event.ms - last.points.at(-1)!.ms <= MERGE_MS) {

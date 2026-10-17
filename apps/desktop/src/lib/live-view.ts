@@ -40,3 +40,8 @@ export function useLive(): LiveState {
 export function liveFrameUrl(sessionId: string, bust: number): string {
   return `castfy://app/__media/${encodeURIComponent(sessionId)}/live.jpg?t=${bust}`;
 }
+
+/** Media URL for where the agent's pointer is (castfy0's live-pointer.json). */
+export function livePointerUrl(sessionId: string, bust: number): string {
+  return `castfy://app/__media/${encodeURIComponent(sessionId)}/live-pointer.json?t=${bust}`;
+}

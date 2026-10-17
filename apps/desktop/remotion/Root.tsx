@@ -1,4 +1,5 @@
 import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from 'remotion';
+import { Pointer } from './pointer';
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from './zoom';
 
 /** A stretch of source footage to keep, in source time. */
@@ -48,8 +49,9 @@ export interface DemoProps extends Record<string, unknown> {
    */
   keeps?: KeepSpec[];
   /**
-   * Where to zoom, from the recording's clicks (see zoom.ts). Only applied to
-   * untrimmed footage: cuts would move the events out from under their times.
+   * Where to zoom and the cursor's path, from the recording's pointer events
+   * (zoom.ts, pointer.tsx). Only applied to untrimmed footage: cuts would move
+   * the events out from under their times.
    */
   zoom?: ZoomTrack | null;
 }
@@ -124,7 +126,8 @@ export function Demo({
   const front = overlays.filter((o) => o.layer !== 'back');
   const segments = keeps?.length ? planSegments(keeps).segments : null;
   const shots = segments ? [] : planShots(zoom);
-  const camera = cameraStyle(cameraAt((frame / FPS) * 1000, shots));
+  const ms = (frame / FPS) * 1000;
+  const camera = cameraStyle(cameraAt(ms, shots));
 
   return (
     <AbsoluteFill style={{ background: backgroundCss }}>
@@ -166,8 +169,9 @@ export function Demo({
               </Sequence>
             ))
           ) : (
-            <div style={camera}>
+            <div style={{ ...camera, position: 'relative' }}>
               <OffthreadVideo src={staticFile(src)} style={{ width: '100%', display: 'block' }} />
+              <Pointer ms={ms} track={zoom} />
             </div>
           )}
         </div>
