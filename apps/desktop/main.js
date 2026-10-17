@@ -720,6 +720,24 @@ app.commandLine.appendSwitch('remote-debugging-port', '0');
 /** The open recording window, while a run is going. */
 let recording = null;
 
+/**
+ * Where castfy0 learns about the recording window. The agent starts castfy0
+ * from its own MCP settings, with only the variables written there, so the
+ * run's environment never reaches it; the library folder, which those
+ * settings name, does. castfy0 reads this file (castfy0 src/session/browser.ts).
+ */
+const HOST_FILE = '.castfy-host.json';
+
+async function writeHostFile(endpoint, marker) {
+  const file = path.join(libraryRoot(), HOST_FILE);
+  await fs.mkdir(libraryRoot(), { recursive: true });
+  await fs.writeFile(file, JSON.stringify({ endpoint, marker, pid: process.pid }), 'utf8');
+}
+
+function removeHostFile() {
+  return fs.rm(path.join(libraryRoot(), HOST_FILE), { force: true }).catch(() => {});
+}
+
 ipcMain.on('recording:input', (_e, event) => {
   const safe = sanitizeInput(event);
   if (safe) recording?.input(safe);
@@ -942,6 +960,8 @@ app.whenReady().then(async () => {
   // Before anything looks for an agent CLI: a Dock-launched Mac app otherwise
   // cannot see ~/.local/bin or Homebrew.
   await adoptLoginShellPath();
+  // A run that ended with a crash left its window's details behind.
+  await removeHostFile();
 
   registerAppProtocol();
   await fs.mkdir(libraryRoot(), { recursive: true }).catch(() => {});
@@ -1222,6 +1242,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
   if (recording) {
     env.CASTFY0_HOST_CDP = endpoint;
     env.CASTFY0_HOST_PAGE = recording.marker;
+    await writeHostFile(endpoint, recording.marker);
+  } else {
+    await removeHostFile();
   }
 
   running = spawn(command.binary, command.args, {
@@ -1257,7 +1280,26 @@ ipcMain.handle('demo:run', async (_e, input) => {
     for (const id of runs.active?.sessionIds ?? []) {
       progressTail?.read(path.join(root, id, PROGRESS_FILE));
     }
+    unusedRecordingWindow();
   }, 1000);
+
+  /**
+   * castfy0 navigates the recording window as it starts. A recording that has
+   * begun while the window still shows its placeholder is in castfy0's own
+   * browser (an older castfy0, or the window could not be reached): close the
+   * window, so the studio shows castfy0's live frame instead of a placeholder.
+   */
+  let sessionSeenAt = null;
+  const unusedRecordingWindow = () => {
+    if (!recording || !(runs.active?.sessionIds?.length > 0)) return;
+    sessionSeenAt ??= Date.now();
+    if (Date.now() - sessionSeenAt < 10_000) return;
+    const url = recording.window.isDestroyed() ? '' : recording.window.webContents.getURL();
+    if (!url.includes(recording.marker)) return;
+    recording.close();
+    recording = null;
+    send('recording:frame', null);
+  };
 
   let stderr = '';
   let stdout = '';
@@ -1265,6 +1307,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
     running = null;
     recording?.close();
     recording = null;
+    await removeHostFile();
     send('recording:frame', null);
     clearInterval(progressPoll);
     // One last read, so lines written just before the agent exited still land.
@@ -1323,5 +1366,6 @@ ipcMain.handle('demo:cancel', () => {
 // A run is its own process group, so quitting would otherwise leave it going.
 app.on('before-quit', () => {
   recording?.close();
+  removeHostFile();
   if (running) killRunTree(running, spawn);
 });

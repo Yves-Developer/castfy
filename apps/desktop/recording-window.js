@@ -41,7 +41,7 @@ function markerPage(marker) {
     '<body style="margin:0;background:#0b0b0d;color:#888;font:14px system-ui;display:grid;place-items:center;height:100vh">' +
     '<div>Opening the page…<div style="height:2px;background:#5e6ad2;animation:p 1s infinite alternate"></div></div>' +
     '<style>@keyframes p{from{width:0}to{width:100%}}</style></body>';
-  return `data:text/html,${encodeURIComponent(html)}#${marker}`;
+  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}#${marker}`;
 }
 
 function createWindow({ viewport, visible, offscreen }) {

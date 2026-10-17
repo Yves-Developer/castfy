@@ -110,7 +110,9 @@ export function RemotionPlayer({
     };
   }, [onFrameChange, onMuteChange, onPlaybackChange, onVolumeChange, ref]);
 
-  if (!generatedVideoUrl && (live.sessionId || recordingFrame)) {
+  // A run in progress shows live, even over a project's earlier video: the
+  // user is re-recording, and needs to see (and maybe sign in on) the page.
+  if (live.sessionId || recordingFrame) {
     return <LiveView sessionId={live.sessionId} />;
   }
 
