@@ -247,6 +247,10 @@ export interface CastfyBridge {
   onLog(cb: (chunk: string) => void): () => void;
   /** Live events from the recording being made, as castfy0 writes them. */
   onProgress(cb: (p: { sessionId: string; events: ProgressEvent[] }) => void): () => void;
+  /** Frames of the recording browser while a run is going; null once it closes. */
+  onRecordingFrame(cb: (frame: RecordingFrame | null) => void): () => void;
+  /** Passes a mouse or keyboard event to the recording browser. */
+  recordingInput(event: RecordingInput): void;
   onDone(
     cb: (r: {
       code: number;
@@ -259,6 +263,26 @@ export interface CastfyBridge {
       projectId?: string | null;
     }) => void
   ): () => void;
+}
+
+/** One live frame of the browser a run records in (recording-window.js). */
+export interface RecordingFrame {
+  jpeg: Uint8Array;
+  runId: string;
+  viewport: { width: number; height: number };
+}
+
+/** An Electron input event, in the recorded page's CSS pixels. */
+export interface RecordingInput {
+  button?: "left" | "middle" | "right";
+  clickCount?: number;
+  deltaX?: number;
+  deltaY?: number;
+  keyCode?: string;
+  modifiers?: string[];
+  type: "mouseDown" | "mouseUp" | "mouseMove" | "mouseWheel" | "keyDown" | "keyUp" | "char";
+  x?: number;
+  y?: number;
 }
 
 declare global {

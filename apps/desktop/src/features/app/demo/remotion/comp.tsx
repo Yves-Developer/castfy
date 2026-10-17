@@ -1,6 +1,7 @@
 "use client";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame, Video } from "remotion";
 import { Pointer } from "../../../../../remotion/pointer";
+import { trimBeforeFor } from "./meta";
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from "../../../../../remotion/zoom";
 import {
   type GradientKey,
@@ -121,9 +122,7 @@ export const StudioComposition = ({
   zoom?: ZoomTrack | null;
 }) => {
   const frame = useCurrentFrame();
-  // Older recordings open on a couple of seconds of blank page, which the
-  // preview skips. The segment recorder's demo.mp4 starts on the opening shot.
-  const trimBefore = url.includes("demo.mp4") ? 0 : 60;
+  const trimBefore = trimBeforeFor(url);
   const ms = ((frame + trimBefore) / FPS) * 1000;
   const camera = cameraStyle(cameraAt(ms, planShots(zoom)));
   return (
