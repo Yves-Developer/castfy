@@ -4,7 +4,7 @@ import {
   liveFrameUrl,
   livePointerUrl,
   useLive,
-  useRecordingFrame,
+  useRecordingBrowser,
 } from "@/lib/live-view";
 
 /** How often castfy0's live files are re-read. castfy0 writes them about as often. */
@@ -48,16 +48,17 @@ function modifiers(e: React.MouseEvent | React.KeyboardEvent): string[] {
 }
 
 /**
- * castfy0's live frame (live.jpg), for runs where castfy0 has its own browser.
+ * castfy0's live frame (live.jpg): the page as castfy0 films it, in Castfy's
+ * recording browser or castfy0's own.
  *
  * Each frame is loaded off-screen and swapped in only once it has decoded, so
  * the view never flashes blank between frames or when the file is briefly
  * missing (it is replaced by a rename, and removed when recording stops).
  */
-function usePolledFrame(sessionId: string | null, enabled: boolean) {
+function usePolledFrame(sessionId: string | null) {
   const [shown, setShown] = useState<string | null>(null);
   useEffect(() => {
-    if (!(sessionId && enabled)) {
+    if (!sessionId) {
       return;
     }
     let cancelled = false;
@@ -86,7 +87,7 @@ function usePolledFrame(sessionId: string | null, enabled: boolean) {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [sessionId, enabled]);
+  }, [sessionId]);
   return shown;
 }
 
@@ -124,22 +125,22 @@ function useLivePointer(sessionId: string | null) {
 /**
  * The page the agent is working on, while it works.
  *
- * With Castfy's own recording browser (recording-window.js) this is that
- * browser, live: the user can click and type in it, to sign in to a site
- * before the agent goes on. Otherwise it is castfy0's live frame, to watch.
+ * castfy0's live frame. When castfy0 records in Castfy's own browser
+ * (recording-window.js), the user can click and type in it, to sign in to a
+ * site before the agent goes on; in castfy0's own browser it is to watch.
  */
 export function LiveView({ sessionId }: { sessionId: string | null }) {
   const { step } = useLive();
-  const frame = useRecordingFrame();
-  const polled = usePolledFrame(sessionId, !frame);
+  const browser = useRecordingBrowser();
+  const shown = usePolledFrame(sessionId);
   const pointer = useLivePointer(sessionId);
   const surface = useRef<HTMLDivElement>(null);
   const moveQueued = useRef<RecordingInput | null>(null);
 
-  const shown = frame?.url ?? polled;
-  const viewport = frame?.viewport ??
+  const viewport = browser?.viewport ??
     pointer?.viewport ?? { width: 1280, height: 720 };
-  const interactive = Boolean(frame);
+  // Clicks and keys reach the page only in Castfy's own browser.
+  const interactive = Boolean(browser && shown);
 
   /** A mouse position in the page's CSS pixels. */
   const at = (e: React.MouseEvent) => {
