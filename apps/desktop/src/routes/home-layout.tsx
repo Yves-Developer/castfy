@@ -10,9 +10,11 @@ import HomeSidebar from '@/features/app/home/sibebar';
  */
 export default function HomeLayout() {
   return (
-    <div className="min-h-screen">
+    <div className="h-screen">
       <HomeSidebar className="fixed inset-y-0 left-0 w-65" />
-      <div className="ml-65 flex min-h-screen flex-col">
+      {/* Scrolls by itself: the window's body never scrolls (styles.css), so
+          the studio cannot, and a list taller than the window was cut off. */}
+      <div className="ml-65 flex h-screen flex-col overflow-y-auto">
         <main className="flex w-full min-w-0 flex-1 overflow-x-auto px-12.5 py-15">
           <Outlet />
         </main>

@@ -26,6 +26,7 @@ import {
   ArrowUpIcon,
   LinkIcon,
   Loader2,
+  SquareIcon,
   Volume1Icon,
   VolumeXIcon,
 } from "lucide-react";
@@ -48,6 +49,7 @@ import {
   readActiveJobId,
 } from "./generate";
 import { bridge } from "@/lib/bridge";
+import { finishedRecording } from "@/lib/local-query";
 import { SelectModel } from "./models";
 import { PackagingProgress, StepsTimeline } from "./step";
 
@@ -120,11 +122,32 @@ export function AgentTab() {
    */
   useEffect(() => {
     const jobId = readActiveJobId();
+    let abandoned = false;
     if (!jobId) {
-      return;
+      // No run going: show the project's last recording, steps included, so
+      // coming back to a demo does not look like it was never recorded.
+      if (slug) {
+        bridge
+          .project(slug)
+          .then((project) => finishedRecording(project?.sessionId))
+          .then((recording) => {
+            if (!abandoned && recording?.status === "completed") {
+              handlers.onCompleted({
+                steps: recording.steps as AgentStep[],
+                videoUrl: recording.videoUrl,
+                videos: recording.videos,
+              });
+            }
+          })
+          .catch(() => {
+            // Nothing to show; the form stays.
+          });
+      }
+      return () => {
+        abandoned = true;
+      };
     }
 
-    let abandoned = false;
     inspectActiveJob(jobId)
       .then((job) => {
         if (abandoned) {
@@ -149,7 +172,16 @@ export function AgentTab() {
     return () => {
       abandoned = true;
     };
-  }, [handlers]);
+  }, [handlers, slug]);
+
+  /** Back to the form, for another take. The recording itself is kept. */
+  const startOver = () => {
+    setStatus("idle");
+    setErrorMessage("");
+    setCurrentStatusMessage("");
+    setSteps([]);
+    setStages([]);
+  };
 
   const form = useForm({
     defaultValues: {
@@ -377,7 +409,10 @@ export function AgentTab() {
                 <p className="font-medium text-xs">
                   {status === "generating" && "Recording Demo Video..."}
                   {status === "completed" && "Demo Recording Completed!"}
-                  {status === "error" && "Generation Failed"}
+                  {status === "error" &&
+                    (errorMessage === STOPPED
+                      ? "Recording stopped"
+                      : "Generation Failed")}
                 </p>
                 <p className="mt-1.5 flex items-center gap-2 text-muted-foreground text-xs">
                   {status === "generating" && (
@@ -390,9 +425,38 @@ export function AgentTab() {
                   )}
                   {status === "completed" &&
                     "Deliverables have been successfully saved."}
-                  {status === "error" && "An error occurred during execution."}
+                  {status === "error" &&
+                    (errorMessage === STOPPED
+                      ? "The steps it took are below."
+                      : "An error occurred during execution.")}
                 </p>
               </div>
+              {status === "generating" && (
+                <Button
+                  onClick={() => {
+                    setCurrentStatusMessage("Stopping…");
+                    bridge.cancel().catch(() => {
+                      // Already over; its own result arrives anyway.
+                    });
+                  }}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  <SquareIcon className="size-3" />
+                  Stop
+                </Button>
+              )}
+              {status === "completed" && (
+                <Button
+                  onClick={startOver}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  Record again
+                </Button>
+              )}
             </div>
           </div>
 
@@ -405,7 +469,18 @@ export function AgentTab() {
             />
 
             {/* Error Message display */}
-            {status === "error" && (
+            {status === "error" && errorMessage === STOPPED && (
+              <Button
+                className="w-full"
+                onClick={startOver}
+                size="sm"
+                type="button"
+                variant="secondary"
+              >
+                Record again
+              </Button>
+            )}
+            {status === "error" && errorMessage !== STOPPED && (
               <div className="flex flex-col gap-3 rounded-lg border p-4 text-destructive text-xs">
                 <div className="flex gap-3">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -417,13 +492,7 @@ export function AgentTab() {
                 {NOT_SIGNED_IN.test(errorMessage) && <SignInButton />}
                 <Button
                   className="w-full"
-                  onClick={() => {
-                    setStatus("idle");
-                    setErrorMessage("");
-                    setCurrentStatusMessage("");
-                    setSteps([]);
-                    setStages([]);
-                  }}
+                  onClick={startOver}
                   size="sm"
                   type="button"
                   variant={"secondary"}
@@ -511,6 +580,9 @@ export function AgentTab() {
     </div>
   );
 }
+
+/** How the run log words a recording the user stopped (local-query.ts). */
+const STOPPED = "You stopped the recording.";
 
 /** How the app words a signed-out agent, before a run or after one. */
 const NOT_SIGNED_IN = /not signed in/i;

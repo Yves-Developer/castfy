@@ -1191,6 +1191,8 @@ function composePrompt({ url, goal }) {
 }
 
 let running = null;
+/** Set when the user stops the run, so its exit reads as stopped, not failed. */
+let stoppedByUser = false;
 
 /** Follows castfy0's progress files; created by watchLibrary(). */
 let progressTail = null;
@@ -1367,7 +1369,10 @@ ipcMain.handle('demo:run', async (_e, input) => {
     const sessionId = await pickRunRecording(finished?.sessionIds ?? []);
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
 
+    const cancelled = stoppedByUser;
+    stoppedByUser = false;
     send('demo:done', {
+      cancelled,
       code,
       error: message,
       hint: explained?.hint ?? null,
@@ -1395,6 +1400,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
 ipcMain.handle('demo:cancel', () => {
   if (!running) return false;
+  stoppedByUser = true;
   // The whole tree: claude spawns the MCP, which spawns Chromium and ffmpeg.
   // Signalling the parent alone orphans the browser.
   killRunTree(running, spawn);

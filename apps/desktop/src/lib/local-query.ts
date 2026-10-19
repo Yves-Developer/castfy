@@ -64,6 +64,11 @@ async function query<T = any>(ref: FunctionRef, args: Args): Promise<T> {
       return library.sessions.slice(0, limit).map(toJob) as T;
     }
     case 'jobs.get': {
+      // The run being recorded has no session folder of its own yet: answer
+      // for it here, or a panel reopened mid-run takes it for a stale id.
+      if (args.jobId && args.jobId === run.id) {
+        return { _id: run.id, status: run.finished ? 'completed' : 'running' } as T;
+      }
       const session = await bridge.get(String(args.jobId));
       return (session ? toJob(session) : null) as T;
     }
@@ -80,6 +85,7 @@ async function query<T = any>(ref: FunctionRef, args: Args): Promise<T> {
 async function mutation<T = any>(ref: FunctionRef, args: Args): Promise<T> {
   switch (ref) {
     case 'jobs.enqueue': {
+      startRunLog();
       const result = await bridge.run({
         url: String(args.url ?? ''),
         goal: String(args.promptGoal ?? ''),
@@ -88,6 +94,7 @@ async function mutation<T = any>(ref: FunctionRef, args: Args): Promise<T> {
         headless: args.headless !== 'false' && args.headless !== false,
       });
       if (!result.ok) throw new Error(result.error ?? 'Could not start the recording.');
+      run.id = result.runId ?? null;
       // The caller treats this as a job id to follow; the run id is the only
       // handle that exists before the engine creates its session folder.
       return (result.runId ?? '') as T;
@@ -113,20 +120,50 @@ interface LocalEvent {
 }
 
 /**
+ * The run being recorded and everything it has reported, kept for the life of
+ * the app. Each studio panel used to collect events only while it was open,
+ * so leaving the studio mid-run and coming back lost every step before the
+ * return, and a finished run's steps were gone altogether.
+ */
+const run: { id: string | null; finished: boolean; events: LocalEvent[] } = {
+  id: null,
+  finished: false,
+  events: [],
+};
+const runListeners = new Set<(events: LocalEvent[]) => void>();
+
+function startRunLog(): void {
+  run.id = null;
+  run.finished = false;
+  run.events = [];
+}
+
+function pushRunEvent(type: string, message?: string, data?: unknown): void {
+  run.events.push({ seq: run.events.length + 1, type, message, data });
+  if (type === 'completed' || type === 'error') run.finished = true;
+  const events = [...run.events];
+  for (const listener of runListeners) listener(events);
+}
+
+/**
  * Rebuilds the event stream the agent sidebar expects out of the run's stdout.
  * Events accumulate and are re-delivered in full on every update, because the
- * consumer de-duplicates by `seq` and expects an append-only log.
+ * consumer de-duplicates by `seq` and expects an append-only log. A panel that
+ * subscribes mid-run gets the whole log so far.
  */
 function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void {
-  const events: LocalEvent[] = [];
-  let seq = 0;
-
-  const push = (type: string, message?: string, data?: unknown) => {
-    events.push({ seq: ++seq, type, message, data });
-    onChange([...events]);
+  runListeners.add(onChange);
+  if (run.events.length > 0) onChange([...run.events]);
+  return () => {
+    runListeners.delete(onChange);
   };
+}
 
-  const offLog = bridge.onLog((chunk) => {
+/** The app-wide listeners that fill the run log; see `run`. */
+function listenToRuns(): void {
+  const push = pushRunEvent;
+
+  bridge.onLog((chunk) => {
     for (const line of chunk.split('\n')) {
       const text = line.trim();
       if (text) push('status', text);
@@ -143,7 +180,7 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
    * list, so steps from the abandoned attempt do not mix in.
    */
   let liveSessionId: string | null = null;
-  const offProgress = bridge.onProgress(({ sessionId, events: incoming }) => {
+  bridge.onProgress(({ sessionId, events: incoming }) => {
     for (const event of incoming) {
       if (event.type === 'session' && sessionId !== liveSessionId) {
         if (liveSessionId) push('reset', 'The agent started the recording again');
@@ -157,8 +194,14 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
     }
   });
 
-  const offDone = bridge.onDone(async ({ code, error, hint, sessionId }) => {
+  bridge.onDone(async ({ code, error, hint, sessionId, cancelled }) => {
     setLive({ sessionId: null, step: null });
+    const recorded = liveSessionId;
+    liveSessionId = null;
+    if (cancelled) {
+      push('error', 'You stopped the recording.');
+      return;
+    }
     if (code !== 0 || error) {
       // The agent's own words, plus context when we recognised the situation.
       push('error', [error, hint].filter(Boolean).join(' ') || `The recording failed (exit ${code}).`);
@@ -169,39 +212,41 @@ function subscribeToEvents(onChange: (events: LocalEvent[]) => void): () => void
     // newest one — two runs close together would otherwise cross wires.
     // The main process picks the run's finished recording; the live one is the
     // fallback when it could not.
-    const recordedId = sessionId ?? liveSessionId;
-    const session = recordedId ? await bridge.get(recordedId).catch(() => null) : null;
-    if (!session) {
+    const payload = await finishedRecording(sessionId ?? recorded);
+    if (!payload) {
       push('error', 'The run finished but its recording could not be found.');
       return;
     }
-
-    const job = toJob(session);
-
-    // The agent's actions only become readable when the packager writes
-    // steps.json at castfy0_end, so the timeline fills in here. Without this
-    // the sidebar sits on "Waiting for first action" after a successful run.
-    push('completed', 'Recording complete.', {
-      ...job,
-      // steps.json records success as a boolean; the timeline branches on a
-      // "status" string, so an unmapped step renders as neither.
-      steps: (session.steps ?? []).map((step) => ({
-        action: step.action,
-        description: step.description,
-        status: step.success === false ? 'error' : 'success',
-        error: step.error,
-      })),
-      videoUrl: job.videos?.audioClean ?? job.videos?.clean ?? job.videos?.raw,
-    });
+    push('completed', 'Recording complete.', payload);
   });
+}
 
-  return () => {
-    offLog();
-    offProgress();
-    offDone();
-    setLive({ sessionId: null, step: null });
+/**
+ * What the sidebar shows for a finished recording: its videos and its steps.
+ * Null when there is no such recording.
+ */
+export async function finishedRecording(sessionId: string | null | undefined) {
+  const session = sessionId ? await bridge.get(sessionId).catch(() => null) : null;
+  if (!session) return null;
+  const job = toJob(session);
+  // The agent's actions only become readable when the packager writes
+  // steps.json at castfy0_end, so the timeline fills in here. Without this
+  // the sidebar sits on "Waiting for first action" after a successful run.
+  return {
+    ...job,
+    // steps.json records success as a boolean; the timeline branches on a
+    // "status" string, so an unmapped step renders as neither.
+    steps: (session.steps ?? []).map((step) => ({
+      action: step.action,
+      description: step.description,
+      status: step.success === false ? 'error' : 'success',
+      error: step.error,
+    })),
+    videoUrl: job.videos?.audioClean ?? job.videos?.clean ?? job.videos?.raw,
   };
 }
+
+if (bridge) listenToRuns();
 
 /** Turns one progress line into the event the sidebar already understands. */
 function dispatchProgress(
