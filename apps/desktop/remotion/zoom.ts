@@ -16,6 +16,9 @@ export interface ZoomEvent {
   /** Time in the video, ms. */
   ms: number;
   type: "click" | "hover" | "move";
+  /** Clicks and hovers: the target's size, CSS pixels (recorded since castfy0 0.3). */
+  w?: number;
+  h?: number;
   /** CSS pixels in the recorded viewport; for a move, where it ends. */
   x: number;
   y: number;
@@ -27,7 +30,7 @@ export interface ZoomTrack {
 }
 
 export interface Camera {
-  /** Where the zoom is centred, as fractions of the frame (0..1). */
+  /** What the zoom looks at, as fractions of the frame (0..1). */
   originX: number;
   originY: number;
   scale: number;
@@ -42,6 +45,24 @@ const HOLD_MS = 1800;
 const OUT_MS = 600;
 /** Events closer than this stay zoomed and pan between each other. */
 const MERGE_MS = 2200;
+/** The most of the frame a target may fill when zoomed in on. */
+const FIT = 0.8;
+/** Closer than this is not worth a zoom: the target is big already. */
+const MIN_SCALE = 1.15;
+
+/**
+ * How far to zoom in on an event: its type's zoom, but never so far that the
+ * target itself no longer fits. A full-width headline cut off at both sides
+ * was the result before; a small button still gets the full zoom.
+ */
+function eventScale(event: ZoomEvent, width: number, height: number): number {
+  const base = SCALE[event.type as keyof typeof SCALE];
+  if (!(event.w && event.h)) {
+    return base;
+  }
+  const fill = Math.max(event.w / width, event.h / height);
+  return Math.min(base, FIT / fill);
+}
 
 const IDLE: Camera = { scale: 1, originX: 0.5, originY: 0.5 };
 
@@ -70,17 +91,22 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
     if (event.type === "move") {
       continue;
     }
+    const scale = eventScale(event, width, height);
+    if (scale < MIN_SCALE) {
+      continue;
+    }
     const point = { ms: event.ms, x: event.x / width, y: event.y / height };
     const last = shots.at(-1);
     if (last && event.ms - last.points.at(-1)!.ms <= MERGE_MS) {
       last.points.push(point);
       last.endMs = event.ms + HOLD_MS;
-      last.scale = Math.max(last.scale, SCALE[event.type]);
+      // One zoom for the whole shot, close enough for its widest target.
+      last.scale = Math.min(last.scale, scale);
     } else {
       shots.push({
         startMs: Math.max(0, event.ms - LEAD_MS),
         endMs: event.ms + HOLD_MS,
-        scale: SCALE[event.type],
+        scale,
         points: [point],
       });
     }
@@ -88,14 +114,17 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
   return shots;
 }
 
-/** Keeps the zoomed frame inside the video: no empty edges at the borders. */
-function clampOrigin(origin: number, scale: number): number {
-  if (scale <= 1) {
-    return 0.5;
-  }
-  // With transform-origin o and scale s, the visible window starts at
-  // o * (1 - 1/s); any origin in [0, 1] keeps it inside the frame.
-  return Math.min(1, Math.max(0, origin));
+/**
+ * Where the visible window starts, as a fraction of the frame, for a camera
+ * looking at `focus`: centred on it, but never past an edge of the video.
+ *
+ * Zooming about the focus point instead kept that point where it was on
+ * screen, so a target near an edge stayed at the edge and half of what was
+ * around it was cut off.
+ */
+function windowStart(focus: number, scale: number): number {
+  const size = 1 / scale;
+  return Math.min(1 - size, Math.max(0, focus - size / 2));
 }
 
 /** The camera at a moment of the video. */
@@ -129,11 +158,7 @@ export function cameraAt(ms: number, shots: Shot[]): Camera {
     y = prev.y + (next.y - prev.y) * t;
   }
 
-  return {
-    scale,
-    originX: clampOrigin(x, scale),
-    originY: clampOrigin(y, scale),
-  };
+  return { scale, originX: x, originY: y };
 }
 
 /** CSS for the element that holds the video. */
@@ -141,8 +166,12 @@ export function cameraStyle(camera: Camera): {
   transform: string;
   transformOrigin: string;
 } {
+  const left = windowStart(camera.originX, camera.scale);
+  const top = windowStart(camera.originY, camera.scale);
+  // Scale from the top-left corner, then shift the window into place
+  // (translate percentages are of the element, so of the frame).
   return {
-    transform: `scale(${camera.scale.toFixed(4)})`,
-    transformOrigin: `${(camera.originX * 100).toFixed(2)}% ${(camera.originY * 100).toFixed(2)}%`,
+    transform: `scale(${camera.scale.toFixed(4)}) translate(${(-left * 100).toFixed(3)}%, ${(-top * 100).toFixed(3)}%)`,
+    transformOrigin: "0 0",
   };
 }
