@@ -257,6 +257,8 @@ export interface CastfyBridge {
       error?: string;
       /** Why it happened, when it is something the user can act on. */
       hint?: string | null;
+      /** The user stopped the run. */
+      cancelled?: boolean;
       runId?: string;
       /** The recording this run produced, once it has one. */
       sessionId?: string | null;
