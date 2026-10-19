@@ -1,7 +1,9 @@
 /**
  * Finishes the packaged app before it is signed:
  *   1. copies the staged castfy0 engine into its resources folder;
- *   2. adds the platform-native binaries electron-builder missed.
+ *   2. adds the platform-native binaries electron-builder missed;
+ *   3. on macOS, lets Remotion's compositor start on macOS 12 to 14
+ *      (see compositor-macos12.cjs).
  *
  * (1) in detail:
  *
@@ -15,6 +17,7 @@
  */
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { patchCompositorForMacos12 } = require('./compositor-macos12.cjs');
 
 async function exists(p) {
   try {
@@ -124,5 +127,9 @@ exports.default = async function afterPack(context) {
       store
     );
     if (copied.length) console.log(`  • added platform binaries  ${copied.join(', ')}`);
+  }
+
+  if (context.electronPlatformName === 'darwin') {
+    await patchCompositorForMacos12(path.join(resources, 'app', 'node_modules'));
   }
 };
