@@ -151,6 +151,8 @@ export interface DemoInput {
   agentId?: string | null;
   /** False shows the recording browser on screen; otherwise it is hidden. */
   headless?: boolean;
+  /** The voiceover's Edge voice ("en-US-AriaNeural"); none when absent. */
+  voice?: string | null;
 }
 
 /** Whether the browser the recorder and exporter run on is downloaded. */

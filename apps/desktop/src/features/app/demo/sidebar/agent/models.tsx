@@ -59,7 +59,7 @@ export function SelectModel({
 
   return (
     <DropdownMenu onOpenChange={setOpen} open={open}>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-xs">
+      <DropdownMenuTrigger className="flex items-center gap-1 whitespace-nowrap text-xs">
         <span>{selected?.label ?? "Select agent"}</span>
         <ChevronDownIcon className="size-3.5" strokeWidth={2.7} />
       </DropdownMenuTrigger>

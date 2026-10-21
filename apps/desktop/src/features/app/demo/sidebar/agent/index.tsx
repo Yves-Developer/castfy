@@ -51,6 +51,7 @@ import {
 import { bridge } from "@/lib/bridge";
 import { finishedRecording } from "@/lib/local-query";
 import { SelectModel } from "./models";
+import { SelectVoice, useVoiceChoice } from "./voice";
 import { PackagingProgress, StepsTimeline } from "./step";
 
 const formSchema = z.object({
@@ -61,6 +62,7 @@ const formSchema = z.object({
 
 export function AgentTab() {
   const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
+  const [voice, setVoice] = useVoiceChoice();
 
   const [status, setStatus] = useState<
     "idle" | "generating" | "completed" | "error"
@@ -209,6 +211,7 @@ export function AgentTab() {
         promptGoal: value.aiPrompt,
         headless: String(value.headless),
         provider: selectedModel,
+        voice: voice ?? "",
         // Links the recording this produces back to the open project, so the
         // library card stops being a draft and starts playing.
         projectId: slug ?? "",
@@ -327,12 +330,15 @@ export function AgentTab() {
                   align="block-end"
                   className="flex justify-between border-foreground/10 border-t"
                 >
-                  <SelectModel
-                    selectedModel={selectedModel}
-                    setSelectedModelAction={(id) => {
-                      setSelectedModel(id as AIProvider);
-                    }}
-                  />
+                  <div className="flex items-center gap-3">
+                    <SelectModel
+                      selectedModel={selectedModel}
+                      setSelectedModelAction={(id) => {
+                        setSelectedModel(id as AIProvider);
+                      }}
+                    />
+                    <SelectVoice onChange={setVoice} voice={voice} />
+                  </div>
                   <div className="flex items-center gap-2">
                     <form.Field
                       children={(field) => {

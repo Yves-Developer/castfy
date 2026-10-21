@@ -782,11 +782,21 @@ function closeRecording() {
  */
 const HOST_FILE = '.castfy-host.json';
 
-async function writeHostFile(endpoint, marker) {
+/** An Edge voice name from the renderer ("en-US-AriaNeural"), or false for none. */
+function edgeVoice(voice) {
+  return typeof voice === 'string' && /^[a-z]{2,3}-[A-Z]{2,4}-[A-Za-z]+Neural$/.test(voice) ? voice : false;
+}
+
+/**
+ * Also carries the run's voiceover: an Edge voice name, or false for none.
+ * Written for every run, with or without a browser to hand over.
+ */
+async function writeHostFile({ endpoint, marker, voice }) {
   const file = path.join(libraryRoot(), HOST_FILE);
   await fs.mkdir(libraryRoot(), { recursive: true });
   // Written beside it and renamed, so castfy0 never reads half a file.
-  await fs.writeFile(`${file}.tmp`, JSON.stringify({ endpoint, marker, pid: process.pid }), 'utf8');
+  const content = { ...(endpoint ? { endpoint, marker } : {}), voice: edgeVoice(voice), pid: process.pid };
+  await fs.writeFile(`${file}.tmp`, JSON.stringify(content), 'utf8');
   await fs.rename(`${file}.tmp`, file);
 }
 
@@ -1177,7 +1187,7 @@ ipcMain.handle('setup:installBrowsers', () =>
  * surface for Mode B: the app does not run the loop, it only states the job
  * well enough that any MCP-capable client can do it.
  */
-function composePrompt({ url, goal }) {
+function composePrompt({ url, goal, voice }) {
   return [
     'Record a product demo video using the castfy0 tools.',
     '',
@@ -1187,6 +1197,15 @@ function composePrompt({ url, goal }) {
     'Start with castfy0_start, drive the flow with the castfy0 action tools, and',
     'always finish with castfy0_end so the video gets packaged. Do not pass',
     'outputDir — the Castfy app sets it for you.',
+    ...(edgeVoice(voice)
+      ? [
+          '',
+          'This demo gets a spoken voiceover, and the video waits for every word. Before',
+          'castfy0_end, call castfy0_narration_plan and write a short, engaging script that',
+          "follows the plan's style and each beat's maxWords, then hand it over with",
+          'castfy0_set_narration. Do not pass tts to castfy0_end; Castfy picks the voice.',
+        ]
+      : ['', 'This demo has no voiceover: do not pass tts to castfy0_end.']),
   ].join('\n');
 }
 
@@ -1303,10 +1322,8 @@ ipcMain.handle('demo:run', async (_e, input) => {
     send('recording:state', { viewport: { width: 1280, height: 720 } });
     env.CASTFY0_HOST_CDP = endpoint;
     env.CASTFY0_HOST_PAGE = recording.marker;
-    await writeHostFile(endpoint, recording.marker);
-  } else {
-    await removeHostFile();
   }
+  await writeHostFile({ endpoint: recording ? endpoint : null, marker: recording?.marker, voice: input.voice });
 
   running = spawn(command.binary, command.args, {
     // .cmd shims cannot be executed without a shell on Windows.
