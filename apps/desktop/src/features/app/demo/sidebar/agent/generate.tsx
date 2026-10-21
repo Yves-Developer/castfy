@@ -218,6 +218,7 @@ export function generateDemo(
       promptGoal: params.get("promptGoal") ?? "",
       url: params.get("url") ?? "",
       projectId: params.get("projectId") || null,
+      voice: params.get("voice") || null,
     })
     .then((jobId: string) => {
       rememberActiveJob(jobId);
