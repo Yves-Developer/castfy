@@ -26,6 +26,7 @@ import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
 import { adoptLoginShellPath, killRunTree, mcpLaunch, spawnOptionsForRun } from './platform.js';
 import { devtoolsEndpoint, openRecordingWindow, sanitizeInput } from './recording-window.js';
+import { readZoomTrack, saveZoomOff } from './zoom-track.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -244,6 +245,7 @@ function normaliseCuts(ranges) {
 async function readTimeline(dir, steps) {
   const edits = await readJson(path.join(dir, 'edits.json'));
   const narration = await readJson(path.join(dir, 'narration.json'));
+  const segments = await readJson(path.join(dir, 'segments.json'));
 
   const totalDurationMs =
     edits?.totalDurationMs ??
@@ -281,24 +283,13 @@ async function readTimeline(dir, steps) {
       text: seg.text,
     })),
     zoom: await readZoomTrack(dir),
+    // The clips a segment recording is made of, as the video track shows them.
+    clips: (segments?.segments ?? [])
+      .filter((seg) => seg.inVideo && Number.isFinite(seg.startMs) && Number.isFinite(seg.endMs))
+      .map((seg) => ({ id: seg.id, label: seg.label, startMs: seg.startMs, endMs: seg.endMs })),
   };
 }
 
-/**
- * Where auto-zoom should move to, from the segment recorder's clicks and
- * hovers (segments.json). Null for recordings that have none.
- */
-export async function readZoomTrack(dir) {
-  let manifest;
-  try {
-    manifest = JSON.parse(await fs.readFile(path.join(dir, 'segments.json'), 'utf8'));
-  } catch {
-    return null;
-  }
-  const events = (manifest?.segments ?? []).flatMap((s) => s.events ?? []);
-  if (!manifest?.viewport || events.length === 0) return null;
-  return { viewport: manifest.viewport, events };
-}
 
 async function getSession(id) {
   const root = libraryRoot();
@@ -1059,6 +1050,10 @@ ipcMain.handle('projects:create', (_e, title) => projects.create({ title: String
 ipcMain.handle('projects:rename', (_e, id, title) => projects.rename(id, String(title ?? '')));
 ipcMain.handle('projects:saveCuts', (_e, id, cuts) => projects.setCuts(id, cuts));
 ipcMain.handle('projects:saveEditor', (_e, id, editor) => projects.setEditor(id, editor));
+ipcMain.handle('media:saveZoomOff', async (_e, sessionId, offMs) => {
+  const dir = resolveWithin(libraryRoot(), sessionId);
+  return dir ? saveZoomOff(dir, offMs) : null;
+});
 ipcMain.handle('projects:remove', (_e, id) => {
   projects.remove(id);
   return true;

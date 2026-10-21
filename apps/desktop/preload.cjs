@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('castfy', {
   removeProject: (id) => ipcRenderer.invoke('projects:remove', id),
   saveEditor: (id, editor) => ipcRenderer.invoke('projects:saveEditor', id, editor),
   saveCuts: (id, cuts) => ipcRenderer.invoke('projects:saveCuts', id, cuts),
+  saveZoomOff: (sessionId, offMs) => ipcRenderer.invoke('media:saveZoomOff', sessionId, offMs),
   recut: (sessionId, cuts) => ipcRenderer.invoke('export:recut', sessionId, cuts),
   ensureSource: (sessionId) => ipcRenderer.invoke('media:ensureSource', sessionId),
 
