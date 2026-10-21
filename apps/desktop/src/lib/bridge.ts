@@ -126,6 +126,8 @@ export interface Timeline {
   narration: Array<{ stepId: number; startMs: number; endMs: number; text: string }>;
   /** Clicks and hovers auto-zoom follows; absent for older recordings. */
   zoom?: ZoomTrack | null;
+  /** The clips of a segment recording, in video time; empty for older ones. */
+  clips?: Array<{ id: number; label: string; startMs: number; endMs: number }>;
 }
 
 export interface Project {
@@ -197,6 +199,8 @@ export interface CastfyBridge {
   removeProject(id: string): Promise<boolean>;
   saveEditor(id: string, editor: unknown): Promise<Project | null>;
   saveCuts(id: string, cuts: CutRange[] | null): Promise<Project | null>;
+  /** Saves which zooms the user removed (by their events' video times); returns the track now. */
+  saveZoomOff(sessionId: string, offMs: number[]): Promise<ZoomTrack | null>;
   recut(
     sessionId: string,
     cuts: CutRange[]

@@ -234,6 +234,7 @@ export default function AppVideoEditor() {
           cutsApi={mode === "edit" ? cutsApi : undefined}
           durationInFrames={durationInFrames}
           onSeek={seekToFrame}
+          sessionId={project?.sessionId ?? null}
           /**
            * Tracks only in edit mode. They are positioned in raw-footage time,
            * and the clean variant is a different length — drawing them over it
