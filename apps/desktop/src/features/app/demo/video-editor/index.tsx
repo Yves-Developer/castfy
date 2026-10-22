@@ -3,6 +3,7 @@ import type { PlayerRef } from "@remotion/player";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
 import { useBackgroundStore } from "@/lib/store";
+import { editingSource } from "@/lib/projects";
 import { useStudioProject, useStudioSource } from "../use-project";
 import { nextPlayablePosition, useCuts } from "../use-cuts";
 import { CutBar } from "./cut-bar";
@@ -25,10 +26,16 @@ export default function AppVideoEditor() {
   const [mode, setMode] = useState<"edit" | "result">("result");
   const { project, slug } = useStudioProject();
   // The only place that decides which video plays.
-  useStudioSource(project, mode);
+  const source = useStudioSource(project, mode);
   const cutsApi = useCuts(project, slug);
   const timeline = project?.session?.timeline;
   const previewCuts = mode === "edit";
+  /**
+   * Whether the video playing is the one the tracks are measured on. In edit
+   * mode it always is; in result mode only when the result is that same file,
+   * as a segment recording's demo.mp4 is.
+   */
+  const tracksFit = mode === "edit" || (source !== null && source === editingSource(project?.session));
 
   const currentRatio = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
   const ratioValue =
@@ -236,11 +243,12 @@ export default function AppVideoEditor() {
           onSeek={seekToFrame}
           sessionId={project?.sessionId ?? null}
           /**
-           * Tracks only in edit mode. They are positioned in raw-footage time,
-           * and the clean variant is a different length — drawing them over it
-           * would put every cut and step in the wrong place.
+           * Tracks only over the video they are measured on: they are
+           * positioned in raw-footage time, and a clean variant is a different
+           * length — drawing them over it would put every cut and step in the
+           * wrong place.
            */
-          timeline={mode === "edit" ? timeline : undefined}
+          timeline={tracksFit ? timeline : undefined}
         />
       </footer>
     </>
