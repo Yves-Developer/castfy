@@ -59,9 +59,9 @@ export function SelectModel({
 
   return (
     <DropdownMenu onOpenChange={setOpen} open={open}>
-      <DropdownMenuTrigger className="flex items-center gap-1 whitespace-nowrap text-xs">
-        <span>{selected?.label ?? "Select agent"}</span>
-        <ChevronDownIcon className="size-3.5" strokeWidth={2.7} />
+      <DropdownMenuTrigger className="flex min-w-0 items-center gap-1 whitespace-nowrap text-xs">
+        <span className="truncate">{selected?.label ?? "Select agent"}</span>
+        <ChevronDownIcon className="size-3.5 flex-none" strokeWidth={2.7} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" alignOffset={-10} className="w-50">
         <DropdownMenuGroup>

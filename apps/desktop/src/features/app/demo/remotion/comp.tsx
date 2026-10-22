@@ -14,6 +14,9 @@ import {
   meshGradients,
 } from "@/lib/constants/mesh-gradients";
 
+/** How far the preview video may drift from the timeline before it is re-synced. */
+const PREVIEW_DRIFT_S = 1.5;
+
 interface BackgroundConfig {
   type: "solid" | "image" | "gradient";
   value: string;
@@ -141,7 +144,15 @@ export const StudioComposition = ({
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
         <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
           <div style={{ ...camera, position: "relative" }}>
+            {/*
+              The preview keeps this video in step with its timeline by
+              seeking it when they drift apart, which replays the last words
+              of a voiceover. On a slow Mac they drift often: wait for the
+              video instead, and only seek on a large drift.
+            */}
             <Video
+              acceptableTimeShiftInSeconds={PREVIEW_DRIFT_S}
+              pauseWhenBuffering
               src={url}
               style={{ width: "100%", display: "block" }}
               trimBefore={trimBefore}

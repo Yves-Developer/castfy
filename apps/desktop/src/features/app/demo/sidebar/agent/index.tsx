@@ -330,7 +330,7 @@ export function AgentTab() {
                   align="block-end"
                   className="flex justify-between border-foreground/10 border-t"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
                     <SelectModel
                       selectedModel={selectedModel}
                       setSelectedModelAction={(id) => {
@@ -339,7 +339,7 @@ export function AgentTab() {
                     />
                     <SelectVoice onChange={setVoice} voice={voice} />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-none items-center gap-2">
                     <form.Field
                       children={(field) => {
                         const isInvalid =
