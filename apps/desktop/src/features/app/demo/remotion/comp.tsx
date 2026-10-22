@@ -1,5 +1,6 @@
 "use client";
-import { AbsoluteFill, Img, staticFile, useCurrentFrame, Video } from "remotion";
+import { useRef } from "react";
+import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
 import { Pointer } from "../../../../../remotion/pointer";
 import { trimBeforeFor } from "./meta";
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from "../../../../../remotion/zoom";
@@ -13,9 +14,6 @@ import {
   magicGradients,
   meshGradients,
 } from "@/lib/constants/mesh-gradients";
-
-/** How far the preview video may drift from the timeline before it is re-synced. */
-const PREVIEW_DRIFT_S = 1.5;
 
 interface BackgroundConfig {
   type: "solid" | "image" | "gradient";
@@ -126,7 +124,13 @@ export const StudioComposition = ({
 }) => {
   const frame = useCurrentFrame();
   const trimBefore = trimBeforeFor(url);
-  const ms = ((frame + trimBefore) / FPS) * 1000;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  // While the video plays it is the clock: the timeline can lag it on a slow
+  // Mac, and the zoom and pointer must stay on the picture.
+  const playing = videoRef.current && !videoRef.current.paused;
+  const ms = playing
+    ? (videoRef.current?.currentTime ?? 0) * 1000
+    : ((frame + trimBefore) / FPS) * 1000;
   const camera = cameraStyle(cameraAt(ms, planShots(zoom)));
   return (
     <AbsoluteFill>
@@ -145,17 +149,19 @@ export const StudioComposition = ({
         <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
           <div style={{ ...camera, position: "relative" }}>
             {/*
-              The preview keeps this video in step with its timeline by
-              seeking it when they drift apart, which replays the last words
-              of a voiceover. On a slow Mac they drift often: wait for the
-              video instead, and only seek on a large drift.
+              A plain video, not Remotion's: Remotion seeks its video back to
+              the timeline whenever the two drift apart, which replayed the
+              start of voiceover lines. This one keeps its own clock, and the
+              zoom and pointer follow it (useVideoClock in player.tsx).
             */}
-            <Video
-              acceptableTimeShiftInSeconds={PREVIEW_DRIFT_S}
-              pauseWhenBuffering
+            {/* biome-ignore lint/a11y/useMediaCaption: the voiceover's captions are their own track */}
+            <video
+              data-preview-clock=""
+              playsInline
+              preload="auto"
+              ref={videoRef}
               src={url}
               style={{ width: "100%", display: "block" }}
-              trimBefore={trimBefore}
             />
             <Pointer ms={ms} track={zoom} />
           </div>
