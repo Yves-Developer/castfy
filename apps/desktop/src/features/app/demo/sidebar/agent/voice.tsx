@@ -71,16 +71,16 @@ export function SelectVoice({
     <DropdownMenu onOpenChange={setOpen} open={open}>
       <DropdownMenuTrigger
         aria-label="Voiceover"
-        className="flex items-center gap-1 whitespace-nowrap text-xs"
+        className="flex min-w-0 items-center gap-1 whitespace-nowrap text-xs"
         data-castfy="voice-picker"
       >
         {selected ? (
-          <MicIcon className="size-3.5" strokeWidth={2.4} />
+          <MicIcon className="size-3.5 flex-none" strokeWidth={2.4} />
         ) : (
-          <MicOffIcon className="size-3.5 text-muted-foreground" strokeWidth={2.4} />
+          <MicOffIcon className="size-3.5 flex-none text-muted-foreground" strokeWidth={2.4} />
         )}
-        <span>{selected ? selected.label : "No voice"}</span>
-        <ChevronDownIcon className="size-3.5" strokeWidth={2.7} />
+        <span className="truncate">{selected ? selected.label : "No voice"}</span>
+        <ChevronDownIcon className="size-3.5 flex-none" strokeWidth={2.7} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" alignOffset={-10} className="w-56">
         <DropdownMenuGroup>

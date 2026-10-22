@@ -145,7 +145,6 @@ export function RemotionPlayer({
         imageOverlays,
         zoom: zoomTrack,
       }}
-      loop
       ref={ref}
       showPlaybackRateControl
       showVolumeControls
