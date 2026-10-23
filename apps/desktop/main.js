@@ -1167,7 +1167,10 @@ ipcMain.handle('clients:detect', async () => ({
     .then(() => true)
     .catch(() => false),
   outputDir: libraryRoot(),
-  clients: await detectClients(expectedRegistration()),
+  clients: await detectClients(
+    expectedRegistration(),
+    new Set((await detectAgents()).filter((a) => a.drivable).map((a) => a.id))
+  ),
 }));
 
 ipcMain.handle('clients:disconnect', (_e, id) => disconnectClient(id));

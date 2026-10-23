@@ -99,13 +99,17 @@ function samePath(a, b) {
  * whose entrypoint is gone is worse than none, because the client reports a
  * broken server rather than a missing one. That case reports as `stale`.
  */
-async function inspect(client, expected) {
+async function inspect(client, expected, cliInstalled) {
   const { mcpEntry, launch, browsersPath } = expected;
-  const installed = client.requiresDir
-    ? await exists(client.requiresDir)
-    : client.requiresFile
-      ? await exists(client.file)
-      : true;
+  // A CLI installed but never run has no config folder yet (~/.codex appears
+  // on first run); connecting creates it.
+  const installed =
+    cliInstalled.has(client.id) ||
+    (client.requiresDir
+      ? await exists(client.requiresDir)
+      : client.requiresFile
+        ? await exists(client.file)
+        : true);
   if (!installed) return { status: 'absent' };
 
   const raw = await readIfExists(client.file);
@@ -132,8 +136,14 @@ async function inspect(client, expected) {
     if (!samePath(entryPath, mcpEntry)) return { status: 'other-entry', entryPath };
     // Registered before this build: right server, but launched the old way or
     // without the browser folder, so a recording would fail to find Chromium.
+    // The command is written with forward slashes (see posix): compared as
+    // text with Windows' C:\…\Castfy.exe it never matched, so a fresh
+    // connect read as "Needs reconnecting" and onboarding could not finish.
+    const sameCommand = path.isAbsolute(launch.command)
+      ? samePath(srv.command, launch.command)
+      : srv.command === launch.command;
     const outdated =
-      srv.command !== launch.command || !samePath(srv.env?.PLAYWRIGHT_BROWSERS_PATH, browsersPath);
+      !sameCommand || !samePath(srv.env?.PLAYWRIGHT_BROWSERS_PATH, browsersPath);
     return { status: outdated ? 'needs-env' : 'connected', entryPath };
   }
 
@@ -148,17 +158,18 @@ async function inspect(client, expected) {
 }
 
 /**
- * @param expected  What a correct registration looks like for this install:
- *                  { mcpEntry, launch: { command, env }, browsersPath }.
+ * @param expected      What a correct registration looks like for this install:
+ *                      { mcpEntry, launch: { command, env }, browsersPath }.
+ * @param cliInstalled  Ids of the clients whose CLI was found (agents.js).
  */
-export async function detectClients(expected) {
+export async function detectClients(expected, cliInstalled = new Set()) {
   return Promise.all(
     CLIENTS.map(async (c) => ({
       id: c.id,
       label: c.label,
       file: c.file,
       install: c.install ?? null,
-      ...(await inspect(c, expected)),
+      ...(await inspect(c, expected, cliInstalled)),
     }))
   );
 }
