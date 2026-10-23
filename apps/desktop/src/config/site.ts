@@ -8,6 +8,11 @@ export const siteConfig = {
     twitter: "https://x.com/castfy",
     youtube: "https://www.youtube.com/@CastfyRw",
     github: "https://github.com/CastfyRw",
+    /**
+     * The community server, for help and feedback. A permanent invite
+     * (https://discord.gg/…); the sidebar hides its Discord row while empty.
+     */
+    discord: "",
   },
   keywords: ["Castfy", "Url into demo", "Product demo"],
 };
