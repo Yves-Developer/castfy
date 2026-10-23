@@ -48,11 +48,12 @@ import {
   pickInitialVideo,
   readActiveJobId,
 } from "./generate";
-import { bridge } from "@/lib/bridge";
+import { bridge, type RunUsage } from "@/lib/bridge";
 import { finishedRecording } from "@/lib/local-query";
 import { SelectModel } from "./models";
 import { SelectVoice, useVoiceChoice } from "./voice";
 import { PackagingProgress, StepsTimeline } from "./step";
+import { RunUsageLine } from "./usage";
 
 const formSchema = z.object({
   webUrl: z.url("Please enter a valid URL."),
@@ -75,6 +76,7 @@ export function AgentTab() {
   const [activeVideoTab, setActiveVideoTab] = useState<string>("");
   const { slug } = useParams();
   const [errorMessage, setErrorMessage] = useState("");
+  const [usage, setUsage] = useState<RunUsage | null>(null);
 
   // Shared by a fresh submit and by reattaching after a refresh, so both paths
   // render progress identically. Every setter is stable, hence no deps.
@@ -107,6 +109,7 @@ export function AgentTab() {
         if (data.steps) {
           setSteps((prev) => (prev.length > 0 ? prev : (data.steps ?? [])));
         }
+        setUsage(data.usage ?? null);
         setStatus("completed");
       },
       onError: (message) => {
@@ -138,6 +141,7 @@ export function AgentTab() {
                 steps: recording.steps as AgentStep[],
                 videoUrl: recording.videoUrl,
                 videos: recording.videos,
+                usage: recording.usage,
               });
             }
           })
@@ -436,6 +440,9 @@ export function AgentTab() {
                       ? "The steps it took are below."
                       : "An error occurred during execution.")}
                 </p>
+                {status === "completed" && usage ? (
+                  <RunUsageLine usage={usage} />
+                ) : null}
               </div>
               {status === "generating" && (
                 <Button

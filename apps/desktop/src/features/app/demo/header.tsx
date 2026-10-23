@@ -1,14 +1,13 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
-import { CheckIcon, FolderOpenIcon, Loader2Icon } from "lucide-react";
-import { bridge } from "@/lib/bridge";
+import { DownloadIcon, Loader2Icon } from "lucide-react";
 import { DemoDropMenu } from "./menu";
 import { useExport } from "./use-export";
 import { useStudioProject } from "./use-project";
 
 export default function DemoHeader() {
   const { project } = useStudioProject();
-  const exporter = useExport(project?.sessionId);
+  const exporter = useExport(project?.sessionId, project?.title);
 
   /**
    * Export renders the recording on disk, so a finished video is the real
@@ -54,19 +53,19 @@ export default function DemoHeader() {
           {exporter.outputPath ? (
             <Button
               className="gap-1.5"
-              onClick={() => bridge.reveal(exporter.outputPath as string)}
+              onClick={exporter.saveAs}
               size="sm"
+              title={
+                exporter.savedPath
+                  ? `Last saved to ${exporter.savedPath}`
+                  : "Save a copy of the exported video"
+              }
               variant="secondary"
             >
-              <CheckIcon className="size-3.5" />
-              Exported
-              <FolderOpenIcon className="size-3.5" />
+              <DownloadIcon className="size-3.5" />
+              Save as…
             </Button>
-          ) : (
-            <Button disabled size={"sm"} variant={"secondary"}>
-              Save
-            </Button>
-          )}
+          ) : null}
 
           <Button
             className="gap-1.5"

@@ -8,6 +8,7 @@ import {
   BaseWindow,
   BrowserWindow,
   clipboard,
+  dialog,
   ipcMain,
   net,
   protocol,
@@ -16,6 +17,7 @@ import {
 } from 'electron';
 import chokidar from 'chokidar';
 import { buildCommand, detectAgents, pickAgent } from './agents.js';
+import { RUN_USAGE_FILE, saveRunUsage } from './run-usage.js';
 import { browserStatus, installBrowsers } from './browsers.js';
 import { connectClient, detectClients, disconnectClient } from './clients.js';
 import { ProjectStore } from './projects.js';
@@ -179,6 +181,8 @@ async function readSession(root, name) {
     }
   }
   if (await exists(path.join(dir, 'guide.md'))) rec.guide = true;
+  const usage = await readJson(path.join(dir, RUN_USAGE_FILE));
+  if (usage) rec.usage = usage;
 
   // Cover image: the first step screenshot the run captured. Free, already on
   // disk, and an actual frame of the demo rather than a generic placeholder.
@@ -1115,6 +1119,39 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
     return { ok: false, error: err?.message ?? String(err) };
   }
 });
+/** A demo title as a file name: no path separators or characters a disk refuses. */
+function videoFileName(title) {
+  const name = String(title ?? '')
+    .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  return `${name || 'Castfy demo'}.mp4`;
+}
+
+/**
+ * Saves a copy of a recording's export where the user chooses. The export
+ * itself stays in the recording's folder, where each export replaced the
+ * last; a saved copy is the user's to keep and name.
+ */
+ipcMain.handle('export:saveAs', async (_e, sessionId, title) => {
+  const dir = resolveWithin(libraryRoot(), sessionId);
+  const source = dir && path.join(dir, 'demo-export.mp4');
+  if (!(source && (await exists(source)))) return { ok: false, error: 'Export the video first.' };
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    title: 'Save video',
+    defaultPath: path.join(app.getPath('downloads'), videoFileName(title)),
+    filters: [{ name: 'MP4 video', extensions: ['mp4'] }],
+  });
+  if (canceled || !filePath) return { ok: false, canceled: true };
+  try {
+    await fs.copyFile(source, filePath);
+  } catch (err) {
+    return { ok: false, error: err?.message ?? String(err) };
+  }
+  shell.showItemInFolder(filePath);
+  return { ok: true, path: filePath };
+});
 ipcMain.handle('library:reveal', (_e, dir) => {
   const root = libraryRoot();
   const abs = path.resolve(dir);
@@ -1369,9 +1406,17 @@ ipcMain.handle('demo:run', async (_e, input) => {
       )
     );
 
+    // An agent that reports a result object (Claude Code) said its last words
+    // in it; that is what the log shows and what a failure is explained from.
+    const result = command.readResult?.(stdout) ?? null;
+    if (result?.text) send('demo:log', `${result.text}\n`);
+    const said = result ? result.text : stdout;
+
     // Agents explain themselves on stdout as often as stderr.
     const explained =
-      code === 0 && !error ? null : explainAgentFailure({ code, stdout, stderr });
+      code === 0 && !error && !result?.isError
+        ? null
+        : explainAgentFailure({ code, stdout: said, stderr });
     const message = error ?? explained?.message ?? null;
 
     const finished = runs.finish({ code, error: message });
@@ -1380,6 +1425,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
     // playable demo. See pickRunRecording for which folder that is.
     const sessionId = await pickRunRecording(finished?.sessionIds ?? []);
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
+    if (sessionId && result?.usage) {
+      await saveRunUsage(path.join(libraryRoot(), sessionId), result.usage).catch(() => {});
+    }
 
     const cancelled = stoppedByUser;
     stoppedByUser = false;
@@ -1398,7 +1446,8 @@ ipcMain.handle('demo:run', async (_e, input) => {
   send('demo:log', `$ ${command.label} — starting recording…\n\n`);
   running.stdout.on('data', (d) => {
     stdout += d.toString();
-    send('demo:log', d.toString());
+    // A result object is shown once it is whole, as its message; see settle.
+    if (!command.readResult) send('demo:log', d.toString());
   });
   running.stderr.on('data', (d) => {
     stderr += d.toString();

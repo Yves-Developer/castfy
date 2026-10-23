@@ -51,6 +51,8 @@ export interface SseEventData {
   value?: string;
   videos?: Record<string, string>;
   videoUrl?: string;
+  /** What the agent's run used, when it reports it. */
+  usage?: import("@/lib/bridge").RunUsage;
 }
 
 export interface SseHandlers {
