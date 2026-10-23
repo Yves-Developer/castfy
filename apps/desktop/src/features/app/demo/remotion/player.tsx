@@ -75,6 +75,22 @@ function useVideoClock(
         }
       }, ALIGN_AFTER_PAUSE_MS);
     };
+    // The video ends before the lagging timeline does: stop the player there
+    // (onPause then moves the timeline to the end) rather than run on silently.
+    const onEnded = () => {
+      if (player?.isPlaying()) {
+        player.pause();
+      }
+    };
+    let watched: HTMLVideoElement | null = null;
+    const watch = () => {
+      const video = videoOf() ?? null;
+      if (video !== watched) {
+        watched?.removeEventListener("ended", onEnded);
+        video?.addEventListener("ended", onEnded);
+        watched = video;
+      }
+    };
     // A seek by the user, or the editor stepping over a cut, moves the video.
     const onSeeked = ({ detail }: { detail: { frame: number } }) => {
       if (detail.frame === aligned) {
@@ -120,12 +136,14 @@ function useVideoClock(
       if (ref.current !== player) {
         listen(ref.current);
       }
+      watch();
     }, 250);
     listen(ref.current);
     return () => {
       clearInterval(timer);
       clearTimeout(alignTimer);
       videoOf()?.pause();
+      watched?.removeEventListener("ended", onEnded);
       listen(null);
     };
   }, [ref, url]);

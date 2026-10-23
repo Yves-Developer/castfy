@@ -126,10 +126,13 @@ export const StudioComposition = ({
   const trimBefore = trimBeforeFor(url);
   const videoRef = useRef<HTMLVideoElement>(null);
   // While the video plays it is the clock: the timeline can lag it on a slow
-  // Mac, and the zoom and pointer must stay on the picture.
-  const playing = videoRef.current && !videoRef.current.paused;
-  const ms = playing
-    ? (videoRef.current?.currentTime ?? 0) * 1000
+  // Mac, and the zoom and pointer must stay on the picture. Once it has
+  // ended, too: the lagging timeline would replay the last zoom and pointer
+  // moves over its final frame.
+  const video = videoRef.current;
+  const onVideoClock = video && (!video.paused || video.ended);
+  const ms = onVideoClock
+    ? (video?.currentTime ?? 0) * 1000
     : ((frame + trimBefore) / FPS) * 1000;
   const camera = cameraStyle(cameraAt(ms, planShots(zoom)));
   return (
