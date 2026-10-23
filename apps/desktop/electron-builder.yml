@@ -47,6 +47,10 @@ win:
   target:
     - target: nsis
       arch: [x64]
+  # Every size Windows draws (16 to 256px) in one .ico, each made on its own
+  # so the arrow stays sharp on the taskbar, and opaque: the shared icon is
+  # see-through, which looked washed out on a light taskbar.
+  icon: build-resources/icon-win.ico
 
 nsis:
   oneClick: false
@@ -60,6 +64,11 @@ mac:
   target:
     - target: dmg
   category: public.app-category.video
+  # Apple's icon template: the shape is 824px wide on a 1024px canvas, with
+  # room for its shadow. The shared icon fills its canvas edge to edge, so in
+  # the Dock it was drawn bigger than every other app. Same arrow, in white on
+  # black, lit from above.
+  icon: build-resources/icon-mac.png
   # Signing and notarisation are configured in Phase 5. Until then builds are
   # unsigned: macOS needs right-click → Open the first time.
   hardenedRuntime: true
