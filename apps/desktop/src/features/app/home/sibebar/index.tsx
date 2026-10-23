@@ -8,10 +8,13 @@ import {
   PlusIcon,
   Trash2Icon,
 } from "lucide-react";
+import { SiDiscord } from "react-icons/si";
 import Link from "@/components/compat/link";
 import { usePathname } from "@/components/compat/navigation";
 import { Suspense } from "react";
 import { toast } from "sonner";
+import { siteConfig } from "@/config/site";
+import { bridge } from "@/lib/bridge";
 import { useNewFolderStore } from "@/lib/store/dialogs";
 import SidebarSearch from "../../_shared/search";
 import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
@@ -21,8 +24,8 @@ export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const { open } = useNewFolderStore();
   function handleCopyLink() {
-    navigator.clipboard.writeText("https://castfy.com");
-    toast.success("Demo link copied to clipboard");
+    navigator.clipboard.writeText(siteConfig.url);
+    toast.success("Castfy link copied to clipboard");
   }
 
   return (
@@ -98,7 +101,27 @@ export default function HomeSidebar({ className }: { className?: string }) {
           </Button>
         </div>
       </div>
-      <div className="mt-auto flex items-center border-t px-2.5 py-2.5">
+      {siteConfig.links.discord ? (
+        <div className="mt-auto border-t px-2.5 py-2">
+          <Button
+            className="w-full justify-normal gap-3 text-muted-foreground"
+            onClick={() => bridge.openExternal(siteConfig.links.discord)}
+            size="sm"
+            title="Get help and share feedback on Castfy's Discord"
+            variant="ghost"
+          >
+            <SiDiscord className="size-3.5 text-[#5865F2]" />
+            <span className="font-medium text-xs">Help & feedback</span>
+            <span className="ml-auto text-[10px]">Discord</span>
+          </Button>
+        </div>
+      ) : null}
+      <div
+        className={cn(
+          "flex items-center border-t px-2.5 py-2.5",
+          !siteConfig.links.discord && "mt-auto"
+        )}
+      >
         <div className="group relative flex w-full items-center gap-3 text-muted-foreground">
           <MailIcon className="size-3.5" strokeWidth={2.7} />
           <span className="font-medium text-xs">Invite Friends</span>

@@ -149,6 +149,45 @@ function useVideoClock(
   }, [ref, url]);
 }
 
+/** The preview's video, while it plays; null when it is paused or not there. */
+function playingVideo(player: PlayerRef | null): HTMLVideoElement | null {
+  const video = player?.getContainerNode()?.querySelector<HTMLVideoElement>("video[data-preview-clock]");
+  return video && !video.paused ? video : null;
+}
+
+/**
+ * Reports the frame being heard while the video plays, every animation frame.
+ * The editor's playhead and timeline follow this; the player's own frame lags
+ * the video on a slow Mac, and the playhead drifted off the voice it was on.
+ */
+function useVideoFrame(
+  ref: React.RefObject<PlayerRef | null>,
+  url: string | null,
+  onFrameChange?: (frame: number) => void
+) {
+  useEffect(() => {
+    if (!(url && onFrameChange)) {
+      return;
+    }
+    const trimBefore = trimBeforeFor(url);
+    let raf = 0;
+    let last = -1;
+    const tick = () => {
+      const video = playingVideo(ref.current);
+      if (video) {
+        const frame = Math.max(0, Math.round(video.currentTime * FPS) - trimBefore);
+        if (frame !== last) {
+          last = frame;
+          onFrameChange(frame);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [ref, url, onFrameChange]);
+}
+
 export function RemotionPlayer({
   onDurationInFrames,
   onFrameChange,
@@ -215,6 +254,7 @@ export function RemotionPlayer({
   }, [onDurationInFrames, generatedVideoUrl]);
 
   useVideoClock(ref, generatedVideoUrl);
+  useVideoFrame(ref, generatedVideoUrl, onFrameChange);
 
   useEffect(() => {
     const player = ref.current;
@@ -223,6 +263,11 @@ export function RemotionPlayer({
     }
 
     const handleFrameChange = ({ detail }: { detail: { frame: number } }) => {
+      // While the video plays, its own time is reported instead (useVideoFrame):
+      // the player's frame runs behind it on a slow Mac.
+      if (playingVideo(player)) {
+        return;
+      }
       onFrameChange?.(detail.frame);
     };
     const handlePlay = () => onPlaybackChange?.(true);

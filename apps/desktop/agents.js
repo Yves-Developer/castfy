@@ -2,6 +2,7 @@ import { constants as fsConstants } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { readClaudeResult } from './run-usage.js';
 
 /**
  * The agents Castfy can drive.
@@ -40,9 +41,11 @@ export const AGENTS = [
     /**
      * -p is headless, and the prompt arrives on stdin. --allowedTools matters
      * because a headless run cannot show an approval prompt: an un-allowlisted
-     * tool call just stalls.
+     * tool call just stalls. The JSON output carries the run's turns, time and
+     * tokens next to its last message (run-usage.js).
      */
-    buildArgs: () => ['-p', '--allowedTools', 'mcp__castfy0'],
+    buildArgs: () => ['-p', '--output-format', 'json', '--allowedTools', 'mcp__castfy0'],
+    readResult: readClaudeResult,
   },
   {
     id: 'codex',
@@ -152,7 +155,12 @@ export async function buildCommand(agentId, options = {}) {
   if (!agent) return null;
   const binary = await resolveBinary(agentId);
   if (!binary) return null;
-  return { binary, args: agent.buildArgs(options), label: agent.label };
+  return {
+    binary,
+    args: agent.buildArgs(options),
+    label: agent.label,
+    readResult: agent.readResult ?? null,
+  };
 }
 
 /**

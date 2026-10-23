@@ -244,6 +244,7 @@ export async function finishedRecording(sessionId: string | null | undefined) {
       error: step.error,
     })),
     videoUrl: job.videos?.audioClean ?? job.videos?.clean ?? job.videos?.raw,
+    usage: session.usage,
   };
 }
 

@@ -12,7 +12,7 @@ import { useBackgroundStore } from '@/lib/store';
  * gradient catalogue lives on this side, and passing the finished value keeps
  * one definition of what "magic:sunset" means instead of two.
  */
-export function useExport(sessionId: string | null | undefined) {
+export function useExport(sessionId: string | null | undefined, title?: string) {
   const { backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions } =
     useBackgroundStore();
 
@@ -20,8 +20,21 @@ export function useExport(sessionId: string | null | undefined) {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [outputPath, setOutputPath] = useState<string | null>(null);
+  /** Where the user last saved a copy of the export. */
+  const [savedPath, setSavedPath] = useState<string | null>(null);
 
   useEffect(() => bridge.onExportProgress(({ message }) => setStatus(message ?? null)), []);
+
+  /**
+   * Saves a copy of the export where the user picks. The export itself is
+   * rewritten by every new export, so this is the copy that is kept.
+   */
+  const saveAs = useCallback(async () => {
+    if (!sessionId) return;
+    const saved = await bridge.saveExport(sessionId, title ?? 'Castfy demo');
+    if (saved.ok && saved.path) setSavedPath(saved.path);
+    else if (saved.error) setError(saved.error);
+  }, [sessionId, title]);
 
   const run = useCallback(async () => {
     if (!sessionId) return;
@@ -67,15 +80,19 @@ export function useExport(sessionId: string | null | undefined) {
     setStatus('Starting…');
     try {
       const result = await bridge.render(sessionId, spec);
-      if (result.ok) setOutputPath(result.outputLocation ?? null);
-      else setError(result.error ?? 'Export failed.');
+      if (result.ok) {
+        setOutputPath(result.outputLocation ?? null);
+        // An export is for sending somewhere: ask where it goes straight away.
+        const saved = await bridge.saveExport(sessionId, title ?? 'Castfy demo');
+        if (saved.ok && saved.path) setSavedPath(saved.path);
+      } else setError(result.error ?? 'Export failed.');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
       setStatus(null);
     }
-  }, [sessionId, backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions]);
+  }, [sessionId, title, backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions]);
 
-  return { run, busy, status, error, outputPath };
+  return { run, saveAs, busy, status, error, outputPath, savedPath };
 }

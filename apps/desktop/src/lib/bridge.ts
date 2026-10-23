@@ -11,6 +11,18 @@ export interface SessionSummary {
   excludedSteps: number;
 }
 
+/** A run's turns, time and tokens, as the agent reported them. */
+export interface RunUsage {
+  agent: string;
+  turns: number | null;
+  durationMs: number | null;
+  models: string[];
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+}
+
 export interface Session {
   id: string;
   dir: string;
@@ -26,6 +38,8 @@ export interface Session {
   guide?: boolean;
   /** First step screenshot, used as the project cover. */
   thumb?: string;
+  /** What the agent's run used, when the agent reports it (run-usage.js). */
+  usage?: RunUsage;
   error?: string;
   /** Detail view only. */
   steps?: Array<{
@@ -223,6 +237,11 @@ export interface CastfyBridge {
     sessionId: string,
     spec?: Record<string, unknown>
   ): Promise<{ ok: boolean; error?: string; outputLocation?: string }>;
+  /** Asks where to save a copy of the recording's export, and saves it there. */
+  saveExport(
+    sessionId: string,
+    title: string
+  ): Promise<{ ok: boolean; path?: string; canceled?: boolean; error?: string }>;
   onExportProgress(cb: (p: { sessionId: string; message?: string }) => void): () => void;
   reveal(dir: string): Promise<void>;
   onChange(cb: () => void): () => void;

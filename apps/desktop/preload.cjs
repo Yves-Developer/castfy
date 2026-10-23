@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('castfy', {
 
   // export
   render: (sessionId, spec) => ipcRenderer.invoke('export:render', sessionId, spec),
+  saveExport: (sessionId, title) => ipcRenderer.invoke('export:saveAs', sessionId, title),
   onExportProgress: on('export:progress'),
   reveal: (dir) => ipcRenderer.invoke('library:reveal', dir),
   onChange: on('library:changed'),
