@@ -12,7 +12,7 @@ export const siteConfig = {
      * The community server, for help and feedback. A permanent invite
      * (https://discord.gg/…); the sidebar hides its Discord row while empty.
      */
-    discord: "",
+    discord: "https://discord.gg/PY8RGrex3V",
   },
   keywords: ["Castfy", "Url into demo", "Product demo"],
 };
