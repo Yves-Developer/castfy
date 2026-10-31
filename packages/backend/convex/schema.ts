@@ -93,27 +93,48 @@ export default defineSchema({
   }).index("by_job_seq", ["jobId", "seq"]),
 
   /**
-   * One-time Polar orders for the paid tier, mirrored from its webhooks
-   * (auth.ts). Polar stays the record of truth; this copy makes a plan check
-   * one indexed read rather than an API call on every export.
+   * One-time payments for the paid tier, mirrored from Dodo Payments'
+   * webhooks (auth.ts). Dodo stays the record of truth; this copy makes a
+   * plan check one indexed read rather than an API call on every export.
    */
   purchases: defineTable({
-    polarOrderId: v.string(),
-    polarCustomerId: v.string(),
+    /** Dodo's payment id (pay_…). */
+    paymentId: v.string(),
+    /** Dodo's customer id (cus_…). */
+    customerId: v.string(),
     /**
-     * The Better Auth user id, carried as the Polar customer's externalId.
-     * Null only for a customer created outside the app (e.g. by hand in the
-     * Polar dashboard), which no user can claim.
+     * The Better Auth user id: the checkout's referenceId, or else the user
+     * with the payment's email. Null for a payment no user can be matched to
+     * (e.g. made by hand in the Dodo dashboard), which no one can claim.
      */
     userId: v.union(v.string(), v.null()),
     productId: v.union(v.string(), v.null()),
-    /** Polar's order status: "paid", "refunded", "partially_refunded", … */
+    /** "paid", "partially_refunded" or "refunded". */
     status: v.string(),
     paidAt: v.number(),
     updatedAt: v.number(),
   })
-    .index("by_polar_order", ["polarOrderId"])
+    .index("by_payment", ["paymentId"])
     .index("by_user", ["userId"]),
+
+  /**
+   * Personal beta codes (BETA-XXXXXX), made with `npx convex run
+   * billing:createBetaCodes`. Each is for one tester: redeeming it grants the
+   * beta plan, unlimited demos, until the code expires.
+   */
+  betaCodes: defineTable({
+    code: v.string(),
+    /** Who it was made for, to tell testers apart. */
+    note: v.optional(v.string()),
+    /** The beta plan ends at this time; unset, it lasts until endBeta. */
+    expiresAt: v.optional(v.number()),
+    createdAt: v.number(),
+    /** The tester who redeemed it, once someone has. */
+    redeemedBy: v.optional(v.string()),
+    redeemedAt: v.optional(v.number()),
+  })
+    .index("by_code", ["code"])
+    .index("by_redeemer", ["redeemedBy"]),
 
   /**
    * One row per demo exported. The free tier limits demos over the account's

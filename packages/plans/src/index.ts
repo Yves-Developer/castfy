@@ -3,45 +3,58 @@
  *
  *   Free    5 demos, ever. Full app, 1080p, no watermark.
  *   Castfy  one payment, unlimited demos.
+ *   Beta    a tester's beta code, unlimited demos while the beta runs.
  *
- * The paid tier is a one-time Polar product, not a subscription. The backend
- * grants it from Polar's order webhooks (packages/backend/convex/auth.ts) and
- * counts demos against the free limit (billing.ts).
+ * The paid tier is a one-time Dodo Payments product, not a subscription. The
+ * backend grants it from Dodo's payment webhooks (packages/backend/convex/
+ * auth.ts) and counts demos against the free limit (billing.ts).
  */
 
 // Guarded: this module is also imported in browsers (the desktop app's
 // renderer), where there is no `process`. Only server code reads it, through
 // getProducts().
-const POLAR_ENVIRONMENT = (
-  typeof process === "undefined" ? undefined : process.env.POLAR_ENVIRONMENT
+const DODO_ENVIRONMENT = (
+  typeof process === "undefined"
+    ? undefined
+    : process.env.DODO_PAYMENTS_ENVIRONMENT
 ) as PlanEnvironment | undefined;
 
-export type PlanEnvironment = "production" | "sandbox";
+/** Dodo's two modes: test_mode takes test cards, live_mode real ones. */
+export type PlanEnvironment = "live_mode" | "test_mode";
 
-export type PlanKey = "free" | "lifetime";
+export type PlanKey = "free" | "lifetime" | "beta";
 
-/** The one paid product. Its key is the checkout slug the app sends. */
+/** The plans anyone can pick; "beta" is only granted by a beta code. */
+export type TierKey = Exclude<PlanKey, "beta">;
+
+/**
+ * The one paid product, by Dodo mode. Its key is the checkout slug the app
+ * sends. Product ids (pdt_…) are in the Dodo dashboard under Products; test
+ * and live mode each have their own.
+ */
 export const PRODUCTS = {
-  production: {
-    lifetime: { id: "REPLACE_WITH_POLAR_PRODUCT_ID", name: "Castfy" },
+  live_mode: {
+    lifetime: { id: "REPLACE_WITH_DODO_PRODUCT_ID", name: "Castfy" },
   },
-  sandbox: {
-    lifetime: { id: "REPLACE_WITH_POLAR_PRODUCT_ID", name: "Castfy" },
+  test_mode: {
+    lifetime: { id: "REPLACE_WITH_DODO_PRODUCT_ID", name: "Castfy" },
   },
 } as const;
 
-export type ProductSlug = keyof (typeof PRODUCTS)["production"];
+export type ProductSlug = keyof (typeof PRODUCTS)["live_mode"];
 
-/** True until the Polar product exists and its id replaces the placeholder. */
+/** True until the Dodo product exists and its id replaces the placeholder. */
 export function isPlaceholderProduct(id: string): boolean {
   return id.startsWith("REPLACE_");
 }
 
 export function getProducts() {
-  if (!POLAR_ENVIRONMENT) {
-    throw new Error("POLAR_ENVIRONMENT must be 'production' or 'sandbox'");
+  if (!DODO_ENVIRONMENT) {
+    throw new Error(
+      "DODO_PAYMENTS_ENVIRONMENT must be 'live_mode' or 'test_mode'"
+    );
   }
-  return PRODUCTS[POLAR_ENVIRONMENT];
+  return PRODUCTS[DODO_ENVIRONMENT];
 }
 
 /** The plan a product grants, or null for a product this app doesn't sell. */
@@ -61,7 +74,7 @@ export interface PlanLimits {
 
 export function getPlanLimits(plan: PlanKey): PlanLimits {
   return {
-    demos: plan === "lifetime" ? "unlimited" : FREE_DEMO_LIMIT,
+    demos: plan === "free" ? FREE_DEMO_LIMIT : "unlimited",
     // Both tiers export 1080p with no watermark; the limit is the only
     // difference.
     exportQuality: "1080p",
@@ -69,8 +82,14 @@ export function getPlanLimits(plan: PlanKey): PlanLimits {
   };
 }
 
+const PLAN_NAMES: Record<PlanKey, string> = {
+  free: "Free",
+  lifetime: "Castfy",
+  beta: "Beta",
+};
+
 export function getPlanName(plan: PlanKey): string {
-  return plan === "lifetime" ? "Castfy" : "Free";
+  return PLAN_NAMES[plan];
 }
 
 /** The paid tier's price. `regular` is the price after launch. */
@@ -84,13 +103,13 @@ export const PRICE = {
 export interface PlanTier {
   description: string;
   features: string[];
-  key: PlanKey;
+  key: TierKey;
   price: string;
   title: string;
 }
 
 /** The two tiers as the app shows them; worded like the website. */
-export const TIERS: Record<PlanKey, PlanTier> = {
+export const TIERS: Record<TierKey, PlanTier> = {
   free: {
     key: "free",
     title: "Free",

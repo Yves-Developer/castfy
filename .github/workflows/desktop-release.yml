@@ -107,6 +107,26 @@ jobs:
         working-directory: castfy
         run: pnpm --filter @workspace/desktop typecheck
 
+      # The production backend the app signs in to, from the repository's
+      # Actions variables (Settings → Secrets and variables → Actions →
+      # Variables). Unset, the committed castfy.config.json is shipped as is.
+      - name: Point the app at the backend
+        if: ${{ vars.CASTFY_CONVEX_URL != '' }}
+        working-directory: castfy/apps/desktop
+        env:
+          CASTFY_CONVEX_URL: ${{ vars.CASTFY_CONVEX_URL }}
+          CASTFY_WEB_URL: ${{ vars.CASTFY_WEB_URL }}
+        shell: bash
+        run: |
+          node -e '
+            const fs = require("fs");
+            const file = "castfy.config.json";
+            const config = JSON.parse(fs.readFileSync(file, "utf8"));
+            config.convexUrl = process.env.CASTFY_CONVEX_URL;
+            if (process.env.CASTFY_WEB_URL) config.webUrl = process.env.CASTFY_WEB_URL;
+            fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
+          '
+
       - name: Package
         working-directory: castfy
         env:

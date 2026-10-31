@@ -3,6 +3,7 @@ import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
 import { CheckIcon, Loader2Icon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { BetaCodeForm } from "@/features/app/billing/beta-code";
 import { bridge } from "@/lib/bridge";
 
 /** How often to look for the purchase while checkout is open. */
@@ -11,8 +12,8 @@ const CHECKOUT_POLL_MS = 4000;
 /**
  * Onboarding's plan step, after sign-in, priced as on the website: 5 free
  * demos, or Castfy for one payment. Starting free moves on at once; buying
- * opens Polar checkout in the browser and the step waits until the purchase
- * reaches the backend (Polar's webhook), then moves on by itself. Shown once:
+ * opens Dodo checkout in the browser and the step waits until the purchase
+ * reaches the backend (Dodo's webhook), then moves on by itself. Shown once:
  * answering it sets settings.planChosen.
  */
 export function ChoosePlan({ onDone }: { onDone: () => void }) {
@@ -30,15 +31,15 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
     return result.ok && result.plan?.plan.key === "lifetime";
   }, []);
 
-  // Someone who already bought (on another computer, or before reinstalling)
-  // has nothing to choose.
+  // Someone who already bought, or redeemed a beta code (on another
+  // computer, or before reinstalling), has nothing to choose.
   useEffect(() => {
-    hasBought().then((bought) => {
-      if (bought) {
+    bridge.plan().then((result) => {
+      if (result.ok && result.plan && result.plan.plan.key !== "free") {
         finish();
       }
     });
-  }, [hasBought, finish]);
+  }, [finish]);
 
   // While checkout is open in the browser, watch for the purchase to land.
   useEffect(() => {
@@ -150,6 +151,14 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
             Buy Castfy — {TIERS.lifetime.price}
           </Button>
         </TierCard>
+      </div>
+
+      <div className="w-full max-w-100 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <p className="mb-3 text-[11px] text-muted-foreground">
+          Invited to the beta? Your code gives you unlimited demos, free, while
+          the beta runs.
+        </p>
+        <BetaCodeForm onRedeemed={finish} />
       </div>
 
       <p className="max-w-125 text-balance text-center text-[11px] text-muted-foreground">

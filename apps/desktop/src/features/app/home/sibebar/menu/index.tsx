@@ -13,6 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@castfy/ui/components/dropdown-menu";
 import { ChevronDownIcon } from "lucide-react";
+import { bridge } from "@/lib/bridge";
+import { siteConfig } from "@/config/site";
+import { reportProblem } from "@/lib/report-problem";
 import { useSettingsStore } from "@/lib/store/dialogs";
 import { initials, signOut, useAccount } from "@/lib/use-account";
 import { ModeSwitcher } from "./mode";
@@ -75,7 +78,12 @@ export function HomeDropMenu() {
           <DropdownMenuItem onClick={() => setActivePage("billing")}>
             Billing
           </DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => bridge.openExternal(siteConfig.links.discord)}>
+            Help & feedback
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => reportProblem()}>
+            Report a problem
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         {user ? (
           <>

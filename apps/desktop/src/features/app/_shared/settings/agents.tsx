@@ -1,4 +1,5 @@
 "use client";
+import { ExperimentalBadge } from "@/components/experimental-badge";
 import { Button } from "@castfy/ui/components/button";
 import { Badge } from "@castfy/ui/components/badge";
 import { cn } from "@castfy/ui/lib/utils";
@@ -182,6 +183,7 @@ function AgentSettingRow({
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <p className="font-medium text-[13px]">{client.label}</p>
+          <ExperimentalBadge agentId={client.id} />
           {isActive ? (
             <Badge className="text-[10px]" variant="secondary">
               Recording agent

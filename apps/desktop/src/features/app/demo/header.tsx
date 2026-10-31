@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
 import { DownloadIcon, Loader2Icon } from "lucide-react";
+import { UpgradeDialog } from "@/features/app/billing/upgrade-dialog";
 import { DemoDropMenu } from "./menu";
 import { useExport } from "./use-export";
 import { useStudioProject } from "./use-project";
@@ -84,6 +85,14 @@ export default function DemoHeader() {
           </Button>
         </div>
       </div>
+      <UpgradeDialog
+        limit={exporter.limitReached}
+        onClose={exporter.dismissLimit}
+        onUnlocked={() => {
+          exporter.dismissLimit();
+          exporter.run();
+        }}
+      />
     </header>
   );
 }

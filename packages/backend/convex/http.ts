@@ -4,10 +4,10 @@ import { authComponent, createAuth } from "./auth";
 const http = httpRouter();
 
 /**
- * Better Auth under /api/auth/*: sign-in (email code, Google, GitHub), the
+ * Better Auth under /api/auth/*: sign-in with Google, the
  * desktop device flow (/device/code, /device/token), the Convex JWT exchange
- * (/convex/token) and, when Polar is configured, checkout, portal and
- * /polar/webhooks.
+ * (/convex/token) and, when Dodo Payments is configured, its checkout,
+ * customer portal and webhooks under /dodopayments.
  */
 authComponent.registerRoutes(http, createAuth);
 
