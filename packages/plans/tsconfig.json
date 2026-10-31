@@ -1,7 +1,7 @@
 {
   "extends": "@castfy/tsconfig/base.json",
   "compilerOptions": {
-    "typeRoots": ["../../node_modules/@types"],
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
     "strictNullChecks": true
   },
   "include": ["src"],

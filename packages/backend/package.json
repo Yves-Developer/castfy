@@ -14,10 +14,10 @@
   "dependencies": {
     "@castfy/plans": "workspace:*",
     "@convex-dev/better-auth": "0.12.5",
-    "@polar-sh/better-auth": "1.8.4",
-    "@polar-sh/sdk": "^0.47.1",
+    "@dodopayments/better-auth": "^1.6.6",
     "better-auth": "~1.6.33",
     "convex": "^1.46.0",
+    "dodopayments": "^2.59.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -6,8 +6,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Where Polar sends people after paying. The plan reaches the app through
- * Polar's webhook, not this page, so it only needs to send them back.
+ * Where Dodo Payments sends people after paying. The plan reaches the app
+ * through Dodo's webhook, not this page, so it only needs to send them back.
  */
 export default function CheckoutSuccessPage() {
   return (

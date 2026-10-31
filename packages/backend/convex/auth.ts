@@ -1,11 +1,15 @@
 import { getProducts, isPlaceholderProduct } from "@castfy/plans";
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
-import { checkout, polar, portal, webhooks } from "@polar-sh/better-auth";
-import { Polar } from "@polar-sh/sdk";
-import type { Order } from "@polar-sh/sdk/models/components/order.js";
+import {
+  checkout,
+  dodopayments,
+  portal,
+  webhooks,
+} from "@dodopayments/better-auth";
 import { type BetterAuthOptions, betterAuth } from "better-auth";
 import { deviceAuthorization } from "better-auth/plugins";
+import DodoPayments from "dodopayments";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
@@ -64,32 +68,27 @@ function socialProviders() {
   };
 }
 
-/** Polar's order, reduced to the fields the app keeps. */
-function toPurchaseRow(order: Order) {
-  return {
-    polarOrderId: order.id,
-    polarCustomerId: order.customerId,
-    userId: order.customer.externalId ?? null,
-    productId: order.productId,
-    status: order.status,
-    paidAt: order.createdAt.getTime(),
-  };
-}
-
 /**
- * Billing plugins, only when Polar is configured. The paid tier is one
+ * Billing plugins, only when Dodo Payments is configured. The paid tier is one
  * one-time product; the desktop app asks for it by its @castfy/plans slug
  * ("lifetime") and never carries a product ID.
+ *
+ * Mounted under /api/auth/dodopayments: checkout-session (checkout),
+ * customer/portal (receipts and refunds) and webhooks, the URL to give Dodo's
+ * dashboard: ${SITE_URL}/api/auth/dodopayments/webhooks.
  */
-function polarPlugins(ctx: GenericCtx<DataModel>) {
-  const accessToken = process.env.POLAR_ACCESS_TOKEN;
-  if (!accessToken) {
+function dodoPlugins(ctx: GenericCtx<DataModel>) {
+  const apiKey = process.env.DODO_PAYMENTS_API_KEY;
+  if (!apiKey) {
     return [];
   }
 
-  // getProducts() picks the product set by POLAR_ENVIRONMENT, so that must be
-  // set whenever Polar is: sandbox product IDs do not exist in production.
-  requireEnv("POLAR_ENVIRONMENT");
+  // getProducts() picks the product set by DODO_PAYMENTS_ENVIRONMENT, so that
+  // must be set whenever Dodo is: test-mode product ids do not exist live.
+  const environment = requireEnv("DODO_PAYMENTS_ENVIRONMENT");
+  if (environment !== "test_mode" && environment !== "live_mode") {
+    throw new Error("DODO_PAYMENTS_ENVIRONMENT must be test_mode or live_mode");
+  }
   const products = Object.entries(getProducts())
     .filter(([, product]) => !isPlaceholderProduct(product.id))
     .map(([slug, product]) => ({ productId: product.id, slug }));
@@ -97,44 +96,50 @@ function polarPlugins(ctx: GenericCtx<DataModel>) {
   /**
    * Webhooks arrive through the HTTP router, which hands createAuth an action
    * context. Mirrored into the purchases table so plan checks are a local
-   * read instead of a call to Polar on every export.
+   * read instead of a call to Dodo on every export.
    */
-  const syncOrder = async (order: Order) => {
+  const actionCtx = () => {
     if (!("runMutation" in ctx)) {
-      throw new Error("Polar webhooks must be handled in an action context");
+      throw new Error("Dodo webhooks must be handled in an action context");
     }
-    await ctx.runMutation(
-      internal.billing.upsertPurchase,
-      toPurchaseRow(order)
-    );
+    return ctx;
   };
 
   return [
-    polar({
-      client: new Polar({
-        accessToken,
-        server:
-          requireEnv("POLAR_ENVIRONMENT") === "production"
-            ? "production"
-            : "sandbox",
-      }),
+    dodopayments({
+      client: new DodoPayments({ bearerToken: apiKey, environment }),
       createCustomerOnSignUp: true,
       use: [
         checkout({
           products,
-          // Absolute: Polar resolves a relative one against the request URL,
-          // which behind the website's /api/auth proxy is the Convex site.
-          successUrl: `${process.env.SITE_URL}/checkout/success?checkout_id={CHECKOUT_ID}`,
+          // Absolute: a relative one resolves against the request URL, which
+          // behind the website's /api/auth proxy is the Convex site.
+          successUrl: `${process.env.SITE_URL}/checkout/success`,
           authenticatedUsersOnly: true,
         }),
         portal(),
         webhooks({
-          secret: requireEnv("POLAR_WEBHOOK_SECRET"),
-          // A one-time order is paid, then possibly refunded. "updated"
-          // covers any other status change (e.g. a partial refund).
-          onOrderPaid: (payload) => syncOrder(payload.data),
-          onOrderUpdated: (payload) => syncOrder(payload.data),
-          onOrderRefunded: (payload) => syncOrder(payload.data),
+          webhookKey: requireEnv("DODO_PAYMENTS_WEBHOOK_SECRET"),
+          onPaymentSucceeded: async (payload) => {
+            const payment = payload.data;
+            const referenceId = payment.metadata?.referenceId;
+            await actionCtx().runMutation(internal.billing.recordPayment, {
+              paymentId: payment.payment_id,
+              customerId: payment.customer.customer_id,
+              email: payment.customer.email,
+              referenceId: typeof referenceId === "string" ? referenceId : null,
+              productId: payment.product_cart?.[0]?.product_id ?? null,
+              paidAt: payment.created_at.getTime(),
+            });
+          },
+          onRefundSucceeded: async (payload) => {
+            const refund = payload.data;
+            await actionCtx().runMutation(internal.billing.recordRefund, {
+              paymentId: refund.payment_id,
+              customerId: refund.customer.customer_id,
+              partial: refund.is_partial,
+            });
+          },
         }),
       ],
     }),
@@ -175,7 +180,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
         verificationUri: `${siteUrl}/device`,
         validateClient: (clientId) => clientId === DESKTOP_CLIENT_ID,
       }),
-      ...polarPlugins(ctx),
+      ...dodoPlugins(ctx),
       convex({ authConfig }),
     ],
   } satisfies BetterAuthOptions;

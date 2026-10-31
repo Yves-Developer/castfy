@@ -22,6 +22,8 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
   const [outputPath, setOutputPath] = useState<string | null>(null);
   /** Where the user last saved a copy of the export. */
   const [savedPath, setSavedPath] = useState<string | null>(null);
+  /** The free demos are used up: set when an export was refused for it. */
+  const [limitReached, setLimitReached] = useState<number | null>(null);
 
   useEffect(() => bridge.onExportProgress(({ message }) => setStatus(message ?? null)), []);
 
@@ -76,6 +78,7 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
 
     setBusy(true);
     setError(null);
+    setLimitReached(null);
     setOutputPath(null);
     setStatus('Starting…');
     try {
@@ -85,6 +88,9 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
         // An export is for sending somewhere: ask where it goes straight away.
         const saved = await bridge.saveExport(sessionId, title ?? 'Castfy demo');
         if (saved.ok && saved.path) setSavedPath(saved.path);
+      } else if (result.limitReached) {
+        // Not an error: the app offers to buy instead.
+        setLimitReached(result.limit ?? 0);
       } else setError(result.error ?? 'Export failed.');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -94,5 +100,17 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
     }
   }, [sessionId, title, backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions]);
 
-  return { run, saveAs, busy, status, error, outputPath, savedPath };
+  const dismissLimit = useCallback(() => setLimitReached(null), []);
+
+  return {
+    run,
+    saveAs,
+    busy,
+    status,
+    error,
+    outputPath,
+    savedPath,
+    limitReached,
+    dismissLimit,
+  };
 }

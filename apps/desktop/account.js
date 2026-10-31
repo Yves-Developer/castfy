@@ -294,35 +294,70 @@ export class Account {
   }
 
   /**
-   * Opens Polar checkout for a plan in the browser. `slug` is a key of
-   * @castfy/plans' product set, e.g. "pro" or "pro_yearly". The plan lands
-   * through Polar's webhook; the caller watches plan() to see it arrive.
+   * Spends one free demo for an export, unless this demo was exported before:
+   * billing.beginExport. Returns { allowed, ... }, or { allowed: false,
+   * reason: "limit_reached", limit } when the free demos are used up.
    */
-  async checkout(slug) {
-    const response = await this.call('/checkout', {
-      method: 'POST',
-      body: JSON.stringify({ slug, redirect: false }),
-    });
+  beginExport(demoId) {
+    return this.convexCall('mutation', 'billing:beginExport', { demoId });
+  }
+
+  /** Redeems a tester's beta code: { ok } or { ok: false, error }. */
+  redeemBetaCode(code) {
+    return this.convexCall('mutation', 'billing:redeemBetaCode', { code });
+  }
+
+  /** Opens Dodo Payments' customer portal (receipts, refunds) in the browser. */
+  async portal() {
+    const response = await this.call('/dodopayments/customer/portal', { method: 'GET' });
     if (response.status === 404) {
-      throw new Error("Buying Castfy isn't available yet. Start with the free demos for now.");
+      throw new Error('Purchases are not available yet.');
     }
     if (!response.ok) {
-      throw new Error(`Could not start checkout (${response.status}). Try again.`);
+      throw new Error(`Could not open your purchases (${response.status}). Try again.`);
     }
     const { url } = await response.json();
     await shell.openExternal(url);
   }
 
   /**
-   * Runs a Convex query as the signed-in user, over Convex's HTTP API with a
-   * JWT minted from the session (/api/auth/convex/token).
+   * Opens Dodo Payments checkout for a plan in the browser. `slug` is a key of
+   * @castfy/plans' product set: "lifetime". The signed-in user's id goes with
+   * it as the reference, which is how the payment finds its account; the plan
+   * lands through Dodo's webhook, and the caller watches plan() to see it.
    */
-  async convexQuery(path, args = {}) {
+  async checkout(slug) {
+    const response = await this.call('/dodopayments/checkout-session', {
+      method: 'POST',
+      body: JSON.stringify({ slug, referenceId: this.user?.id }),
+    });
+    // 404: billing is not configured; "Product not found": its product id is
+    // still the placeholder in @castfy/plans.
+    const body = await response.json().catch(() => null);
+    if (response.status === 404 || body?.message === 'Product not found') {
+      throw new Error("Buying Castfy isn't available yet. Start with the free demos for now.");
+    }
+    if (!(response.ok && body?.url)) {
+      throw new Error(`Could not start checkout (${response.status}). Try again.`);
+    }
+    await shell.openExternal(body.url);
+  }
+
+  /** Runs a Convex query as the signed-in user; see convexCall. */
+  convexQuery(path, args = {}) {
+    return this.convexCall('query', path, args);
+  }
+
+  /**
+   * Runs a Convex query or mutation as the signed-in user, over Convex's HTTP
+   * API with a JWT minted from the session (/api/auth/convex/token).
+   */
+  async convexCall(kind, path, args = {}) {
     if (!this.token) return null;
     if (!this.convexUrl) {
-      throw new Error('The Castfy backend address is not configured (CASTFY_CONVEX_URL).');
+      throw new Error("Castfy's backend address is not configured (castfy.config.json or CASTFY_CONVEX_URL).");
     }
-    const response = await fetch(`${this.convexUrl}/api/query`, {
+    const response = await fetch(`${this.convexUrl}/api/${kind}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

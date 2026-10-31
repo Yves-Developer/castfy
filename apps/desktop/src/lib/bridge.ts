@@ -104,9 +104,23 @@ export interface AppSettings {
   planChosen: boolean;
 }
 
+export interface AppInfo {
+  version: string;
+  platform: string;
+  arch: string;
+  osRelease: string;
+  electron: string;
+}
+
 /** The account's plan, limits and usage: billing.me in packages/backend. */
 export interface AccountPlan {
-  plan: { key: PlanKey; name: string };
+  plan: {
+    key: PlanKey;
+    name: string;
+    /** On the beta plan: the tester's code, and when the beta ends (ms), if set. */
+    betaCode: string | null;
+    betaEndsAt: number | null;
+  };
   limits: PlanLimits;
   usage: { demos: number; remaining: number | null };
 }
@@ -275,7 +289,14 @@ export interface CastfyBridge {
   render(
     sessionId: string,
     spec?: Record<string, unknown>
-  ): Promise<{ ok: boolean; error?: string; outputLocation?: string }>;
+  ): Promise<{
+    ok: boolean;
+    error?: string;
+    outputLocation?: string;
+    /** The free demos are used up: the export did not run. */
+    limitReached?: boolean;
+    limit?: number;
+  }>;
   /** Asks where to save a copy of the recording's export, and saves it there. */
   saveExport(
     sessionId: string,
@@ -294,6 +315,14 @@ export interface CastfyBridge {
   settings(): Promise<AppSettings>;
   setSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
 
+  /** The app's version and the OS it runs on. */
+  appInfo(): Promise<AppInfo>;
+  /**
+   * Saves a problem report (a zip) to Downloads and shows it in the folder:
+   * the given recording, or the newest one.
+   */
+  report(sessionId?: string | null): Promise<{ ok: boolean; path?: string; error?: string }>;
+
   account(): Promise<AccountState>;
   /** Opens the browser on /device and starts waiting for approval. */
   signIn(): Promise<
@@ -311,8 +340,12 @@ export interface CastfyBridge {
   plan(): Promise<
     { ok: true; plan: AccountPlan | null } | { ok: false; error: string }
   >;
-  /** Opens Polar checkout for the paid tier in the browser. */
+  /** Opens Dodo Payments checkout for the paid tier in the browser. */
   checkout(slug: ProductSlug): Promise<{ ok: boolean; error?: string }>;
+  /** Redeems a tester's beta code for this account. */
+  redeemBetaCode(code: string): Promise<{ ok: boolean; error?: string }>;
+  /** Opens Dodo Payments' customer portal (receipts, refunds) in the browser. */
+  billingPortal(): Promise<{ ok: boolean; error?: string }>;
   onAccountChange(cb: (state: AccountState) => void): () => void;
   onSignInProgress(cb: (progress: SignInProgress) => void): () => void;
 
