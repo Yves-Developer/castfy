@@ -12,6 +12,47 @@ const discordWebhookUrl = process.env.DISCORD_WAITLIST_WEBHOOK_URL;
 /** Gives up on Discord after this long, so a slow webhook never holds up the form. */
 const DISCORD_TIMEOUT_MS = 3000;
 
+/** The embed's left-hand strip: green, for someone new. */
+const EMBED_COLOR = 0x22_c5_5e;
+
+/** Mail providers anyone can sign up with: the domain says nothing about them. */
+const PERSONAL_DOMAINS = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "outlook.com",
+  "hotmail.com",
+  "live.com",
+  "yahoo.com",
+  "icloud.com",
+  "me.com",
+  "proton.me",
+  "protonmail.com",
+  "aol.com",
+]);
+
+/**
+ * The Discord embed for a sign-up: a card with a colored strip, the address,
+ * and the company it likely comes from when it is a work address.
+ */
+function signupEmbed(email: string) {
+  const domain = email.split("@")[1]?.toLowerCase() ?? "";
+  const work = domain !== "" && !PERSONAL_DOMAINS.has(domain);
+  return {
+    title: "New waitlist sign-up",
+    color: EMBED_COLOR,
+    fields: [
+      { name: "Email", value: email, inline: true },
+      {
+        name: "Type",
+        value: work ? `Work (${domain})` : "Personal",
+        inline: true,
+      },
+    ],
+    footer: { text: "waitlist.castfy.app" },
+    timestamp: new Date().toISOString(),
+  };
+}
+
 /**
  * Posts the sign-up to the team's Discord channel. Best effort: a failure is
  * logged and otherwise ignored, because the person is already on the list.
@@ -25,8 +66,9 @@ async function announceSignup(email: string) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        content: `New waitlist sign-up: ${email}`,
-        // Only the text above; an address must never ping anyone.
+        username: "Castfy Waitlist",
+        embeds: [signupEmbed(email)],
+        // An address must never ping anyone.
         allowed_mentions: { parse: [] },
       }),
       signal: AbortSignal.timeout(DISCORD_TIMEOUT_MS),
