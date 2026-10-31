@@ -53,6 +53,7 @@ contextBridge.exposeInMainWorld('castfy', {
   login: (agentId) => ipcRenderer.invoke('agent:login', agentId),
   signedIn: (agentId) => ipcRenderer.invoke('agent:signedIn', agentId),
   cancel: () => ipcRenderer.invoke('demo:cancel'),
+  answerInput: (sessionId, id, value) => ipcRenderer.invoke('demo:answer', sessionId, id, value),
   onLog: on('demo:log'),
   onDone: on('demo:done'),
   onProgress: on('demo:progress'),

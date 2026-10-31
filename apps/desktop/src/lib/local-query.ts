@@ -191,7 +191,7 @@ function listenToRuns(): void {
       if (sessionId !== liveSessionId) continue;
       if (event.type === 'step' && event.success) setLive({ step: event.description });
       if (event.type === 'done' || event.type === 'error') setLive({ sessionId: null, step: null });
-      dispatchProgress(event, push);
+      dispatchProgress(event, push, sessionId);
     }
   });
 
@@ -253,7 +253,8 @@ if (bridge) listenToRuns();
 /** Turns one progress line into the event the sidebar already understands. */
 function dispatchProgress(
   event: ProgressEvent,
-  push: (type: string, message?: string, data?: unknown) => void
+  push: (type: string, message?: string, data?: unknown) => void,
+  sessionId: string
 ): void {
   switch (event.type) {
     case 'session':
@@ -279,6 +280,19 @@ function dispatchProgress(
       break;
     case 'error':
       push('status', `Packaging failed: ${event.message}`);
+      break;
+    case 'input':
+      push('status', 'Waiting for you');
+      push('input', undefined, {
+        sessionId,
+        id: event.id,
+        question: event.question,
+        kind: event.kind,
+      });
+      break;
+    case 'input-done':
+      push('status', event.answered ? 'Got it, carrying on' : 'Carrying on without it');
+      push('input-done', undefined, { id: event.id, answered: event.answered });
       break;
     default:
       // A newer castfy0 may write event types this build does not know.
