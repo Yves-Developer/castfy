@@ -20,45 +20,59 @@ import type * as React from "react";
 import { toast } from "sonner";
 // biome-ignore lint/performance/noNamespaceImport: <explanation
 import * as z from "zod";
+import { bridge } from "@/lib/bridge";
+import type { Tdemo } from "@/types";
 
 const formSchema = z.object({
-  title: z.string().min(5, "Folder title must be at least 5 characters."),
+  title: z.string().trim().min(1, "Give the demo a name."),
 });
 
+/** Renames a project; the library card and the studio pick it up. */
 export function RenameDemo({
+  demo,
   open,
   openChangeAction,
 }: {
+  demo: Tdemo;
   open: boolean;
   openChangeAction: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const form = useForm({
     defaultValues: {
-      title: "",
+      title: demo.name,
     },
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: ({ value }) => {
-      toast("You submitted the following values:", {
-        description: (
-          <pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-            <code>{JSON.stringify(value, null, 2)}</code>
-          </pre>
-        ),
-        position: "bottom-right",
-        classNames: {
-          content: "flex flex-col gap-2",
-        },
-        style: {
-          "--border-radius": "calc(var(--radius)  + 4px)",
-        } as React.CSSProperties,
-      });
+    onSubmit: async ({ value }) => {
+      const title = value.title.trim();
+      if (title === demo.name) {
+        openChangeAction(false);
+        return;
+      }
+      const project = await bridge
+        .renameProject(demo.slug, title)
+        .catch(() => null);
+      if (project) {
+        openChangeAction(false);
+        toast.success(`Renamed to “${project.title}”`);
+      } else {
+        toast.error("Could not rename that demo. Try again.");
+      }
     },
   });
 
   return (
-    <Dialog onOpenChange={openChangeAction} open={open}>
+    <Dialog
+      onOpenChange={(next) => {
+        // Start from the current name each time it opens.
+        if (next) {
+          form.reset({ title: demo.name });
+        }
+        openChangeAction(next);
+      }}
+      open={open}
+    >
       <DialogContent className="sm:max-w-68" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="font-semibold text-xs">
@@ -68,7 +82,7 @@ export function RenameDemo({
         </DialogHeader>
         <form
           className="flex flex-col gap-3"
-          id="new-demo-form"
+          id="rename-demo-form"
           onSubmit={(e) => {
             e.preventDefault();
             form.handleSubmit();
@@ -88,6 +102,7 @@ export function RenameDemo({
                     <Input
                       aria-invalid={isInvalid}
                       autoComplete="off"
+                      autoFocus
                       className="h-7 text-xs focus-visible:ring-1 dark:bg-input/50"
                       id={field.name}
                       name={field.name}
@@ -105,9 +120,6 @@ export function RenameDemo({
               name="title"
             />
           </FieldGroup>
-          <p className="text-muted-foreground text-xs">
-            This change will be reflected for anyone viewing the demo.
-          </p>
           <div className="flex items-center gap-2">
             <DialogClose asChild>
               <Button className="flex-1 text-xs" variant="secondary">

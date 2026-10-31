@@ -1117,15 +1117,34 @@ ipcMain.handle('projects:get', async (_e, id) => {
   return project ? hydrate(project) : null;
 });
 ipcMain.handle('projects:create', (_e, title) => projects.create({ title: String(title ?? '') }));
-ipcMain.handle('projects:rename', (_e, id, title) => projects.rename(id, String(title ?? '')));
+ipcMain.handle('projects:rename', (_e, id, title) => {
+  const project = projects.rename(id, String(title ?? ''));
+  ui?.send('library:changed');
+  return project;
+});
 ipcMain.handle('projects:saveCuts', (_e, id, cuts) => projects.setCuts(id, cuts));
 ipcMain.handle('projects:saveEditor', (_e, id, editor) => projects.setEditor(id, editor));
 ipcMain.handle('media:saveZoomOff', async (_e, sessionId, offMs) => {
   const dir = resolveWithin(libraryRoot(), sessionId);
   return dir ? saveZoomOff(dir, offMs) : null;
 });
-ipcMain.handle('projects:remove', (_e, id) => {
-  projects.remove(id);
+/**
+ * Deletes a project. Its recording goes to the system Trash, not straight off
+ * the disk, so a mistaken delete can still be undone from there.
+ */
+ipcMain.handle('projects:remove', async (_e, id) => {
+  const project = projects.remove(id);
+  if (!project) return false;
+  const sessionId = project.sessionId;
+  if (sessionId && !projects.usesSession(sessionId)) {
+    const dir = resolveWithin(libraryRoot(), sessionId);
+    if (dir && dir !== libraryRoot()) {
+      await shell
+        .trashItem(dir)
+        .catch((err) => console.error('[castfy] could not move the recording to the Trash:', err.message));
+    }
+  }
+  ui?.send('library:changed');
   return true;
 });
 
