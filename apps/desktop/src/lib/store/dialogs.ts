@@ -23,17 +23,6 @@ export const useNewDemoStore = create<NewDemoStore>((set) => ({
   close: () => set({ isOpen: false }),
 }));
 
-interface NewFolderStore {
-  close: () => void;
-  isOpen: boolean;
-  open: () => void;
-}
-export const useNewFolderStore = create<NewFolderStore>((set) => ({
-  isOpen: false,
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-}));
-
 interface SettingsStore {
   activePage: TSettingPages;
   close: () => void;

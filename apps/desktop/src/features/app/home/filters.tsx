@@ -9,11 +9,12 @@ import {
   DropdownMenuTrigger,
 } from "@castfy/ui/components/dropdown-menu";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
-import { useFilters } from "@/lib/nuqs-params";
+import { useHomeFilters } from "@/lib/store/home-filters";
 
+/** How the library is sorted; the list reads the same values (sortProjects). */
 const filters = [
   {
-    label: "Last created by me",
+    label: "Newest first",
     value: "last_created",
   },
   {
@@ -26,7 +27,8 @@ const filters = [
   },
 ];
 export function HomeFilters() {
-  const [{ c }, setSearchParams] = useFilters();
+  const c = useHomeFilters((s) => s.order);
+  const setOrder = useHomeFilters((s) => s.setOrder);
 
   return (
     <DropdownMenu>
@@ -36,7 +38,7 @@ export function HomeFilters() {
           size="sm"
           variant={"secondary"}
         >
-          {filters.find((f) => f.value === c)?.label || "Last created by me"}
+          {filters.find((f) => f.value === c)?.label ?? filters[0].label}
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
@@ -45,10 +47,12 @@ export function HomeFilters() {
           {filters.map((filter) => (
             <DropdownMenuItem
               key={filter.value}
-              onClick={() => setSearchParams({ c: filter.value })}
+              onClick={() => setOrder(filter.value)}
             >
               {filter.label}
-              {c === filter.value && (
+              {(c === filter.value ||
+                (!filters.some((f) => f.value === c) &&
+                  filter === filters[0])) && (
                 <DropdownMenuShortcut>
                   <CheckIcon className="text-muted-foreground" />
                 </DropdownMenuShortcut>

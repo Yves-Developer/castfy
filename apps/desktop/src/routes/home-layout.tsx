@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router';
 import { NewDemo } from '@/features/app/home/new/demo';
-import { NewFolder } from '@/features/app/home/new/folder';
 import HomeSidebar from '@/features/app/home/sibebar';
 
 /**
@@ -20,7 +19,6 @@ export default function HomeLayout() {
         </main>
       </div>
       <NewDemo />
-      <NewFolder />
     </div>
   );
 }
