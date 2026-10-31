@@ -8,7 +8,6 @@ import { Onboarding } from '@/features/app/onboarding';
 import { RecorderSetup } from '@/features/app/onboarding/recorder-setup';
 import { ChoosePlan } from '@/features/app/onboarding/choose-plan';
 import { SignIn } from '@/features/app/onboarding/sign-in';
-import ArchivedDemos from './routes/archived';
 import DemoPage from './routes/demo';
 import DemoLayout from './routes/demo-layout';
 import Home from './routes/home';
@@ -157,7 +156,6 @@ export default function App() {
         <Routes>
           <Route element={<HomeLayout />}>
             <Route element={<Home />} index />
-            <Route element={<ArchivedDemos />} path="archived" />
             <Route element={<RecordingsPage />} path="recordings" />
           </Route>
           <Route element={<DemoLayout />} path="demo/:slug">

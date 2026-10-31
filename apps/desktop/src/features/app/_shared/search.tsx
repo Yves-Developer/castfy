@@ -6,47 +6,33 @@ import {
   InputGroupInput,
 } from "@castfy/ui/components/input-group";
 import { SearchIcon, XIcon } from "lucide-react";
-import { debounce } from "nuqs";
-import { useTransition } from "react";
-import { useFilters } from "@/lib/nuqs-params";
+import { useHomeFilters } from "@/lib/store/home-filters";
 
+/** Filters the library by title as you type. */
 export default function SidebarSearch({
   placeholder,
 }: {
   placeholder?: string;
 }) {
-  const [_isPending, startTransition] = useTransition();
-  const [{ q }, setSearchParams] = useFilters({
-    startTransition,
-  });
-  const onClear = () => setSearchParams({ q: "" });
+  const query = useHomeFilters((s) => s.query);
+  const setQuery = useHomeFilters((s) => s.setQuery);
   return (
     <InputGroup className="h-7.5">
       <InputGroupInput
         className="font-medium text-xs placeholder:text-xs"
-        onChange={(e) => {
-          startTransition(async () => {
-            await setSearchParams(
-              { q: e.target.value },
-              {
-                limitUrlUpdates: e.target.value.length
-                  ? debounce(500)
-                  : undefined,
-              }
-            );
-          });
-        }}
+        onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder || "Search..."}
-        value={q || ""}
+        value={query}
       />
       <InputGroupAddon>
         <SearchIcon className="size-3" strokeWidth={2.7} />
       </InputGroupAddon>
-      {q && (
+      {query && (
         <InputGroupAddon align="inline-end">
           <Button
+            aria-label="Clear search"
             className="rounded-full"
-            onClick={onClear}
+            onClick={() => setQuery("")}
             size="icon-sm"
             variant={"ghost"}
           >

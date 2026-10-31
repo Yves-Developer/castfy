@@ -1,28 +1,20 @@
 "use client";
 import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
-import {
-  Grid2X2Icon,
-  ListVideoIcon,
-  MailIcon,
-  PlusIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { Grid2X2Icon, ListVideoIcon, MailIcon } from "lucide-react";
+import { Suspense } from "react";
 import { SiDiscord } from "react-icons/si";
+import { toast } from "sonner";
 import Link from "@/components/compat/link";
 import { usePathname } from "@/components/compat/navigation";
-import { Suspense } from "react";
-import { toast } from "sonner";
 import { siteConfig } from "@/config/site";
 import { bridge } from "@/lib/bridge";
-import { useNewFolderStore } from "@/lib/store/dialogs";
 import SidebarSearch from "../../_shared/search";
-import { AllDropdownActions, ArchiveDropdownActions } from "./actions";
+import { AllDropdownActions } from "./actions";
 import { HomeDropMenu } from "./menu";
 
 export default function HomeSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
-  const { open } = useNewFolderStore();
   function handleCopyLink() {
     navigator.clipboard.writeText(siteConfig.url);
     toast.success("Castfy link copied to clipboard");
@@ -65,21 +57,6 @@ export default function HomeSidebar({ className }: { className?: string }) {
             asChild
             className={cn(
               "group relative w-full justify-normal gap-3 text-muted-foreground",
-              pathname === "/archived" && "text-foreground"
-            )}
-            size="sm"
-            variant={pathname === "/archived" ? "secondary" : "ghost"}
-          >
-            <Link className="w-full" href="/archived">
-              <Trash2Icon className="size-3" strokeWidth={2.7} />
-              Archived
-              <ArchiveDropdownActions className="absolute right-2" />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            className={cn(
-              "group relative w-full justify-normal gap-3 text-muted-foreground",
               pathname === "/recordings" && "text-foreground"
             )}
             size="sm"
@@ -89,15 +66,6 @@ export default function HomeSidebar({ className }: { className?: string }) {
               <ListVideoIcon className="size-3" strokeWidth={2.7} />
               Recordings
             </Link>
-          </Button>
-          <Button
-            className="group relative w-full justify-normal gap-3 text-muted-foreground"
-            onClick={open}
-            size="sm"
-            variant={"ghost"}
-          >
-            <PlusIcon className="size-3" strokeWidth={2.7} />
-            New Folder...
           </Button>
         </div>
       </div>
