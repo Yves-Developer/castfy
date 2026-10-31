@@ -118,10 +118,27 @@ export class ProjectStore {
     return project;
   }
 
+  /**
+   * Deletes a project and returns it, or null when there was none. Its
+   * recording is remembered as deleted, so adopt() does not bring the project
+   * back on the next start if the folder is still on disk.
+   */
   remove(id) {
-    const before = this.state.projects.length;
+    const project = this.get(id);
+    if (!project) return null;
     this.state.projects = this.state.projects.filter((p) => p.id !== id);
-    if (this.state.projects.length !== before) this.save();
+    if (project.sessionId) {
+      const removed = new Set(this.state.removedSessions ?? []);
+      removed.add(project.sessionId);
+      this.state.removedSessions = [...removed];
+    }
+    this.save();
+    return project;
+  }
+
+  /** Whether another project still uses this recording. */
+  usesSession(sessionId) {
+    return this.state.projects.some((p) => p.sessionId === sessionId);
   }
 
   /**
@@ -130,7 +147,11 @@ export class ProjectStore {
    * they would exist on disk but never appear in the library.
    */
   adopt(sessions) {
-    const claimed = new Set(this.state.projects.map((p) => p.sessionId).filter(Boolean));
+    const claimed = new Set([
+      ...this.state.projects.map((p) => p.sessionId).filter(Boolean),
+      // Deleted by the user: their folders may linger, they stay gone.
+      ...(this.state.removedSessions ?? []),
+    ]);
     let added = 0;
 
     for (const session of sessions) {

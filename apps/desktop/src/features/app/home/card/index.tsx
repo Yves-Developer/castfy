@@ -31,7 +31,7 @@ export function DemoCard({ demo }: { demo: Tdemo }) {
             {demo.action} {demo.updatedAt}
           </p>
         </div>
-        <DemoActions />
+        <DemoActions demo={demo} />
       </div>
     </div>
   );
