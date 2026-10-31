@@ -27,5 +27,12 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
+    /**
+     * One copy of each. @castfy/ui was installed against another React patch
+     * version, so pnpm gave it its own sonner and React: toast() then spoke to
+     * the app's sonner while the Toaster listened to the UI package's, and no
+     * toast ever showed.
+     */
+    dedupe: ['react', 'react-dom', 'sonner'],
   },
 });

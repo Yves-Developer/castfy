@@ -1,3 +1,4 @@
+import type { PlanKey, PlanLimits, ProductSlug } from '@castfy/plans';
 import type { ZoomTrack } from '../../remotion/zoom';
 export type SessionStatus = 'complete' | 'recording' | 'failed' | 'abandoned';
 
@@ -99,6 +100,29 @@ export interface AppSettings {
   activeAgent: string | null;
   /** Lets Codex run tools unattended, at the cost of its sandbox. */
   allowUnsandboxed: boolean;
+  /** The onboarding plan step was answered; it is shown once. */
+  planChosen: boolean;
+}
+
+export interface AppInfo {
+  version: string;
+  platform: string;
+  arch: string;
+  osRelease: string;
+  electron: string;
+}
+
+/** The account's plan, limits and usage: billing.me in packages/backend. */
+export interface AccountPlan {
+  plan: {
+    key: PlanKey;
+    name: string;
+    /** On the beta plan: the tester's code, and when the beta ends (ms), if set. */
+    betaCode: string | null;
+    betaEndsAt: number | null;
+  };
+  limits: PlanLimits;
+  usage: { demos: number; remaining: number | null };
 }
 
 export interface Run {
@@ -180,6 +204,35 @@ export interface BrowserStatus {
   browsersPath?: string;
 }
 
+export interface AccountUser {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+}
+
+export type AccountState =
+  | { status: 'signed-in'; user: AccountUser }
+  | { status: 'signed-out'; user: null };
+
+/** One signed-in device or browser, as the Sessions page lists it. */
+export interface AccountSession {
+  id: string;
+  /** This app's own session. */
+  current: boolean;
+  userAgent: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Where a browser sign-in stands, pushed while the app polls for approval. */
+export type SignInProgress =
+  | { status: 'waiting'; userCode: string; verificationUrl: string }
+  | { status: 'done' }
+  | { status: 'denied' }
+  | { status: 'expired' }
+  | { status: 'error'; message: string };
+
 export interface SetupProgress {
   /** Across every download, 0–100. */
   percent: number;
@@ -242,7 +295,14 @@ export interface CastfyBridge {
   render(
     sessionId: string,
     spec?: Record<string, unknown>
-  ): Promise<{ ok: boolean; error?: string; outputLocation?: string }>;
+  ): Promise<{
+    ok: boolean;
+    error?: string;
+    outputLocation?: string;
+    /** The free demos are used up: the export did not run. */
+    limitReached?: boolean;
+    limit?: number;
+  }>;
   /** Asks where to save a copy of the recording's export, and saves it there. */
   saveExport(
     sessionId: string,
@@ -260,6 +320,40 @@ export interface CastfyBridge {
   selectAgent(id: string): Promise<string | null>;
   settings(): Promise<AppSettings>;
   setSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
+
+  /** The app's version and the OS it runs on. */
+  appInfo(): Promise<AppInfo>;
+  /**
+   * Saves a problem report (a zip) to Downloads and shows it in the folder:
+   * the given recording, or the newest one.
+   */
+  report(sessionId?: string | null): Promise<{ ok: boolean; path?: string; error?: string }>;
+
+  account(): Promise<AccountState>;
+  /** Opens the browser on /device and starts waiting for approval. */
+  signIn(): Promise<
+    | { ok: true; userCode: string; verificationUrl: string }
+    | { ok: false; error: string }
+  >;
+  reopenSignIn(): Promise<void>;
+  cancelSignIn(): Promise<void>;
+  signOut(): Promise<AccountState>;
+  sessions(): Promise<
+    { ok: true; sessions: AccountSession[] } | { ok: false; error: string }
+  >;
+  revokeSession(id: string): Promise<{ ok: boolean; error?: string }>;
+  /** Null plan when signed out. */
+  plan(): Promise<
+    { ok: true; plan: AccountPlan | null } | { ok: false; error: string }
+  >;
+  /** Opens Dodo Payments checkout for the paid tier in the browser. */
+  checkout(slug: ProductSlug): Promise<{ ok: boolean; error?: string }>;
+  /** Redeems a tester's beta code for this account. */
+  redeemBetaCode(code: string): Promise<{ ok: boolean; error?: string }>;
+  /** Opens Dodo Payments' customer portal (receipts, refunds) in the browser. */
+  billingPortal(): Promise<{ ok: boolean; error?: string }>;
+  onAccountChange(cb: (state: AccountState) => void): () => void;
+  onSignInProgress(cb: (progress: SignInProgress) => void): () => void;
 
   browserStatus(): Promise<BrowserStatus>;
   installBrowsers(): Promise<{ ok: boolean; error?: string }>;

@@ -13,15 +13,20 @@ import {
   DropdownMenuTrigger,
 } from "@castfy/ui/components/dropdown-menu";
 import { ArrowLeftIcon, ChevronDownIcon, SettingsIcon } from "lucide-react";
-import Link from "@/components/compat/link";
 import { useState } from "react";
+import Link from "@/components/compat/link";
+import { siteConfig } from "@/config/site";
+import { bridge } from "@/lib/bridge";
+import { reportProblem } from "@/lib/report-problem";
 import { useSettingsStore } from "@/lib/store/dialogs";
 import { DemoSettings } from "../settings";
+import { useStudioProject } from "../use-project";
 import { Appearance } from "./appearance";
 
 export function DemoDropMenu() {
   const { setActivePage } = useSettingsStore();
   const [openSettings, setOpenSettings] = useState(false);
+  const { project } = useStudioProject();
   return (
     <>
       <DropdownMenu>
@@ -63,12 +68,14 @@ export function DemoDropMenu() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <a href="https://x.com/YvesDC0" rel="noopener" target="_blank">
-                Help
-              </a>
+            <DropdownMenuItem
+              onClick={() => bridge.openExternal(siteConfig.links.discord)}
+            >
+              Help & feedback
             </DropdownMenuItem>
-            <DropdownMenuItem>Feedback</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => reportProblem(project?.sessionId)}>
+              Report a problem
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 setActivePage("profile");

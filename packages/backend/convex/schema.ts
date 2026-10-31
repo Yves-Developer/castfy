@@ -91,4 +91,62 @@ export default defineSchema({
     data: v.optional(v.any()),
     createdAt: v.number(),
   }).index("by_job_seq", ["jobId", "seq"]),
+
+  /**
+   * One-time payments for the paid tier, mirrored from Dodo Payments'
+   * webhooks (auth.ts). Dodo stays the record of truth; this copy makes a
+   * plan check one indexed read rather than an API call on every export.
+   */
+  purchases: defineTable({
+    /** Dodo's payment id (pay_…). */
+    paymentId: v.string(),
+    /** Dodo's customer id (cus_…). */
+    customerId: v.string(),
+    /**
+     * The Better Auth user id: the checkout's referenceId, or else the user
+     * with the payment's email. Null for a payment no user can be matched to
+     * (e.g. made by hand in the Dodo dashboard), which no one can claim.
+     */
+    userId: v.union(v.string(), v.null()),
+    productId: v.union(v.string(), v.null()),
+    /** "paid", "partially_refunded" or "refunded". */
+    status: v.string(),
+    paidAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_payment", ["paymentId"])
+    .index("by_user", ["userId"]),
+
+  /**
+   * Personal beta codes (BETA-XXXXXX), made with `npx convex run
+   * billing:createBetaCodes`. Each is for one tester: redeeming it grants the
+   * beta plan, unlimited demos, until the code expires.
+   */
+  betaCodes: defineTable({
+    code: v.string(),
+    /** Who it was made for, to tell testers apart. */
+    note: v.optional(v.string()),
+    /** The beta plan ends at this time; unset, it lasts until endBeta. */
+    expiresAt: v.optional(v.number()),
+    createdAt: v.number(),
+    /** The tester who redeemed it, once someone has. */
+    redeemedBy: v.optional(v.string()),
+    redeemedAt: v.optional(v.number()),
+  })
+    .index("by_code", ["code"])
+    .index("by_redeemer", ["redeemedBy"]),
+
+  /**
+   * One row per demo exported. The free tier limits demos over the account's
+   * life, not render attempts, so re-exporting the same demo reuses its row
+   * instead of spending another one (billing.ts beginExport).
+   */
+  exports: defineTable({
+    userId: v.string(),
+    /** The desktop app's project id for the demo. */
+    demoId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user_createdAt", ["userId", "createdAt"])
+    .index("by_user_demo", ["userId", "demoId", "createdAt"]),
 });

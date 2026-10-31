@@ -16,6 +16,11 @@ export class SettingsStore {
        * default: it applies to the whole run, not only castfy0's tools.
        */
       allowUnsandboxed: false,
+      /**
+       * The plan step of onboarding was answered (trial or checkout). Shown
+       * once; the plan itself lives on the backend, not here.
+       */
+      planChosen: false,
     };
   }
 

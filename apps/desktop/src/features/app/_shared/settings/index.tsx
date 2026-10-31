@@ -13,12 +13,19 @@ import { cn } from "@castfy/ui/lib/utils";
 import {
   CreditCardIcon,
   LaptopIcon,
-  PlugIcon,
   type LucideProps,
+  PlugIcon,
   UserRoundIcon,
   XIcon,
 } from "lucide-react";
-import type { ForwardRefExoticComponent, JSX, RefAttributes } from "react";
+import {
+  type ForwardRefExoticComponent,
+  type JSX,
+  type RefAttributes,
+  useEffect,
+  useState,
+} from "react";
+import { type AppInfo, bridge } from "@/lib/bridge";
 import { useSettingsStore } from "@/lib/store/dialogs";
 import type { TSettingPages } from "@/types";
 import { AccountAgents } from "./agents";
@@ -91,8 +98,9 @@ export function Settings() {
           </DialogClose>
         </div>
 
-        <div className="flex h-full flex-1">
-          <nav className="w-50 shrink-0 border-r p-3.75">
+        {/* min-h-0: without it a long page grows past the dialog instead of scrolling. */}
+        <div className="flex h-full min-h-0 flex-1">
+          <nav className="flex w-50 shrink-0 flex-col border-r p-3.75">
             <ul className="flex flex-col gap-1">
               {pages.map((page) => (
                 <li key={page.value}>
@@ -114,6 +122,7 @@ export function Settings() {
                 </li>
               ))}
             </ul>
+            <AppVersion />
           </nav>
 
           <div className="flex-1 overflow-y-auto p-7.5">
@@ -126,5 +135,33 @@ export function Settings() {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+const PLATFORM_NAMES: Record<string, string> = {
+  darwin: "macOS",
+  win32: "Windows",
+  linux: "Linux",
+};
+
+/** Which Castfy this is, for bug reports: "Castfy 0.1.0-beta.20 · macOS arm64". */
+function AppVersion() {
+  const [info, setInfo] = useState<AppInfo | null>(null);
+  useEffect(() => {
+    bridge
+      .appInfo()
+      .then(setInfo)
+      .catch(() => {
+        // Not shown; the rest of Settings works without it.
+      });
+  }, []);
+  if (!info) {
+    return null;
+  }
+  return (
+    <p className="mt-auto select-text px-2 text-[10px] text-muted-foreground">
+      Castfy {info.version} · {PLATFORM_NAMES[info.platform] ?? info.platform}{" "}
+      {info.arch}
+    </p>
   );
 }

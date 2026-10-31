@@ -5,6 +5,7 @@ import { cn } from "@castfy/ui/lib/utils";
 import { CheckIcon, CopyIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { AgentRow, ClientRow, Detection } from "@/lib/bridge";
+import { ExperimentalBadge } from "@/components/experimental-badge";
 import { bridge } from "@/lib/bridge";
 import { CLIENT_ICONS, McpIcon } from "./icons";
 
@@ -192,8 +193,14 @@ function ClientRowCard({
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <p className={cn("font-medium text-[13px]", absent && "text-muted-foreground")}>
+          <p
+            className={cn(
+              "flex items-center gap-1.5 font-medium text-[13px]",
+              absent && "text-muted-foreground"
+            )}
+          >
             {client.label}
+            <ExperimentalBadge agentId={client.id} />
           </p>
           <p className="truncate text-[11px] text-muted-foreground">
             {absent ? (

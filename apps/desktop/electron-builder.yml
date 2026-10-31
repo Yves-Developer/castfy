@@ -25,6 +25,8 @@ files:
   - package.json
   - "*.js"
   - preload.cjs
+  # The backend the app signs in to and checks plans with (main.js).
+  - castfy.config.json
   - remotion/**
   - dist-renderer/**
   - "!scripts/**"

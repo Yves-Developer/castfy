@@ -7,6 +7,7 @@ import {
 } from "@castfy/ui/components/dropdown-menu";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { ExperimentalBadge } from "@/components/experimental-badge";
 import type { AgentRow } from "@/lib/bridge";
 import { bridge } from "@/lib/bridge";
 
@@ -73,7 +74,10 @@ export function SelectModel({
               onClick={() => agent.drivable && handleSelect(agent.id)}
             >
               <span className="flex flex-col">
-                {agent.label}
+                <span className="flex items-center gap-1.5">
+                  {agent.label}
+                  <ExperimentalBadge agentId={agent.id} />
+                </span>
                 {agent.drivable ? null : (
                   <span className="text-[10px] text-muted-foreground">
                     CLI not installed

@@ -16,8 +16,10 @@ import {
   WebContentsView,
 } from 'electron';
 import chokidar from 'chokidar';
+import { Account } from './account.js';
 import { buildCommand, detectAgents, pickAgent } from './agents.js';
 import { RUN_USAGE_FILE, saveRunUsage } from './run-usage.js';
+import { buildReport } from './report.js';
 import { browserStatus, installBrowsers } from './browsers.js';
 import { connectClient, detectClients, disconnectClient } from './clients.js';
 import { ProjectStore } from './projects.js';
@@ -47,6 +49,51 @@ const loadRecut = () => import('./recut.js');
 let runs = new RunStore('');
 let projects = new ProjectStore('');
 let settings = new SettingsStore('');
+/** @type {Account | null} */
+let account = null;
+
+/**
+ * The backend a packaged app talks to, shipped with it (castfy.config.json).
+ * An installed app gets no environment variables, so this file is the only
+ * way it learns the production Convex deployment.
+ */
+async function shippedConfig() {
+  try {
+    return JSON.parse(await fs.readFile(path.join(dirname, 'castfy.config.json'), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * The website that hosts sign-in (/device) and Better Auth (/api/auth).
+ * CASTFY_WEB_URL wins; packaged, castfy.config.json; in dev, apps/web on its
+ * dev port.
+ */
+async function webUrl() {
+  const configured = process.env.CASTFY_WEB_URL?.trim();
+  if (configured) return configured;
+  if (!app.isPackaged) return 'http://localhost:3003';
+  return (await shippedConfig()).webUrl?.trim() || 'https://www.castfy.app';
+}
+
+/**
+ * The Convex backend (.convex.cloud) the app reads plans and usage from.
+ * CASTFY_CONVEX_URL wins; packaged, castfy.config.json; in dev, the
+ * deployment `npx convex dev` wrote to packages/backend/.env.local, so the
+ * app follows the backend.
+ */
+async function convexUrl() {
+  const configured = process.env.CASTFY_CONVEX_URL?.trim();
+  if (configured) return configured;
+  if (app.isPackaged) return (await shippedConfig()).convexUrl?.trim() || null;
+  try {
+    const env = await fs.readFile(path.resolve(dirname, '../../packages/backend/.env.local'), 'utf8');
+    return env.match(/^CONVEX_URL=(.+)$/m)?.[1].trim() ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Name the app before anything reads a path: userData becomes %APPDATA%\Castfy,
@@ -1003,6 +1050,15 @@ async function initStores() {
   settings = new SettingsStore(path.join(app.getPath('userData'), 'settings.json'));
   await settings.load();
 
+  account = new Account({
+    file: path.join(app.getPath('userData'), 'account.json'),
+    webUrl: await webUrl(),
+    convexUrl: await convexUrl(),
+    onChange: (state) => ui?.send('account:changed', state),
+    onSignIn: (progress) => ui?.send('account:signInProgress', progress),
+  });
+  await account.load();
+
   // Recordings started straight from Claude Code never went through New Demo,
   // so give them a project or they would never show up in the library.
   const { sessions } = await scanLibrary();
@@ -1109,8 +1165,59 @@ ipcMain.handle('export:recut', async (_e, sessionId, cuts) => {
   }
 });
 
+/** The most of an agent's output kept with its recording, from the end. */
+const AGENT_OUTPUT_MAX = 200_000;
+
+/**
+ * Keeps what the agent printed with the recording it made (agent-output.txt),
+ * so a problem report can show what the agent said and why it stopped.
+ */
+async function saveAgentOutput(sessionDir, { label, code, stdout, stderr }) {
+  const tail = (text) =>
+    text.length > AGENT_OUTPUT_MAX ? `…${text.slice(-AGENT_OUTPUT_MAX)}` : text;
+  const body = [
+    `${label}, exit ${code}`,
+    '',
+    '--- stdout ---',
+    tail(stdout),
+    '',
+    '--- stderr ---',
+    tail(stderr),
+    '',
+  ].join('\n');
+  await fs.writeFile(path.join(sessionDir, 'agent-output.txt'), body, 'utf8');
+}
+
+/**
+ * Whether this export may run, by the account's plan: billing.beginExport
+ * spends one of the free demos, unless this recording was exported before.
+ *
+ * Signed out (only possible in development, which can skip sign-in), there is
+ * no account to count against. Offline, the export goes ahead: someone
+ * without a connection should not lose their work to a check, and the next
+ * export online counts as usual.
+ */
+async function exportAllowance(sessionId) {
+  if (account?.state().status !== 'signed-in') return { allowed: true };
+  try {
+    return (await account.beginExport(sessionId)) ?? { allowed: true };
+  } catch (error) {
+    if (error instanceof TypeError) return { allowed: true };
+    throw error;
+  }
+}
+
 ipcMain.handle('export:render', async (_e, sessionId, spec) => {
   try {
+    const allowance = await exportAllowance(sessionId);
+    if (!allowance.allowed) {
+      return {
+        ok: false,
+        limitReached: true,
+        limit: allowance.limit,
+        error: `You've used your ${allowance.limit} free demos.`,
+      };
+    }
     const result = await runExport(sessionId, spec ?? {}, (message) =>
       ui?.send('export:progress', { sessionId, message })
     );
@@ -1176,8 +1283,111 @@ ipcMain.handle('clients:detect', async () => ({
 ipcMain.handle('clients:disconnect', (_e, id) => disconnectClient(id));
 
 /** Only https, and only to the outside browser — never a window we control. */
+/** What the app is and where it runs: the version line in Settings, and problem reports. */
+function appInfo() {
+  return {
+    version: app.getVersion(),
+    platform: process.platform,
+    arch: process.arch,
+    osRelease: os.release(),
+    electron: process.versions.electron,
+  };
+}
+
+ipcMain.handle('app:info', () => appInfo());
+
+/**
+ * Saves a problem report to Downloads and shows it in the folder: a recording
+ * (the one given, else the newest), its agent output, recent runs and
+ * settings, and report.json with the app, OS, agent and plan.
+ */
+ipcMain.handle('support:report', async (_e, sessionId) => {
+  try {
+    const root = libraryRoot();
+    let id = typeof sessionId === 'string' ? sessionId : null;
+    if (!id) {
+      const { sessions } = await scanLibrary();
+      id = sessions[0]?.id ?? null;
+    }
+    const sessionDir = id ? resolveWithin(root, id) : null;
+    const plan = await account?.plan().catch(() => null);
+    const file = await buildReport({
+      sessionDir,
+      userData: app.getPath('userData'),
+      outDir: app.getPath('downloads'),
+      info: {
+        ...appInfo(),
+        agent: await pickAgent(settings.state.activeAgent),
+        account: account?.state().user?.email ?? null,
+        plan: plan?.plan ?? null,
+      },
+    });
+    shell.showItemInFolder(file);
+    return { ok: true, path: file };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+
 ipcMain.handle('shell:open', (_e, url) => {
   if (typeof url === 'string' && url.startsWith('https://')) shell.openExternal(url);
+});
+
+ipcMain.handle('account:get', () => account?.state() ?? { status: 'signed-out', user: null });
+ipcMain.handle('account:signIn', async () => {
+  try {
+    return { ok: true, ...(await account.startSignIn()) };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('account:reopenBrowser', () => account?.reopenBrowser());
+ipcMain.handle('account:cancelSignIn', () => account?.cancelSignIn());
+ipcMain.handle('account:signOut', () => account?.signOut());
+ipcMain.handle('account:sessions', async () => {
+  try {
+    return { ok: true, sessions: await account.listSessions() };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('billing:plan', async () => {
+  try {
+    return { ok: true, plan: await account.plan() };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('billing:checkout', async (_e, slug) => {
+  try {
+    await account.checkout(slug);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('billing:redeemBetaCode', async (_e, code) => {
+  try {
+    return (await account.redeemBetaCode(code)) ?? { ok: false, error: 'Sign in first.' };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('billing:portal', async () => {
+  try {
+    await account.portal();
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('account:revokeSession', async (_e, id) => {
+  try {
+    await account.revokeSession(id);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
 });
 
 ipcMain.handle('agents:list', async () => ({
@@ -1436,6 +1646,14 @@ ipcMain.handle('demo:run', async (_e, input) => {
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
     if (sessionId && result?.usage) {
       await saveRunUsage(path.join(libraryRoot(), sessionId), result.usage).catch(() => {});
+    }
+    if (sessionId) {
+      await saveAgentOutput(path.join(libraryRoot(), sessionId), {
+        label: command.label,
+        code,
+        stdout,
+        stderr,
+      }).catch(() => {});
     }
 
     const cancelled = stoppedByUser;

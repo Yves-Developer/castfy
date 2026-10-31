@@ -70,7 +70,7 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
   free: {
     title: "Try it",
     price: "5 demos, free",
-    desc: "No watermark, no card, no account, no expiry.",
+    desc: "No watermark, no card, no expiry. Sign in with Google to start.",
     features: [
       "The full app, every feature",
       "1080p export with no watermark",
