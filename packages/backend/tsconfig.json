@@ -9,6 +9,11 @@
     // though these run in Convex's runtime rather than Node.
     "types": ["node"],
     "strictNullChecks": true,
+    // Never emitted (typecheck is --noEmit, consumers import the source), and
+    // declaration checks reject the Better Auth adapter's inferred types,
+    // which name the package's internal data model.
+    "declaration": false,
+    "declarationMap": false,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "skipLibCheck": true

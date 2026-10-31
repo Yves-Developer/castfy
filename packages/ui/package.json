@@ -26,7 +26,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@castfy/plans": "workspace:*",
     "@castfy/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@turbo/gen": "^2.8.1",

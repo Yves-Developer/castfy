@@ -41,6 +41,19 @@ contextBridge.exposeInMainWorld('castfy', {
   settings: () => ipcRenderer.invoke('settings:get'),
   setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
 
+  // account
+  account: () => ipcRenderer.invoke('account:get'),
+  signIn: () => ipcRenderer.invoke('account:signIn'),
+  reopenSignIn: () => ipcRenderer.invoke('account:reopenBrowser'),
+  cancelSignIn: () => ipcRenderer.invoke('account:cancelSignIn'),
+  signOut: () => ipcRenderer.invoke('account:signOut'),
+  sessions: () => ipcRenderer.invoke('account:sessions'),
+  revokeSession: (id) => ipcRenderer.invoke('account:revokeSession', id),
+  plan: () => ipcRenderer.invoke('billing:plan'),
+  checkout: (slug) => ipcRenderer.invoke('billing:checkout', slug),
+  onAccountChange: on('account:changed'),
+  onSignInProgress: on('account:signInProgress'),
+
   // recorder setup
   browserStatus: () => ipcRenderer.invoke('setup:browsers'),
   installBrowsers: () => ipcRenderer.invoke('setup:installBrowsers'),
