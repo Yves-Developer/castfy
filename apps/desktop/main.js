@@ -1232,6 +1232,12 @@ function composePrompt({ url, goal, voice }) {
     'Start with castfy0_start, drive the flow with the castfy0 action tools, and',
     'always finish with castfy0_end so the video gets packaged. Do not pass',
     'outputDir — the Castfy app sets it for you.',
+    '',
+    'If the site asks for something only the user has (a one-time code, a',
+    'verification code from email or SMS, a password), call castfy0_ask_user and',
+    'wait for the answer. Never guess a code, and never ask for it in chat: the',
+    'user answers in the Castfy app. Type it with castfy0_fill using the valueEnv',
+    'it returns and secret: true.',
     ...(edgeVoice(voice)
       ? [
           '',
@@ -1460,6 +1466,34 @@ ipcMain.handle('demo:run', async (_e, input) => {
   running.on('error', (err) => settle(-1, err.message));
 
   return { ok: true, agentId, runId: run.id };
+});
+
+/** castfy0_ask_user names its questions with Date.now() in base 36. */
+const INPUT_ID = /^[a-z0-9]{1,16}$/;
+
+/**
+ * The user's answer to a question the recorder asked (a sign-in code, say),
+ * or null when they cancelled. castfy0 waits for this file in the recording's
+ * folder; it is written whole (temp file, then rename) so the engine never
+ * reads half of it, and the engine deletes it once read.
+ */
+ipcMain.handle('demo:answer', async (_e, sessionId, id, value) => {
+  if (typeof sessionId !== 'string' || typeof id !== 'string' || !INPUT_ID.test(id)) {
+    return false;
+  }
+  const dir = resolveWithin(libraryRoot(), sessionId);
+  if (!dir || dir === libraryRoot()) return false;
+  const body = typeof value === 'string' ? { value } : { cancelled: true };
+  const file = path.join(dir, `input-${id}.json`);
+  const temp = `${file}.tmp`;
+  try {
+    await fs.writeFile(temp, JSON.stringify(body));
+    await fs.rename(temp, file);
+    return true;
+  } catch (err) {
+    console.error('[castfy] could not hand over the answer:', err.message);
+    return false;
+  }
 });
 
 ipcMain.handle('demo:cancel', () => {

@@ -201,7 +201,13 @@ export type ProgressEvent =
     }
   | { type: 'stage'; t: string; key: string; label: string }
   | { type: 'done'; t: string; outputDir: string }
-  | { type: 'error'; t: string; message: string };
+  | { type: 'error'; t: string; message: string }
+  /** The recorder is waiting on the user for a code it cannot know. */
+  | { type: 'input'; t: string; id: string; question: string; kind: InputKind }
+  | { type: 'input-done'; t: string; id: string; answered: boolean };
+
+/** code and secret are typed masked; text is shown as typed. */
+export type InputKind = 'code' | 'secret' | 'text';
 
 export interface CastfyBridge {
   list(): Promise<Library>;
@@ -269,6 +275,8 @@ export interface CastfyBridge {
   /** Whether the agent is signed in; null when it cannot tell. */
   signedIn(agentId?: string | null): Promise<boolean | null>;
   cancel(): Promise<boolean>;
+  /** Answers the recorder's question; a null value cancels it. */
+  answerInput(sessionId: string, id: string, value: string | null): Promise<boolean>;
   onLog(cb: (chunk: string) => void): () => void;
   /** Live events from the recording being made, as castfy0 writes them. */
   onProgress(cb: (p: { sessionId: string; events: ProgressEvent[] }) => void): () => void;

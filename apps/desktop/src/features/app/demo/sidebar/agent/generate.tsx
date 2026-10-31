@@ -2,6 +2,7 @@ import { api } from "@/lib/local-api";
 import { getConvexClient } from "@/lib/local-query";
 import type {
   AgentStep,
+  InputRequest,
   PackagingStage,
   SseEventData,
   SseHandlers,
@@ -43,6 +44,12 @@ function dispatchSseEvent(
       break;
     case "stage":
       handlers.onStage?.(data as unknown as PackagingStage);
+      break;
+    case "input":
+      handlers.onInput?.(data as unknown as InputRequest);
+      break;
+    case "input-done":
+      handlers.onInputDone?.((data as unknown as { id: string }).id);
       break;
     case "completed":
       handlers.onCompleted(data);

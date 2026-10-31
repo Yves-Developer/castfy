@@ -37,6 +37,7 @@ import { useBackgroundStore } from "@/lib/store";
 import type {
   AgentStep,
   AIProvider,
+  InputRequest,
   PackagingStage,
   SseHandlers,
 } from "@/types";
@@ -50,6 +51,7 @@ import {
 } from "./generate";
 import { bridge, type RunUsage } from "@/lib/bridge";
 import { finishedRecording } from "@/lib/local-query";
+import { AnswerCard } from "./answer";
 import { SelectModel } from "./models";
 import { SelectVoice, useVoiceChoice } from "./voice";
 import { PackagingProgress, StepsTimeline } from "./step";
@@ -77,6 +79,7 @@ export function AgentTab() {
   const { slug } = useParams();
   const [errorMessage, setErrorMessage] = useState("");
   const [usage, setUsage] = useState<RunUsage | null>(null);
+  const [question, setQuestion] = useState<InputRequest | null>(null);
 
   // Shared by a fresh submit and by reattaching after a refresh, so both paths
   // render progress identically. Every setter is stable, hence no deps.
@@ -84,7 +87,11 @@ export function AgentTab() {
     () => ({
       onStatus: setCurrentStatusMessage,
       onStep: (step) => setSteps((prev) => [...prev, step]),
+      onInput: setQuestion,
+      onInputDone: (id) =>
+        setQuestion((current) => (current?.id === id ? null : current)),
       onReset: () => {
+        setQuestion(null);
         setSteps([]);
         setStages([]);
       },
@@ -110,9 +117,11 @@ export function AgentTab() {
           setSteps((prev) => (prev.length > 0 ? prev : (data.steps ?? [])));
         }
         setUsage(data.usage ?? null);
+        setQuestion(null);
         setStatus("completed");
       },
       onError: (message) => {
+        setQuestion(null);
         setErrorMessage(message);
         setStatus("error");
       },
@@ -475,6 +484,13 @@ export function AgentTab() {
 
           <div className="space-y-6 pt-6">
             {/* Real-time steps, then packaging once castfy0_end starts */}
+            {question && status === "generating" ? (
+              <AnswerCard
+                key={question.id}
+                onAnswered={() => setQuestion(null)}
+                request={question}
+              />
+            ) : null}
             <StepsTimeline live={status === "generating"} steps={steps} />
             <PackagingProgress
               finished={status === "completed"}

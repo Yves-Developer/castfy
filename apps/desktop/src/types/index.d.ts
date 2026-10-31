@@ -64,6 +64,18 @@ export interface SseHandlers {
   onStage?: (stage: PackagingStage) => void;
   /** The agent abandoned its recording and started a new one. */
   onReset?: () => void;
+  /** The recorder needs something from the user, such as a sign-in code. */
+  onInput?: (request: InputRequest) => void;
+  /** That question was answered, cancelled or timed out. */
+  onInputDone?: (id: string) => void;
+}
+
+/** A question the recorder is waiting on, answered in the steps panel. */
+export interface InputRequest {
+  id: string;
+  kind: import("@/lib/bridge").InputKind;
+  question: string;
+  sessionId: string;
 }
 
 export type TSettingPages = "agents" | "profile" | "sessions" | "billing";
