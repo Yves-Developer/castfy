@@ -34,7 +34,7 @@ export async function contactSalesTeam(data: TContactFormSchema) {
 
     const response = await resendClient.emails.send({
       from: FROM,
-      to: ["rathonrw@gmail.com", "castfy.app@gmail.com"],
+      to: ["castfy.app@gmail.com"],
       subject: `Castfy contact form: ${companyName}`,
       react: ContactEmail({
         workEmail,
