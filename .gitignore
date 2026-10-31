@@ -42,3 +42,6 @@ apps/playground/output/
 brand-context.md
 positioning-*.md
 copy-*.md
+
+# Beta email send log (tester addresses and codes)
+.beta-emails/

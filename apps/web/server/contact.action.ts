@@ -6,6 +6,13 @@ import { contactFormSchema, type TContactFormSchema } from "./schema";
 
 const resendClient = new Resend(process.env.RESEND_API_KEY);
 
+/**
+ * Must be on a domain verified in Resend. CONTACT_FROM_EMAIL overrides it,
+ * e.g. while updates.castfy.app is still being verified.
+ */
+const FROM =
+  process.env.CONTACT_FROM_EMAIL ?? "Castfy <contact@updates.castfy.app>";
+
 export async function contactSalesTeam(data: TContactFormSchema) {
   try {
     // parse using safeParse it first
@@ -26,7 +33,7 @@ export async function contactSalesTeam(data: TContactFormSchema) {
     } = result.data;
 
     const response = await resendClient.emails.send({
-      from: "Rathon Contact Form <contact@notifications.rathon-rw.com>",
+      from: FROM,
       to: ["rathonrw@gmail.com", "castfy.app@gmail.com"],
       subject: `Castfy contact form: ${companyName}`,
       react: ContactEmail({
