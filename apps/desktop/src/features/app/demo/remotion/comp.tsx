@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
 import { Pointer } from "../../../../../remotion/pointer";
 import { trimBeforeFor } from "./meta";
@@ -123,18 +123,7 @@ export const StudioComposition = ({
   zoom?: ZoomTrack | null;
 }) => {
   const frame = useCurrentFrame();
-  const trimBefore = trimBeforeFor(url);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  // While the video plays it is the clock: the timeline can lag it on a slow
-  // Mac, and the zoom and pointer must stay on the picture. Once it has
-  // ended, too: the lagging timeline would replay the last zoom and pointer
-  // moves over its final frame.
-  const video = videoRef.current;
-  const onVideoClock = video && (!video.paused || video.ended);
-  const ms = onVideoClock
-    ? (video?.currentTime ?? 0) * 1000
-    : ((frame + trimBefore) / FPS) * 1000;
-  const camera = cameraStyle(cameraAt(ms, planShots(zoom)));
+  const timelineMs = ((frame + trimBeforeFor(url)) / FPS) * 1000;
   return (
     <AbsoluteFill>
       {/* Background layer - bottom */}
@@ -149,27 +138,74 @@ export const StudioComposition = ({
 
       {/* Video layer - top */}
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-        <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
-          <div style={{ ...camera, position: "relative" }}>
-            {/*
-              A plain video, not Remotion's: Remotion seeks its video back to
-              the timeline whenever the two drift apart, which replayed the
-              start of voiceover lines. This one keeps its own clock, and the
-              zoom and pointer follow it (useVideoClock in player.tsx).
-            */}
-            {/* biome-ignore lint/a11y/useMediaCaption: the voiceover's captions are their own track */}
-            <video
-              data-preview-clock=""
-              playsInline
-              preload="auto"
-              ref={videoRef}
-              src={url}
-              style={{ width: "100%", display: "block" }}
-            />
-            <Pointer ms={ms} track={zoom} />
-          </div>
-        </div>
+        <VideoStage timelineMs={timelineMs} url={url} zoom={zoom} />
       </AbsoluteFill>
     </AbsoluteFill>
   );
 };
+
+/**
+ * The time the zoom and pointer are drawn at: the video's own, read every
+ * animation frame while it plays, else the timeline's.
+ *
+ * Read only when Remotion drew a frame, as before, the camera moved in steps
+ * on a Mac where the player drops frames: the zoom looked jerky though the
+ * video played smoothly. Once the video has ended its time still holds; the
+ * lagging timeline would replay the last zoom over its final frame.
+ */
+function useVideoTime(
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  timelineMs: number
+): number {
+  const [videoMs, setVideoMs] = useState<number | null>(null);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const video = videoRef.current;
+      const live = video && (!video.paused || video.ended);
+      setVideoMs(live ? video.currentTime * 1000 : null);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [videoRef]);
+  return videoMs ?? timelineMs;
+}
+
+/** The video, zoomed and with the pointer over it, on the video's own clock. */
+function VideoStage({
+  url,
+  zoom,
+  timelineMs,
+}: {
+  url: string;
+  zoom: ZoomTrack | null;
+  timelineMs: number;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const ms = useVideoTime(videoRef, timelineMs);
+  const shots = useMemo(() => planShots(zoom), [zoom]);
+  const camera = cameraStyle(cameraAt(ms, shots));
+  return (
+    <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ ...camera, position: "relative" }}>
+        {/*
+          A plain video, not Remotion's: Remotion seeks its video back to the
+          timeline whenever the two drift apart, which replayed the start of
+          voiceover lines. This one keeps its own clock, and the zoom and
+          pointer follow it (useVideoClock in player.tsx).
+        */}
+        {/* biome-ignore lint/a11y/useMediaCaption: the voiceover's captions are their own track */}
+        <video
+          data-preview-clock=""
+          playsInline
+          preload="auto"
+          ref={videoRef}
+          src={url}
+          style={{ width: "100%", display: "block" }}
+        />
+        <Pointer ms={ms} track={zoom} />
+      </div>
+    </div>
+  );
+}

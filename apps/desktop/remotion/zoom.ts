@@ -106,7 +106,9 @@ export interface Shot {
   endMs: number;
   /** The video times of the events it zooms on: what identifies it. */
   eventMs: number[];
-  points: Array<{ ms: number; x: number; y: number }>;
+  /** Where it looks, and how close, at each event; eased between. */
+  points: Array<{ ms: number; x: number; y: number; scale: number }>;
+  /** The closest it zooms, for the timeline's label. */
   scale: number;
 }
 
@@ -134,18 +136,32 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
       event.ms,
       Math.min(event.ms + kind.holdMs, clipEnd - OUT_MS)
     );
-    const point = { ms: event.ms, x: event.x / width, y: event.y / height };
+    const point = {
+      ms: event.ms,
+      x: event.x / width,
+      y: event.y / height,
+      scale,
+    };
     const prev = shots.at(-1);
     // One shot across clips only for a form being filled in.
     const sameClip = prev && prev.last.clipStartMs === event.clipStartMs;
     const formFill = prev && style(prev.last) === FILL && kind === FILL;
-    if (prev && event.ms - prev.last.ms <= MERGE_MS && (sameClip || formFill)) {
+    /**
+     * Close events stay zoomed and pan. So does an event whose zoom would
+     * start before the last shot is back out: two shots overlapping made the
+     * camera snap from one to the other mid-move (a field typed into, then a
+     * button clicked two seconds later).
+     */
+    const close =
+      prev &&
+      (event.ms - prev.last.ms <= MERGE_MS ||
+        event.ms - LEAD_MS <= shotEndMs(prev));
+    if (prev && close && (sameClip || formFill)) {
       prev.points.push(point);
       prev.eventMs.push(event.ms);
       prev.endMs = Math.max(prev.endMs, endMs);
       prev.last = event;
-      // One zoom for the whole shot, close enough for its widest target.
-      prev.scale = Math.min(prev.scale, scale);
+      prev.scale = Math.max(prev.scale, scale);
     } else {
       shots.push({
         // Not into the previous clip either.
@@ -192,26 +208,26 @@ export function cameraAt(ms: number, shots: Shot[]): Camera {
   const outProgress =
     ms > shot.endMs ? 1 - ease((ms - shot.endMs) / OUT_MS) : 1;
   const amount = Math.min(inProgress, outProgress);
-  const scale = 1 + (shot.scale - 1) * amount;
 
-  // Where: the latest point reached, easing between consecutive points.
+  // Where and how close: the latest point reached, easing to the next one
+  // so that it arrives as its event happens.
   const { points } = shot;
-  let x = points[0].x;
-  let y = points[0].y;
+  let { x, y, scale: target } = points[0];
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
     const next = points[i];
-    if (ms <= prev.ms) {
+    const moveMs = Math.max(1, Math.min(LEAD_MS * 2, next.ms - prev.ms));
+    const from = next.ms - moveMs;
+    if (ms <= from) {
       break;
     }
-    const t = ease(
-      (ms - prev.ms) / Math.max(1, Math.min(LEAD_MS * 2, next.ms - prev.ms))
-    );
+    const t = ease((ms - from) / moveMs);
     x = prev.x + (next.x - prev.x) * t;
     y = prev.y + (next.y - prev.y) * t;
+    target = prev.scale + (next.scale - prev.scale) * t;
   }
 
-  return { scale, originX: x, originY: y };
+  return { scale: 1 + (target - 1) * amount, originX: x, originY: y };
 }
 
 /** CSS for the element that holds the video. */
