@@ -1,3 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # The cloud recording worker, retired now that recording runs in the
+  # desktop app. Its private castfy0-mcp dependency needs a GitHub Packages
+  # token, which would otherwise block every install.
+  - "!apps/playground"

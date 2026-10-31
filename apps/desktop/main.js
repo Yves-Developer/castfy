@@ -16,6 +16,7 @@ import {
   WebContentsView,
 } from 'electron';
 import chokidar from 'chokidar';
+import { Account } from './account.js';
 import { buildCommand, detectAgents, pickAgent } from './agents.js';
 import { RUN_USAGE_FILE, saveRunUsage } from './run-usage.js';
 import { browserStatus, installBrowsers } from './browsers.js';
@@ -47,6 +48,36 @@ const loadRecut = () => import('./recut.js');
 let runs = new RunStore('');
 let projects = new ProjectStore('');
 let settings = new SettingsStore('');
+/** @type {Account | null} */
+let account = null;
+
+/**
+ * The website that hosts sign-in (/device) and Better Auth (/api/auth). In
+ * dev it is apps/web on its dev port; CASTFY_WEB_URL overrides either.
+ */
+function webUrl() {
+  const configured = process.env.CASTFY_WEB_URL?.trim();
+  if (configured) return configured;
+  return app.isPackaged ? 'https://www.castfy.app' : 'http://localhost:3003';
+}
+
+/**
+ * The Convex backend (.convex.cloud) the app reads plans and usage from.
+ * CASTFY_CONVEX_URL wins; in dev it falls back to the deployment `npx convex
+ * dev` wrote to packages/backend/.env.local, so the app follows the backend.
+ * Packaged builds must be given it until the production deployment exists.
+ */
+async function convexUrl() {
+  const configured = process.env.CASTFY_CONVEX_URL?.trim();
+  if (configured) return configured;
+  if (app.isPackaged) return null;
+  try {
+    const env = await fs.readFile(path.resolve(dirname, '../../packages/backend/.env.local'), 'utf8');
+    return env.match(/^CONVEX_URL=(.+)$/m)?.[1].trim() ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Name the app before anything reads a path: userData becomes %APPDATA%\Castfy,
@@ -1003,6 +1034,15 @@ async function initStores() {
   settings = new SettingsStore(path.join(app.getPath('userData'), 'settings.json'));
   await settings.load();
 
+  account = new Account({
+    file: path.join(app.getPath('userData'), 'account.json'),
+    webUrl: webUrl(),
+    convexUrl: await convexUrl(),
+    onChange: (state) => ui?.send('account:changed', state),
+    onSignIn: (progress) => ui?.send('account:signInProgress', progress),
+  });
+  await account.load();
+
   // Recordings started straight from Claude Code never went through New Demo,
   // so give them a project or they would never show up in the library.
   const { sessions } = await scanLibrary();
@@ -1178,6 +1218,48 @@ ipcMain.handle('clients:disconnect', (_e, id) => disconnectClient(id));
 /** Only https, and only to the outside browser — never a window we control. */
 ipcMain.handle('shell:open', (_e, url) => {
   if (typeof url === 'string' && url.startsWith('https://')) shell.openExternal(url);
+});
+
+ipcMain.handle('account:get', () => account?.state() ?? { status: 'signed-out', user: null });
+ipcMain.handle('account:signIn', async () => {
+  try {
+    return { ok: true, ...(await account.startSignIn()) };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('account:reopenBrowser', () => account?.reopenBrowser());
+ipcMain.handle('account:cancelSignIn', () => account?.cancelSignIn());
+ipcMain.handle('account:signOut', () => account?.signOut());
+ipcMain.handle('account:sessions', async () => {
+  try {
+    return { ok: true, sessions: await account.listSessions() };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('billing:plan', async () => {
+  try {
+    return { ok: true, plan: await account.plan() };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('billing:checkout', async (_e, slug) => {
+  try {
+    await account.checkout(slug);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
+});
+ipcMain.handle('account:revokeSession', async (_e, id) => {
+  try {
+    await account.revokeSession(id);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error?.message ?? String(error) };
+  }
 });
 
 ipcMain.handle('agents:list', async () => ({
