@@ -113,8 +113,8 @@ export class ProjectStore {
    *
    * A project that already had a recording gets a new take: the earlier one
    * becomes its own project, so it stays in the library, and takes its cut
-   * edits with it. Cuts are time ranges in that footage; left on the project
-   * they would cut the new take in the wrong places.
+   * edits and blur boxes with it. Both are placed in that footage; left on
+   * the project they would land in the wrong places on the new take.
    */
   linkSession(id, sessionId) {
     const project = this.get(id);
@@ -134,6 +134,8 @@ export class ProjectStore {
     }
     project.sessionId = sessionId;
     project.cuts = null;
+    // Blur boxes are placed and timed on the earlier take's video.
+    if (project.editor?.blurs?.length) project.editor = { ...project.editor, blurs: [] };
     project.updatedAt = Date.now();
     this.save();
     return project;

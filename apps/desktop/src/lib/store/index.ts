@@ -1,4 +1,5 @@
 "use client";
+import type { BlurBox } from "../../../remotion/blur";
 import type { ZoomTrack } from "../../../remotion/zoom";
 
 import { temporal } from "zundo";
@@ -30,6 +31,8 @@ export interface ImageOverlay {
  */
 export interface EditorState {
   backgroundConfig: BackgroundConfig;
+  /** Parts of the video the user hid: an email, a name, a key. */
+  blurs: BlurBox[];
   customDimensions: { width: number; height: number } | null;
   imageOverlays: ImageOverlay[];
   selectedAspectRatio: AspectRatioKey;
@@ -40,6 +43,10 @@ export interface BackgroundState extends EditorState {
   loadEditorState: (state: EditorState | null) => void;
 
   addImageOverlay: (overlay: Omit<ImageOverlay, "id">) => void;
+  /** Adds a blur box and returns its id. */
+  addBlur: (box: Omit<BlurBox, "id">) => string;
+  updateBlur: (id: string, updates: Partial<Omit<BlurBox, "id">>) => void;
+  removeBlur: (id: string) => void;
   /** Not part of EditorState: it belongs to the recording, not the look. */
   generatedVideoUrl: string | null;
   /** Where auto-zoom moves to in the current recording; null for none. */
@@ -64,6 +71,7 @@ export const DEFAULT_EDITOR: EditorState = {
     opacity: 1,
   },
   imageOverlays: [],
+  blurs: [],
   selectedAspectRatio: "16:9",
   customDimensions: null,
 };
@@ -72,6 +80,7 @@ export const useBackgroundStore = create<BackgroundState>()(
   temporal((set) => ({
     backgroundConfig: DEFAULT_EDITOR.backgroundConfig,
     imageOverlays: DEFAULT_EDITOR.imageOverlays,
+    blurs: DEFAULT_EDITOR.blurs,
     selectedAspectRatio: DEFAULT_EDITOR.selectedAspectRatio,
     customDimensions: DEFAULT_EDITOR.customDimensions,
 
@@ -123,6 +132,22 @@ export const useBackgroundStore = create<BackgroundState>()(
           value,
         },
       }));
+    },
+
+    addBlur: (box) => {
+      const id = `blur-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      set((state) => ({ blurs: [...state.blurs, { ...box, id }] }));
+      return id;
+    },
+    updateBlur: (id, updates) => {
+      set((state) => ({
+        blurs: state.blurs.map((box) =>
+          box.id === id ? { ...box, ...updates } : box
+        ),
+      }));
+    },
+    removeBlur: (id) => {
+      set((state) => ({ blurs: state.blurs.filter((box) => box.id !== id) }));
     },
 
     // Add image overlay

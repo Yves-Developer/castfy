@@ -195,7 +195,13 @@ export function RemotionPlayer({
   onPlaybackChange,
   onVolumeChange,
   ref,
+  showBlurs = true,
 }: {
+  /**
+   * Whether to draw the blur boxes: they are timed in the finished video, so
+   * not over the raw footage cut editing plays.
+   */
+  showBlurs?: boolean;
   onDurationInFrames?: (frames: number) => void;
   onFrameChange?: (frame: number) => void;
   onMuteChange?: (isMuted: boolean) => void;
@@ -203,7 +209,7 @@ export function RemotionPlayer({
   onVolumeChange?: (volume: number) => void;
   ref: React.RefObject<PlayerRef | null>;
 }) {
-  const { backgroundConfig, generatedVideoUrl, imageOverlays, zoomTrack } =
+  const { backgroundConfig, blurs, generatedVideoUrl, imageOverlays, zoomTrack } =
     useBackgroundStore();
   // While a run records, the page it is working on, from castfy0's live frame.
   const live = useLive();
@@ -334,6 +340,7 @@ export function RemotionPlayer({
         backgroundConfig,
         imageOverlays,
         zoom: zoomTrack,
+        blurs: showBlurs ? blurs : [],
       }}
       ref={ref}
       showPlaybackRateControl

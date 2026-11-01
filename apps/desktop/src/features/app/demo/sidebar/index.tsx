@@ -2,16 +2,26 @@
 import { Button } from "@castfy/ui/components/button";
 import { Tabs, TabsContent } from "@castfy/ui/components/tabs";
 import { cn } from "@castfy/ui/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useBlurTool } from "../blur/tool";
 import { AgentTab } from "./agent";
 import { BackgroundTab } from "./background";
+import { BlurTab } from "./blur";
 
 const tabs = [
   { value: "agent", label: "Agent" },
   { value: "background", label: "Background" },
+  { value: "blur", label: "Blur" },
 ] as const;
 export default function DemoSidebar({ className }: { className?: string }) {
   const [activeTab, setActiveTab] = useState("agent");
+  // Boxes can be drawn and moved on the video while the Blur panel is open.
+  useEffect(() => {
+    useBlurTool.getState().set({
+      panelOpen: activeTab === "blur",
+      ...(activeTab === "blur" ? {} : { drawing: false, selectedId: null }),
+    });
+  }, [activeTab]);
   return (
     <div
       className={cn(
@@ -54,6 +64,13 @@ export default function DemoSidebar({ className }: { className?: string }) {
           value="background"
         >
           <BackgroundTab />
+        </TabsContent>
+
+        <TabsContent
+          className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-2.5"
+          value="blur"
+        >
+          <BlurTab />
         </TabsContent>
       </Tabs>
     </div>

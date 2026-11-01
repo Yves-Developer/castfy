@@ -1,4 +1,5 @@
 import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from 'remotion';
+import { type BlurBox, BlurBoxes } from './blur';
 import { Pointer } from './pointer';
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from './zoom';
 
@@ -54,6 +55,11 @@ export interface DemoProps extends Record<string, unknown> {
    * the events out from under their times.
    */
   zoom?: ZoomTrack | null;
+  /**
+   * Parts of the video the user hid, timed in the finished video: the
+   * composition's own time, trimmed or not.
+   */
+  blurs?: BlurBox[];
 }
 
 const FPS = 30;
@@ -120,6 +126,7 @@ export function Demo({
   radius,
   keeps,
   zoom,
+  blurs,
 }: DemoProps) {
   const frame = useCurrentFrame();
   const behind = overlays.filter((o) => o.layer === 'back');
@@ -154,23 +161,28 @@ export function Demo({
           {/* OffthreadVideo, not Video: rendering extracts frames with ffmpeg
               rather than relying on browser playback timing. */}
           {segments ? (
-            segments.map((segment) => (
-              <Sequence
-                durationInFrames={segment.durationInFrames}
-                from={segment.from}
-                key={segment.id}
-              >
-                <OffthreadVideo
-                  src={staticFile(src)}
-                  style={{ width: '100%', display: 'block' }}
-                  trimAfter={segment.trimAfter}
-                  trimBefore={segment.trimBefore}
-                />
-              </Sequence>
-            ))
+            <div style={{ position: 'relative' }}>
+              {segments.map((segment) => (
+                <Sequence
+                  durationInFrames={segment.durationInFrames}
+                  from={segment.from}
+                  key={segment.id}
+                  layout="none"
+                >
+                  <OffthreadVideo
+                    src={staticFile(src)}
+                    style={{ width: '100%', display: 'block' }}
+                    trimAfter={segment.trimAfter}
+                    trimBefore={segment.trimBefore}
+                  />
+                </Sequence>
+              ))}
+              <BlurBoxes boxes={blurs} ms={ms} />
+            </div>
           ) : (
             <div style={{ ...camera, position: 'relative' }}>
               <OffthreadVideo src={staticFile(src)} style={{ width: '100%', display: 'block' }} />
+              <BlurBoxes boxes={blurs} ms={ms} />
               <Pointer ms={ms} track={zoom} />
             </div>
           )}
@@ -200,6 +212,7 @@ export function RemotionRoot() {
         height: 1080,
         keeps: [],
         zoom: null,
+        blurs: [],
       }}
       durationInFrames={FPS}
       fps={FPS}

@@ -16,6 +16,7 @@ function editorSliceOf(state: ReturnType<typeof useBackgroundStore.getState>): E
   return {
     backgroundConfig: state.backgroundConfig,
     imageOverlays: state.imageOverlays,
+    blurs: state.blurs,
     selectedAspectRatio: state.selectedAspectRatio,
     customDimensions: state.customDimensions,
   };

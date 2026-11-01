@@ -139,6 +139,23 @@ async function materialiseAsset(publicRoot, sessionDir, assetPath) {
   return `render-assets/${fileName}`;
 }
 
+/** Blur boxes as the composition takes them: in range, and nothing else. */
+function cleanBlurs(blurs) {
+  if (!Array.isArray(blurs)) return [];
+  const unit = (n) => Math.min(1, Math.max(0, Number(n) || 0));
+  return blurs
+    .map((b, i) => ({
+      id: String(b?.id ?? `blur-${i}`),
+      x: unit(b?.x),
+      y: unit(b?.y),
+      w: unit(b?.w),
+      h: unit(b?.h),
+      startMs: Math.max(0, Number(b?.startMs) || 0),
+      endMs: Math.max(0, Number(b?.endMs) || 0),
+    }))
+    .filter((b) => b.w > 0 && b.h > 0 && b.endMs > b.startMs);
+}
+
 export async function exportRecording({
   sessionId,
   libraryRoot,
@@ -161,6 +178,8 @@ export async function exportRecording({
    * what every export did before, narration included.
    */
   cuts = null,
+  /** Blur boxes from the studio (remotion/blur.tsx), timed in the finished video. */
+  blurs = [],
   browsersPath,
   onProgress,
 }) {
@@ -212,6 +231,7 @@ export async function exportRecording({
     width,
     height,
     keeps,
+    blurs: cleanBlurs(blurs),
     // Auto-zoom follows the recording's own clock, so only untrimmed footage
     // from the segment recorder gets it.
     zoom: !trimming && sourceFile === 'demo.mp4' ? await readZoomTrack(sessionDir) : null,

@@ -8,6 +8,8 @@ import { useStudioProject, useStudioSource } from "../use-project";
 import { nextPlayablePosition, useCuts } from "../use-cuts";
 import { CutBar } from "./cut-bar";
 import { RemotionPlayer } from "../remotion/player";
+import { BlurLayer } from "../blur/layer";
+import { useBlurTool } from "../blur/tool";
 import { EditorFooter } from "./footer";
 import StudioTimelines from "./timelines";
 
@@ -30,6 +32,13 @@ export default function AppVideoEditor() {
   const cutsApi = useCuts(project, slug);
   const timeline = project?.session?.timeline;
   const previewCuts = mode === "edit";
+  // Blur boxes are timed in the finished video: editable over it only.
+  useEffect(() => {
+    useBlurTool.getState().set({
+      onResult: mode === "result",
+      ...(mode === "result" ? {} : { drawing: false, selectedId: null }),
+    });
+  }, [mode]);
   /**
    * Whether the video playing is the one the tracks are measured on. In edit
    * mode it always is; in result mode only when the result is that same file,
@@ -210,7 +219,9 @@ export default function AppVideoEditor() {
               onPlaybackChange={setIsPlaying}
               onVolumeChange={setVolume}
               ref={playerRef}
+              showBlurs={mode === "result"}
             />
+            <BlurLayer />
           </div>
         </div>
         <EditorFooter
