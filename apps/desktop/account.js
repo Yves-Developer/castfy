@@ -101,7 +101,12 @@ export class Account {
     }
     const body = await response.json();
     if (!body?.user) {
+      // The server no longer knows this session (it was revoked, or made
+      // against another backend). The window may already be past sign-in on
+      // the saved user, so tell it: otherwise it stays on a signed-in screen
+      // with nothing behind it and no way to sign in.
       await this.forget();
+      this.onChange(this.state());
       return this.state();
     }
     await this.save(this.token, pickUser(body.user));
