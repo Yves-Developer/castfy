@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
+import { type BlurBox, BlurBoxes } from "../../../../../remotion/blur";
 import { Pointer } from "../../../../../remotion/pointer";
 import { trimBeforeFor } from "./meta";
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from "../../../../../remotion/zoom";
@@ -116,11 +117,13 @@ export const StudioComposition = ({
   backgroundConfig,
   imageOverlays = [],
   zoom = null,
+  blurs = [],
 }: {
   url: string;
   backgroundConfig: BackgroundConfig;
   imageOverlays?: ImageOverlay[];
   zoom?: ZoomTrack | null;
+  blurs?: BlurBox[];
 }) => {
   const frame = useCurrentFrame();
   const timelineMs = ((frame + trimBeforeFor(url)) / FPS) * 1000;
@@ -138,7 +141,12 @@ export const StudioComposition = ({
 
       {/* Video layer - top */}
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-        <VideoStage timelineMs={timelineMs} url={url} zoom={zoom} />
+        <VideoStage
+          blurs={blurs}
+          timelineMs={timelineMs}
+          url={url}
+          zoom={zoom}
+        />
       </AbsoluteFill>
     </AbsoluteFill>
   );
@@ -176,10 +184,12 @@ function useVideoTime(
 function VideoStage({
   url,
   zoom,
+  blurs,
   timelineMs,
 }: {
   url: string;
   zoom: ZoomTrack | null;
+  blurs: BlurBox[];
   timelineMs: number;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -204,6 +214,7 @@ function VideoStage({
           src={url}
           style={{ width: "100%", display: "block" }}
         />
+        <BlurBoxes boxes={blurs} ms={ms} />
         <Pointer ms={ms} track={zoom} />
       </div>
     </div>

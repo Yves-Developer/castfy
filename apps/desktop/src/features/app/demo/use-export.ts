@@ -77,7 +77,7 @@ export function useExportState(sessionId: string | null | undefined): ExportStat
  * one definition of what "magic:sunset" means instead of two.
  */
 export function useExport(sessionId: string | null | undefined, title?: string) {
-  const { backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions } =
+  const { backgroundConfig, blurs, imageOverlays, selectedAspectRatio, customDimensions } =
     useBackgroundStore();
   const state = useExportState(sessionId);
 
@@ -130,6 +130,7 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
         })),
       width: Math.round(width * scale),
       height: Math.round(height * scale),
+      blurs,
     };
 
     patchExport(sessionId, {
@@ -155,7 +156,7 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
     } finally {
       patchExport(sessionId, { busy: false, status: null });
     }
-  }, [sessionId, title, backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions]);
+  }, [sessionId, title, backgroundConfig, blurs, imageOverlays, selectedAspectRatio, customDimensions]);
 
   const dismissLimit = useCallback(() => {
     if (sessionId) patchExport(sessionId, { limitReached: null });
