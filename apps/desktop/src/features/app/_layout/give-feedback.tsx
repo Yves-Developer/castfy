@@ -220,7 +220,7 @@ export function GiveFeedbackDialog() {
               />
             </div>
 
-            <Button form="feedback-form" type="submit">
+            <Button form="feedback-form" type="submit" variant="brand">
               Send
             </Button>
           </DialogFooter>

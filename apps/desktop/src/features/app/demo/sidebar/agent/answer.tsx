@@ -90,6 +90,7 @@ export function AnswerCard({
           disabled={busy || value.trim() === ""}
           size="sm"
           type="submit"
+          variant="brand"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : "Send"}
         </Button>

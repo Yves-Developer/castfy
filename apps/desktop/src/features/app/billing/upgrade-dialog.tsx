@@ -87,7 +87,7 @@ export function UpgradeDialog({
         ) : null}
         {error ? <p className="text-destructive text-xs">{error}</p> : null}
 
-        <Button className="h-8 w-full text-xs" onClick={buy}>
+        <Button className="h-8 w-full text-xs" onClick={buy} variant="brand">
           {checkingOut ? "Open checkout again" : `Buy Castfy — ${tier.price}`}
         </Button>
 

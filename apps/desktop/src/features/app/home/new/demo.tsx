@@ -111,7 +111,7 @@ export function NewDemo() {
                 Cancel
               </Button>
             </DialogClose>
-            <Button className="flex-1 text-xs" type="submit">
+            <Button className="flex-1 text-xs" type="submit" variant="brand">
               Done
             </Button>
           </div>
