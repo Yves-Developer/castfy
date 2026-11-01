@@ -3,7 +3,7 @@ import type { PlayerRef } from "@remotion/player";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
 import { useBackgroundStore } from "@/lib/store";
-import { editingSource } from "@/lib/projects";
+import { editingSource, isSegmentRecording } from "@/lib/projects";
 import { useStudioProject, useStudioSource } from "../use-project";
 import { nextPlayablePosition, useCuts } from "../use-cuts";
 import { CutBar } from "./cut-bar";
@@ -25,8 +25,11 @@ export default function AppVideoEditor() {
    * opt-in until cut editing is finished, because cut ranges are measured in
    * raw-footage time and the clean variant is a different length.
    */
-  const [mode, setMode] = useState<"edit" | "result">("result");
+  const [chosenMode, setMode] = useState<"edit" | "result">("result");
   const { project, slug } = useStudioProject();
+  /** Cut editing would strip a segment recording's voice, zoom and cursor. */
+  const canEditCuts = !isSegmentRecording(project?.session);
+  const mode = canEditCuts ? chosenMode : "result";
   // The only place that decides which video plays.
   const source = useStudioSource(project, mode);
   const cutsApi = useCuts(project, slug);
@@ -239,6 +242,7 @@ export default function AppVideoEditor() {
       </div>
       <footer className="mt-auto flex flex-col gap-2 border-t p-2.5">
         <CutBar
+          canEdit={canEditCuts}
           cutsApi={cutsApi}
           hasResult={Boolean(
             project?.session?.videos.audioClean ?? project?.session?.videos.audio

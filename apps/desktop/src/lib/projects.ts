@@ -39,6 +39,19 @@ export function projectsToDemos(projects: Project[]): Tdemo[] {
   }));
 }
 
+/**
+ * A recording from the segment recorder: one demo.mp4 with the voice in it,
+ * already the finished demo. Cut editing re-renders a silent clean file
+ * without the zoom and cursor, so it is not offered on these yet.
+ */
+export function isSegmentRecording(session: Session | null | undefined): boolean {
+  const videos = session?.videos;
+  return Boolean(
+    videos?.raw?.includes('demo.mp4') &&
+      !(videos.source || videos.clean || videos.audio || videos.audioClean)
+  );
+}
+
 /** Best available variant — the most finished one. For showing a result. */
 export function bestVideo(session: Session | null | undefined): string | undefined {
   if (!session) return undefined;
