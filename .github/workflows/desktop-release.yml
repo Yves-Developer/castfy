@@ -15,11 +15,18 @@
 #                  (fine-grained, Contents: read-only on that repository,
 #                  with an expiry date).
 #
+# macOS builds are signed and notarized when these secrets are set, and
+# unsigned (right-click → Open the first time) when they are not:
+#   MAC_CERT_P12_BASE64  the "Developer ID Application" certificate with its
+#                        private key, exported as .p12, then base64
+#   MAC_CERT_PASSWORD    the .p12's password
+#   APPLE_API_KEY_P8     an App Store Connect API key (.p8 file contents)
+#   APPLE_API_KEY_ID     that key's id
+#   APPLE_API_ISSUER     the issuer id shown above the keys
+#
 # Neither checkout keeps its credentials once it finishes (persist-credentials:
 # false). The build installs hundreds of third-party packages, and a token left
 # in .git/config would be readable by every one of their install scripts.
-#
-# Builds are unsigned until signing certificates are added (Phase 5).
 
 name: Desktop release
 
@@ -127,14 +134,71 @@ jobs:
             fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
           '
 
+      # Hands electron-builder the signing certificate and the notarization
+      # key, as files in the runner's temp folder, on macOS only: given a
+      # certificate on Windows it would try to sign the .exe with it. Without
+      # the secrets, or on Windows, the build stays unsigned on purpose.
+      - name: Prepare signing
+        shell: bash
+        env:
+          MAC_CERT_P12_BASE64: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          if [ "$RUNNER_OS" != "macOS" ] || [ -z "$MAC_CERT_P12_BASE64" ]; then
+            echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
+            echo "Building unsigned."
+            exit 0
+          fi
+          cert="$RUNNER_TEMP/developer-id.p12"
+          printf '%s' "$MAC_CERT_P12_BASE64" | base64 --decode > "$cert"
+          {
+            echo "CSC_LINK=$cert"
+            echo "CSC_KEY_PASSWORD=$MAC_CERT_PASSWORD"
+          } >> "$GITHUB_ENV"
+          echo "Signing with the Developer ID certificate."
+
+          if [ -n "$APPLE_API_KEY_P8" ] && [ -n "$APPLE_API_KEY_ID" ] && [ -n "$APPLE_API_ISSUER" ]; then
+            key="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+            printf '%s\n' "$APPLE_API_KEY_P8" > "$key"
+            {
+              echo "APPLE_API_KEY=$key"
+              echo "APPLE_API_KEY_ID=$APPLE_API_KEY_ID"
+              echo "APPLE_API_ISSUER=$APPLE_API_ISSUER"
+            } >> "$GITHUB_ENV"
+            echo "Notarizing with the App Store Connect API key."
+          else
+            echo "::warning::No App Store Connect API key: the app is signed but not notarized, so macOS will still warn on first open."
+          fi
+
       - name: Package
         working-directory: castfy
         env:
           CASTFY0_DIR: ${{ github.workspace }}/castfy0
           TARGET_ARCH: ${{ matrix.arch }}
-          # No certificates yet: build unsigned instead of failing to find one.
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: pnpm --filter @workspace/desktop ${{ matrix.script }} --${{ matrix.arch }} --publish never
+
+      # Fails the build when a signed app is not what Gatekeeper accepts, so a
+      # broken signature never reaches testers as a "damaged" app.
+      - name: Check the signature
+        if: runner.os == 'macOS' && env.CSC_LINK != ''
+        working-directory: castfy/apps/desktop/release
+        shell: bash
+        run: |
+          app=$(find . -maxdepth 2 -name "Castfy.app" -type d | head -1)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv --verbose=2 "$app" 2>&1 | grep -E "Authority|TeamIdentifier|flags"
+          if [ -n "$APPLE_API_KEY" ]; then
+            xcrun stapler validate "$app"
+            spctl --assess --type execute --verbose=2 "$app"
+          fi
+
+      - name: Forget the signing files
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/developer-id.p12" "$RUNNER_TEMP"/AuthKey_*.p8
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
