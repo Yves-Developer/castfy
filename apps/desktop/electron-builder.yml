@@ -71,8 +71,8 @@ mac:
   # the Dock it was drawn bigger than every other app. Same arrow, in white on
   # black, lit from above.
   icon: build-resources/icon-mac.png
-  # Signing and notarisation are configured in Phase 5. Until then builds are
-  # unsigned: macOS needs right-click → Open the first time.
+  # Signed and notarized in CI when the Developer ID secrets are set (see
+  # .github/workflows/desktop-release.yml); unsigned otherwise.
   hardenedRuntime: true
   gatekeeperAssess: false
   # castfy0 runs as Castfy itself in Node mode (ELECTRON_RUN_AS_NODE), which the
