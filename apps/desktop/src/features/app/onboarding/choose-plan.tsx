@@ -144,6 +144,7 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
             className="h-8 w-full text-xs"
             disabled={starting}
             onClick={buy}
+            variant="brand"
           >
             {starting ? (
               <Loader2Icon className="size-3.5 animate-spin" />

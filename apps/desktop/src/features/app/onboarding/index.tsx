@@ -141,6 +141,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             className="h-8 w-full text-xs"
             disabled={!anyReady}
             onClick={onDone}
+            variant="brand"
           >
             {anyReady ? "Start using Castfy" : "Connect an agent to continue"}
           </Button>

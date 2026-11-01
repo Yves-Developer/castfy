@@ -182,7 +182,7 @@ function BuyCard({
           Finish your purchase in your browser; this page updates by itself.
         </p>
       ) : null}
-      <Button className="h-8 text-xs" onClick={onBuy}>
+      <Button className="h-8 text-xs" onClick={onBuy} variant="brand">
         {checkingOut
           ? "Open checkout again"
           : `Buy Castfy — ${TIERS.lifetime.price}`}

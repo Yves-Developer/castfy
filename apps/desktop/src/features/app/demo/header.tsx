@@ -73,6 +73,7 @@ export default function DemoHeader() {
             disabled={!canExport || exporter.busy}
             onClick={exporter.run}
             size="sm"
+            variant="brand"
           >
             {exporter.busy ? (
               <>

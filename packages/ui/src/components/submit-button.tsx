@@ -18,7 +18,16 @@ export function SubmitButton({
       {...props}
       className={cn("relative", props.className)}
     >
-      <span className={cn(isSubmitting && "invisible")}>{children}</span>
+      {/* Lays the icon and label out in a row, as the Button would without
+          this wrapper: on its own the icon is a block and takes a line. */}
+      <span
+        className={cn(
+          "inline-flex items-center gap-2",
+          isSubmitting && "invisible"
+        )}
+      >
+        {children}
+      </span>
       {isSubmitting && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Spinner />

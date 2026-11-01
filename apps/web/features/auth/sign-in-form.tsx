@@ -38,11 +38,13 @@ export function SignInForm() {
         </p>
       </div>
 
+      {/* In Castfy's brand blue, like the site's other calls to action. */}
       <SubmitButton
-        className="w-full"
+        className="w-full font-medium"
         isSubmitting={busy}
         onClick={signIn}
-        variant="outline"
+        size="xl"
+        variant="brand"
       >
         <FaGoogle />
         Continue with Google

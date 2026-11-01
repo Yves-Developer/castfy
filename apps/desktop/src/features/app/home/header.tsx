@@ -13,7 +13,7 @@ export function HomeHeader() {
         <Suspense>
           <HomeFilters />
         </Suspense>
-        <Button onClick={open} size="sm">
+        <Button onClick={open} size="sm" variant="brand">
           New Demo
         </Button>
       </div>

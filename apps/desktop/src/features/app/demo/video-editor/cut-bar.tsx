@@ -86,6 +86,7 @@ export function CutBar({
               disabled={busy}
               onClick={() => cutsApi.applyToVideo()}
               size="sm"
+              variant="brand"
             >
               {busy ? (
                 <>

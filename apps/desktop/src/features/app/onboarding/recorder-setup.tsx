@@ -70,7 +70,7 @@ export function RecorderSetup({ onReady }: { onReady: () => void }) {
               <AlertCircleIcon className="mt-0.5 size-3.5 flex-none" />
               <span>{error}</span>
             </p>
-            <Button disabled={running} onClick={install} size="sm">
+            <Button disabled={running} onClick={install} size="sm" variant="brand">
               Try again
             </Button>
           </div>

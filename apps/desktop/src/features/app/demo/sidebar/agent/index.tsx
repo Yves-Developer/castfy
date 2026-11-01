@@ -406,6 +406,7 @@ export function AgentTab() {
                       disabled={isSubmitDisabled}
                       size="icon-xs"
                       type="submit"
+                      variant="brand"
                     >
                       <ArrowUpIcon strokeWidth={2.7} />
                     </Button>

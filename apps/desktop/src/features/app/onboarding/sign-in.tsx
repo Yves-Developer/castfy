@@ -1,6 +1,7 @@
 import { Button } from "@castfy/ui/components/button";
 import { ExternalLinkIcon, Loader2Icon, MousePointer2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { FaGoogle } from "react-icons/fa";
 import type { SignInProgress } from "@/lib/bridge";
 import { bridge } from "@/lib/bridge";
 
@@ -125,17 +126,19 @@ export function SignIn({ onSkip }: { onSkip?: () => void }) {
               </p>
             ) : null}
 
+            {/* Castfy's brand blue, as on the website's sign-in page. */}
             <Button
-              className="h-8 w-full text-xs"
+              className="h-9 w-full font-medium text-xs"
               disabled={step.kind === "starting"}
               onClick={start}
+              variant="brand"
             >
               {step.kind === "starting" ? (
                 <Loader2Icon className="size-3.5 animate-spin" />
-              ) : null}
-              {step.kind === "failed"
-                ? "Try again"
-                : "Sign in with Google"}
+              ) : (
+                <FaGoogle className="size-3.5" />
+              )}
+              {step.kind === "failed" ? "Try again" : "Sign in with Google"}
             </Button>
             <p className="text-[11px] text-muted-foreground">
               New to Castfy? Signing in creates your account.
