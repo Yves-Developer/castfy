@@ -93,6 +93,10 @@ async function mutation<T = any>(ref: FunctionRef, args: Args): Promise<T> {
         agentId: args.provider ? String(args.provider) : null,
         headless: args.headless !== 'false' && args.headless !== false,
         voice: args.voice ? String(args.voice) : null,
+        change: args.change ? String(args.change) : null,
+        previousSteps: Array.isArray(args.previousSteps)
+          ? args.previousSteps.map(String)
+          : null,
       });
       if (!result.ok) throw new Error(result.error ?? 'Could not start the recording.');
       run.id = result.runId ?? null;

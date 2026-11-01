@@ -42,7 +42,7 @@ const ACTIONS: Record<string, { label: string; icon: ReactNode }> = {
   closetab: { label: "Close tab", icon: <PanelTopIcon className={ICON} /> },
 };
 
-function describeAction(action: string) {
+export function describeAction(action: string) {
   const known = ACTIONS[action.toLowerCase()];
   if (known) {
     return known;
@@ -72,17 +72,20 @@ function StepRow({
   step,
   latest,
   startedAt,
+  onChange,
 }: {
   step: AgentStep;
   latest: boolean;
   startedAt: number | null;
+  /** Asks for this step to change in a new take; absent while recording. */
+  onChange?: () => void;
 }) {
   const { label, icon } = describeAction(step.action);
   const failed = step.status === "error";
   const elapsed = elapsedLabel(step.t, startedAt);
 
   return (
-    <li className="relative flex gap-3 pb-3 last:pb-0">
+    <li className="group relative flex gap-3 pb-3 last:pb-0">
       <span
         className={cn(
           "relative z-10 flex size-6 flex-none items-center justify-center rounded-md border bg-background text-muted-foreground",
@@ -106,6 +109,18 @@ function StepRow({
             <span className="ml-auto text-[10px] text-muted-foreground tabular-nums">
               {elapsed}
             </span>
+          ) : null}
+          {onChange ? (
+            <button
+              className={cn(
+                "text-[10px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
+                !elapsed && "ml-auto"
+              )}
+              onClick={onChange}
+              type="button"
+            >
+              Change
+            </button>
           ) : null}
         </div>
         <p
@@ -137,9 +152,12 @@ function StepRow({
 export function StepsTimeline({
   steps,
   live = false,
+  onChangeStep,
 }: {
   steps: AgentStep[];
   live?: boolean;
+  /** Offers "Change" on each step of a finished recording. */
+  onChangeStep?: (index: number, step: AgentStep) => void;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   const startedAt = steps[0]?.t ? Date.parse(steps[0].t) : null;
@@ -173,6 +191,11 @@ export function StepsTimeline({
             <StepRow
               key={step.id ?? `${step.action}-${index}`}
               latest={live && index === steps.length - 1}
+              onChange={
+                onChangeStep && !live
+                  ? () => onChangeStep(index, step)
+                  : undefined
+              }
               startedAt={startedAt}
               step={step}
             />

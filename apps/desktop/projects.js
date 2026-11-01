@@ -108,11 +108,32 @@ export class ProjectStore {
     return project;
   }
 
-  /** Attach the recording a run produced to the project it was started from. */
+  /**
+   * Attach the recording a run produced to the project it was started from.
+   *
+   * A project that already had a recording gets a new take: the earlier one
+   * becomes its own project, so it stays in the library, and takes its cut
+   * edits with it. Cuts are time ranges in that footage; left on the project
+   * they would cut the new take in the wrong places.
+   */
   linkSession(id, sessionId) {
     const project = this.get(id);
     if (!project || project.sessionId === sessionId) return project;
+    const earlier = project.sessionId;
+    if (earlier && !this.state.projects.some((p) => p !== project && p.sessionId === earlier)) {
+      const now = Date.now();
+      this.state.projects.push({
+        id: this.get(earlier) ? randomUUID().slice(0, 8) : earlier,
+        title: `${project.title} (earlier take)`,
+        sessionId: earlier,
+        createdAt: project.createdAt ?? now,
+        updatedAt: now,
+        editor: project.editor ?? null,
+        cuts: project.cuts ?? null,
+      });
+    }
     project.sessionId = sessionId;
+    project.cuts = null;
     project.updatedAt = Date.now();
     this.save();
     return project;

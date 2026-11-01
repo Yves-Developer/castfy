@@ -30,9 +30,11 @@ import {
   Volume1Icon,
   VolumeXIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { z } from "zod";
+import { bridge, type RunUsage } from "@/lib/bridge";
+import { finishedRecording } from "@/lib/local-query";
 import { useBackgroundStore } from "@/lib/store";
 import type {
   AgentStep,
@@ -41,6 +43,8 @@ import type {
   PackagingStage,
   SseHandlers,
 } from "@/types";
+import { AnswerCard } from "./answer";
+import { ChangeTake, lastRunFor } from "./change";
 import {
   followJob,
   forgetActiveJob,
@@ -49,13 +53,10 @@ import {
   pickInitialVideo,
   readActiveJobId,
 } from "./generate";
-import { bridge, type RunUsage } from "@/lib/bridge";
-import { finishedRecording } from "@/lib/local-query";
-import { AnswerCard } from "./answer";
 import { SelectModel } from "./models";
-import { SelectVoice, useVoiceChoice } from "./voice";
-import { PackagingProgress, StepsTimeline } from "./step";
+import { describeAction, PackagingProgress, StepsTimeline } from "./step";
 import { RunUsageLine } from "./usage";
+import { SelectVoice, useVoiceChoice } from "./voice";
 
 const formSchema = z.object({
   webUrl: z.url("Please enter a valid URL."),
@@ -80,6 +81,9 @@ export function AgentTab() {
   const [errorMessage, setErrorMessage] = useState("");
   const [usage, setUsage] = useState<RunUsage | null>(null);
   const [question, setQuestion] = useState<InputRequest | null>(null);
+  /** What to change in a new take, typed after a recording finishes. */
+  const [changeDraft, setChangeDraft] = useState("");
+  const changeInput = useRef<HTMLTextAreaElement>(null);
 
   // Shared by a fresh submit and by reattaching after a refresh, so both paths
   // render progress identically. Every setter is stable, hence no deps.
@@ -207,38 +211,95 @@ export function AgentTab() {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: ({ value }) => {
-      setStatus("generating");
-      setSteps([]);
-      setStages([]);
-      setVideoUrl("");
-      setVideos({});
-      setActiveVideoTab("");
-      setErrorMessage("");
-      setCurrentStatusMessage("Initializing session...");
-      // clear any previously generated video
-      useBackgroundStore.getState().setGeneratedVideoUrl(null);
-
-      const params = new URLSearchParams({
-        url: value.webUrl,
-        promptGoal: value.aiPrompt,
-        headless: String(value.headless),
-        provider: selectedModel,
-        voice: voice ?? "",
-        // Links the recording this produces back to the open project, so the
-        // library card stops being a draft and starts playing.
-        projectId: slug ?? "",
-      });
-
-      generateDemo(params, handlers).catch((err) => {
-        console.error(err);
-        setErrorMessage(
-          err instanceof Error ? err.message : "Failed to start generation."
-        );
-        setStatus("error");
-      });
-    },
+    onSubmit: ({ value }) => startRun(value),
   });
+
+  /**
+   * Starts a recording into this project. With `retake`, a new take of the
+   * last one: the agent gets that take's steps and what to change.
+   */
+  function startRun(
+    value: { webUrl: string; aiPrompt: string; headless: boolean },
+    retake?: { change: string; previousSteps: string[] }
+  ) {
+    setStatus("generating");
+    setSteps([]);
+    setStages([]);
+    setVideoUrl("");
+    setVideos({});
+    setActiveVideoTab("");
+    setErrorMessage("");
+    setCurrentStatusMessage("Initializing session...");
+    // clear any previously generated video
+    useBackgroundStore.getState().setGeneratedVideoUrl(null);
+
+    const params = new URLSearchParams({
+      url: value.webUrl,
+      promptGoal: value.aiPrompt,
+      headless: String(value.headless),
+      provider: selectedModel,
+      voice: voice ?? "",
+      // Links the recording this produces back to the open project, so the
+      // library card stops being a draft and starts playing.
+      projectId: slug ?? "",
+    });
+    if (retake) {
+      params.set("change", retake.change);
+      for (const step of retake.previousSteps) {
+        params.append("previousStep", step);
+      }
+    }
+
+    generateDemo(params, handlers).catch((err) => {
+      console.error(err);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to start generation."
+      );
+      setStatus("error");
+    });
+  }
+
+  /**
+   * "Change something": records a new take with the same URL and goal. They
+   * come from the form when it still has them, else from the run log, which
+   * survives a restart.
+   */
+  const changeTake = async (change: string) => {
+    const values = form.state.values;
+    const known =
+      values.webUrl && values.aiPrompt
+        ? { url: values.webUrl, goal: values.aiPrompt }
+        : await lastRunFor(slug);
+    if (!known) {
+      setErrorMessage(
+        "Could not find how this demo was recorded. Use Record again instead."
+      );
+      setStatus("error");
+      return;
+    }
+    const previousSteps = steps.map(
+      (step) => `${describeAction(step.action).label}: ${step.description}`
+    );
+    setChangeDraft("");
+    startRun(
+      { webUrl: known.url, aiPrompt: known.goal, headless: values.headless },
+      { change, previousSteps }
+    );
+  };
+
+  /** "Change" on a step: starts the request with that step named. */
+  const changeStep = (index: number, step: AgentStep) => {
+    const label = describeAction(step.action).label;
+    const prefix = `Step ${index + 1} (${label}: ${step.description}): `;
+    setChangeDraft((draft) =>
+      draft.trim() ? `${draft.trim()}\n${prefix}` : prefix
+    );
+    requestAnimationFrame(() => {
+      const input = changeInput.current;
+      input?.focus();
+      input?.setSelectionRange(input.value.length, input.value.length);
+    });
+  };
 
   const webUrlValue = useStore(
     form.store,
@@ -492,7 +553,19 @@ export function AgentTab() {
                 request={question}
               />
             ) : null}
-            <StepsTimeline live={status === "generating"} steps={steps} />
+            {status === "completed" && steps.length > 0 ? (
+              <ChangeTake
+                draft={changeDraft}
+                onDraftChange={setChangeDraft}
+                onSubmit={changeTake}
+                ref={changeInput}
+              />
+            ) : null}
+            <StepsTimeline
+              live={status === "generating"}
+              onChangeStep={status === "completed" ? changeStep : undefined}
+              steps={steps}
+            />
             <PackagingProgress
               finished={status === "completed"}
               stages={stages}
