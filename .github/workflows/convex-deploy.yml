@@ -1,0 +1,59 @@
+# Deploys the backend (packages/backend) to the production Convex deployment.
+#
+# Runs when main changes the backend or the plans it reads, and by hand from
+# the Actions tab. Needs one repository secret:
+#   CONVEX_DEPLOY_KEY  a production deploy key: Convex dashboard → Production
+#                      deployment → Settings → URL & Deploy Key → Generate
+#                      Production Deploy Key.
+# The key decides which deployment receives the code, so no deployment name
+# is kept here. Environment variables (SITE_URL, BETTER_AUTH_SECRET, …) stay in
+# the Convex dashboard; deploying does not change them.
+
+name: Convex deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/backend/**"
+      - "packages/plans/**"
+      - ".github/workflows/convex-deploy.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: convex-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The backend and what it imports (@castfy/plans) only.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter "@castfy/backend..."
+
+      - name: Deploy
+        working-directory: packages/backend
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: |
+          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
+            echo "::error::Add the CONVEX_DEPLOY_KEY repository secret (Convex dashboard → Production → Settings → URL & Deploy Key)."
+            exit 1
+          fi
+          npx convex deploy
