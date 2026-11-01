@@ -1,11 +1,12 @@
 # Builds the Castfy desktop installers.
 #
-# Three ways to start it:
-#   - by hand from the Actions tab (once this file is on main);
-#   - push a tag like `desktop-v0.1.0`;
-#   - push a branch like `release/desktop-v0.1.0`, for when tags cannot be
-#     pushed. The release job then creates the `desktop-v0.1.0` tag itself.
-# Tags and release branches also get a draft GitHub Release with the installers.
+# Two ways to start it:
+#   - push a branch like `release/desktop-v0.1.0`: builds, then makes a draft
+#     GitHub Release `desktop-v0.1.0` with the installers;
+#   - by hand from the Actions tab: builds only.
+#
+# Not on tags. Publishing that draft creates the `desktop-v0.1.0` tag, and a
+# tag trigger then rebuilt the same commit and reworked the published release.
 #
 # Each target builds on its own runner: castfy0's ffmpeg, Remotion's compositor,
 # rspack and esbuild all install a native binary for the host only.
@@ -37,8 +38,6 @@ on:
         description: castfy0 branch or tag to bundle
         default: main
   push:
-    tags:
-      - "desktop-v*"
     branches:
       - "release/desktop-v*"
 
@@ -212,7 +211,7 @@ jobs:
   release:
     name: Draft GitHub Release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/desktop-v') || startsWith(github.ref, 'refs/heads/release/desktop-v')
+    if: startsWith(github.ref, 'refs/heads/release/desktop-v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -220,8 +219,8 @@ jobs:
           path: installers
           merge-multiple: true
 
-      # From a tag, that tag. From release/desktop-vX, the tag desktop-vX,
-      # which the release step creates on the built commit.
+      # From release/desktop-vX, the tag desktop-vX, which the release step
+      # creates on the built commit when the draft is published.
       - name: Work out the tag
         id: tag
         run: echo "name=${GITHUB_REF_NAME#release/}" >> "$GITHUB_OUTPUT"
