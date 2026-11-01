@@ -10,6 +10,14 @@
     <!-- Bundled ffmpeg, Chromium and Remotion's compositor are separately signed. -->
     <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
+    <!--
+      Remotion starts its compositor with DYLD_LIBRARY_PATH pointing at the
+      ffmpeg libraries beside it: the binary names them without a path. The
+      hardened runtime drops DYLD_* variables unless this is set, and the
+      compositor then aborts on launch (SIGABRT), so every export fails.
+    -->
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
     <!-- Agents and the recorder are reached over the network and localhost. -->
     <key>com.apple.security.network.client</key>
     <true/>

@@ -195,6 +195,29 @@ jobs:
             spctl --assess --type execute --verbose=2 "$app"
           fi
 
+          # Exports run Remotion's compositor, which finds its ffmpeg
+          # libraries through DYLD_LIBRARY_PATH. Under the hardened runtime
+          # that needs an entitlement; without it dyld aborts the compositor
+          # (SIGABRT) and every export fails. Launch it the way Remotion does:
+          # any exit is fine except a crash on load.
+          compositor=$(find "$app/Contents/Resources" -path "*@remotion/compositor-darwin-*/remotion" -type f | head -1)
+          if [ -z "$compositor" ]; then
+            echo "::error::Remotion compositor not found in the app"
+            exit 1
+          fi
+          set +e
+          # Stopped after 20s if it waits for input: running at all means
+          # it loaded, so that timeout (SIGALRM, 142) counts as a pass.
+          output=$(cd "$(dirname "$compositor")" && DYLD_LIBRARY_PATH="$(dirname "$compositor")" perl -e 'alarm 20; exec @ARGV' "$compositor" 2>&1 < /dev/null)
+          status=$?
+          set -e
+          echo "compositor exited with $status"
+          if { [ "$status" -ge 128 ] && [ "$status" -ne 142 ]; } || echo "$output" | grep -q "Library not loaded"; then
+            echo "$output" | tail -20
+            echo "::error::The signed compositor cannot start, so exports would fail"
+            exit 1
+          fi
+
       - name: Forget the signing files
         if: always() && runner.os == 'macOS'
         shell: bash
