@@ -226,6 +226,8 @@ export function generateDemo(
       url: params.get("url") ?? "",
       projectId: params.get("projectId") || null,
       voice: params.get("voice") || null,
+      change: params.get("change") || null,
+      previousSteps: params.getAll("previousStep"),
     })
     .then((jobId: string) => {
       rememberActiveJob(jobId);

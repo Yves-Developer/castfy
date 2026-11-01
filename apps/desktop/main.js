@@ -1451,12 +1451,43 @@ ipcMain.handle('setup:installBrowsers', () =>
  * surface for Mode B: the app does not run the loop, it only states the job
  * well enough that any MCP-capable client can do it.
  */
-function composePrompt({ url, goal, voice }) {
+/** Longest change request and step list a new take passes on. */
+const MAX_CHANGE_CHARS = 2000;
+const MAX_PREVIOUS_STEPS = 60;
+
+/**
+ * For a new take of a demo recorded before: the last take's steps and the
+ * change the user asked for. Empty when this is a first recording.
+ */
+function changeLines({ change, previousSteps }) {
+  const request = String(change ?? '').trim().slice(0, MAX_CHANGE_CHARS);
+  if (!request) return [];
+  const steps = (Array.isArray(previousSteps) ? previousSteps : [])
+    .map((s) => String(s).replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .slice(0, MAX_PREVIOUS_STEPS);
+  return [
+    '',
+    'This is a new take of a demo you recorded before.',
+    ...(steps.length > 0
+      ? ['The last take did these steps:', ...steps.map((s, i) => `${i + 1}. ${s}`)]
+      : []),
+    '',
+    'The user wants this changed:',
+    request,
+    '',
+    'Record the whole flow again from the start, with castfy0_start. Keep what',
+    'worked in the last take, and apply the change exactly where it asks.',
+  ];
+}
+
+function composePrompt({ url, goal, voice, change, previousSteps }) {
   return [
     'Record a product demo video using the castfy0 tools.',
     '',
     `Target URL: ${url}`,
     `Goal: ${goal}`,
+    ...changeLines({ change, previousSteps }),
     '',
     'Start with castfy0_start, drive the flow with the castfy0 action tools, and',
     'always finish with castfy0_end so the video gets packaged. Do not pass',

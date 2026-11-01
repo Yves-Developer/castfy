@@ -193,6 +193,13 @@ export interface DemoInput {
   headless?: boolean;
   /** The voiceover's Edge voice ("en-US-AriaNeural"); none when absent. */
   voice?: string | null;
+  /**
+   * A new take of a demo recorded before: what to change, in the user's
+   * words. The agent records the whole flow again with it applied.
+   */
+  change?: string | null;
+  /** The last take's steps, so the new take can keep what worked. */
+  previousSteps?: string[] | null;
 }
 
 /** Whether the browser the recorder and exporter run on is downloaded. */
