@@ -57,6 +57,15 @@ export async function recutSession({ sessionDir, entryPoint, cuts, onProgress })
     path.join(sessionDir, 'demo.mp4'),
   ]);
   if (!source) throw new Error('This recording has no video to cut.');
+  /**
+   * The segment recorder's demo.mp4 is the finished demo, voice included. The
+   * clean render below is silent and has no zoom or cursor, so cutting it
+   * would ship a broken video. The studio does not offer it; this holds the
+   * line for any other caller.
+   */
+  if (path.basename(source) === 'demo.mp4') {
+    throw new Error("Cut editing isn't available for this recording yet.");
+  }
 
   const { computeKeepRanges, mergeCutRanges, generateCleanVideo } = await engine(entryPoint);
 

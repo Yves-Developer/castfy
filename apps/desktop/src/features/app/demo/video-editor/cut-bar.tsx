@@ -13,12 +13,15 @@ import type { CutsApi } from "../use-cuts";
  * the narration but already has the cuts baked in, so it cannot be edited on.
  */
 export function CutBar({
+  canEdit = true,
   cutsApi,
   mode,
   onModeChange,
   hasResult,
   visible,
 }: {
+  /** False for a recording whose cuts cannot be edited yet: no mode switch. */
+  canEdit?: boolean;
   cutsApi: CutsApi;
   mode: "edit" | "result";
   onModeChange: (mode: "edit" | "result") => void;
@@ -26,6 +29,13 @@ export function CutBar({
   visible: boolean;
 }) {
   if (!visible) return null;
+  if (!canEdit) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground text-xs">
+        Finished video
+      </div>
+    );
+  }
 
   const { cuts, edited, isAiCut, busy, error, narrationStale } = cutsApi;
   const removedMs = cuts.reduce((sum, cut) => sum + (cut.endMs - cut.startMs), 0);
