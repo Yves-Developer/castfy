@@ -108,7 +108,11 @@ function dodoPlugins(ctx: GenericCtx<DataModel>) {
   return [
     dodopayments({
       client: new DodoPayments({ bearerToken: apiKey, environment }),
-      createCustomerOnSignUp: true,
+      // Not at sign-up: a Dodo error there (a wrong key, an outage) would
+      // fail the whole sign-in. Checkout passes the buyer's email and the
+      // portal creates the customer when it is missing, so nothing needs it
+      // earlier.
+      createCustomerOnSignUp: false,
       use: [
         checkout({
           products,
