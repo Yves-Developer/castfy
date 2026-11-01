@@ -12,6 +12,8 @@ export interface Tdemo {
   action: string;
   img?: string;
   name: string;
+  /** The recording, once there is one: what an export runs on. */
+  sessionId?: string | null;
   slug: string;
   updatedAt: string;
 }

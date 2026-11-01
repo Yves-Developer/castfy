@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { create } from 'zustand';
 import { bridge } from '@/lib/bridge';
 import { aspectRatios } from '@/lib/constants/aspect-ratios';
 import { getBackgroundStyle } from '@/lib/constants/backgrounds';
@@ -12,20 +13,73 @@ import { useBackgroundStore } from '@/lib/store';
  * gradient catalogue lives on this side, and passing the finished value keeps
  * one definition of what "magic:sunset" means instead of two.
  */
+/** Where one recording's export is. */
+interface ExportState {
+  busy: boolean;
+  error: string | null;
+  /** The free demos are used up: set when an export was refused for it. */
+  limitReached: number | null;
+  outputPath: string | null;
+  /** Where the user last saved a copy of the export. */
+  savedPath: string | null;
+  status: string | null;
+}
+
+const IDLE: ExportState = {
+  busy: false,
+  status: null,
+  error: null,
+  outputPath: null,
+  savedPath: null,
+  limitReached: null,
+};
+
+/**
+ * Exports by recording, kept outside the studio's components. An export runs
+ * on in the main process when the user goes back to the library; held in the
+ * studio's own state, its progress was lost then, and coming back showed a
+ * plain Export button while it still rendered, ready to start a second one.
+ */
+const useExports = create<{
+  bySession: Record<string, ExportState>;
+  patch: (sessionId: string, state: Partial<ExportState>) => void;
+}>((set) => ({
+  bySession: {},
+  patch: (sessionId, state) =>
+    set((s) => ({
+      bySession: {
+        ...s.bySession,
+        [sessionId]: { ...(s.bySession[sessionId] ?? IDLE), ...state },
+      },
+    })),
+}));
+
+const patchExport = (sessionId: string, state: Partial<ExportState>) =>
+  useExports.getState().patch(sessionId, state);
+
+// Progress for any export, whichever page is open.
+bridge.onExportProgress(({ sessionId, message }) => {
+  if (useExports.getState().bySession[sessionId]?.busy) {
+    patchExport(sessionId, { status: message ?? null });
+  }
+});
+
+/** Whether a recording is exporting, and how far along: for the library too. */
+export function useExportState(sessionId: string | null | undefined): ExportState {
+  return useExports((s) => (sessionId ? s.bySession[sessionId] : undefined) ?? IDLE);
+}
+
+/**
+ * Renders the project as it looks in the studio.
+ *
+ * The background is resolved to CSS here rather than in the render bundle: the
+ * gradient catalogue lives on this side, and passing the finished value keeps
+ * one definition of what "magic:sunset" means instead of two.
+ */
 export function useExport(sessionId: string | null | undefined, title?: string) {
   const { backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions } =
     useBackgroundStore();
-
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [outputPath, setOutputPath] = useState<string | null>(null);
-  /** Where the user last saved a copy of the export. */
-  const [savedPath, setSavedPath] = useState<string | null>(null);
-  /** The free demos are used up: set when an export was refused for it. */
-  const [limitReached, setLimitReached] = useState<number | null>(null);
-
-  useEffect(() => bridge.onExportProgress(({ message }) => setStatus(message ?? null)), []);
+  const state = useExportState(sessionId);
 
   /**
    * Saves a copy of the export where the user picks. The export itself is
@@ -34,12 +88,14 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
   const saveAs = useCallback(async () => {
     if (!sessionId) return;
     const saved = await bridge.saveExport(sessionId, title ?? 'Castfy demo');
-    if (saved.ok && saved.path) setSavedPath(saved.path);
-    else if (saved.error) setError(saved.error);
+    if (saved.ok && saved.path) patchExport(sessionId, { savedPath: saved.path });
+    else if (saved.error) patchExport(sessionId, { error: saved.error });
   }, [sessionId, title]);
 
   const run = useCallback(async () => {
     if (!sessionId) return;
+    // One export per recording: both would write the same file.
+    if (useExports.getState().bySession[sessionId]?.busy) return;
 
     const ratio = aspectRatios.find((r) => r.id === selectedAspectRatio);
     const { width, height } =
@@ -76,41 +132,39 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
       height: Math.round(height * scale),
     };
 
-    setBusy(true);
-    setError(null);
-    setLimitReached(null);
-    setOutputPath(null);
-    setStatus('Starting…');
+    patchExport(sessionId, {
+      busy: true,
+      error: null,
+      limitReached: null,
+      outputPath: null,
+      status: 'Starting…',
+    });
     try {
       const result = await bridge.render(sessionId, spec);
       if (result.ok) {
-        setOutputPath(result.outputLocation ?? null);
+        patchExport(sessionId, { busy: false, status: null, outputPath: result.outputLocation ?? null });
         // An export is for sending somewhere: ask where it goes straight away.
         const saved = await bridge.saveExport(sessionId, title ?? 'Castfy demo');
-        if (saved.ok && saved.path) setSavedPath(saved.path);
+        if (saved.ok && saved.path) patchExport(sessionId, { savedPath: saved.path });
       } else if (result.limitReached) {
         // Not an error: the app offers to buy instead.
-        setLimitReached(result.limit ?? 0);
-      } else setError(result.error ?? 'Export failed.');
+        patchExport(sessionId, { limitReached: result.limit ?? 0 });
+      } else patchExport(sessionId, { error: result.error ?? 'Export failed.' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      patchExport(sessionId, { error: err instanceof Error ? err.message : String(err) });
     } finally {
-      setBusy(false);
-      setStatus(null);
+      patchExport(sessionId, { busy: false, status: null });
     }
   }, [sessionId, title, backgroundConfig, imageOverlays, selectedAspectRatio, customDimensions]);
 
-  const dismissLimit = useCallback(() => setLimitReached(null), []);
+  const dismissLimit = useCallback(() => {
+    if (sessionId) patchExport(sessionId, { limitReached: null });
+  }, [sessionId]);
 
   return {
     run,
     saveAs,
-    busy,
-    status,
-    error,
-    outputPath,
-    savedPath,
-    limitReached,
+    ...state,
     dismissLimit,
   };
 }

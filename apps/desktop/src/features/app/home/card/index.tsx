@@ -1,10 +1,13 @@
 import { AspectRatio } from "@castfy/ui/components/aspect-ratio";
+import { Loader2Icon } from "lucide-react";
 import Image from "@/components/compat/image";
 import Link from "@/components/compat/link";
 import type { Tdemo } from "@/types";
+import { useExportState } from "../../demo/use-export";
 import { DemoActions } from "./actions";
 
 export function DemoCard({ demo }: { demo: Tdemo }) {
+  const exporting = useExportState(demo.sessionId);
   return (
     <div className="group relative flex flex-col gap-2">
       <Link className="absolute inset-0 z-1" href={`/demo/${demo.slug}`} />
@@ -23,6 +26,15 @@ export function DemoCard({ demo }: { demo: Tdemo }) {
         ) : (
           <div className="block size-full rounded-lg bg-muted transition-all duration-300 group-hover:scale-105" />
         )}
+        {exporting.busy ? (
+          <div
+            className="absolute right-2 bottom-2 flex items-center gap-1.5 rounded-md bg-black/70 px-2 py-1 font-medium text-[11px] text-white"
+            data-castfy="card-exporting"
+          >
+            <Loader2Icon className="size-3 animate-spin" />
+            Exporting {exporting.status === "Starting…" ? "" : exporting.status}
+          </div>
+        ) : null}
       </AspectRatio>
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5 font-medium text-[13px]">
