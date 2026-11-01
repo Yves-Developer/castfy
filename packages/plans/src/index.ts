@@ -37,7 +37,7 @@ export const PRODUCTS = {
     lifetime: { id: "REPLACE_WITH_DODO_PRODUCT_ID", name: "Castfy" },
   },
   test_mode: {
-    lifetime: { id: "REPLACE_WITH_DODO_PRODUCT_ID", name: "Castfy" },
+    lifetime: { id: "pdt_0NqxqbqCVlEPwWckl7ZHE", name: "Castfy" },
   },
 } as const;
 
