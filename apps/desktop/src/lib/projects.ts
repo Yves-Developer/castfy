@@ -32,6 +32,7 @@ export function projectsToDemos(projects: Project[]): Tdemo[] {
   return projects.map((project) => ({
     name: project.title,
     slug: project.id,
+    sessionId: project.sessionId,
     updatedAt: relativeTime(project.updatedAt),
     action: actionFor(project),
     img: project.session?.thumb,
