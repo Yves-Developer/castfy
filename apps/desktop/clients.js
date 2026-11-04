@@ -183,6 +183,22 @@ function serverEnv({ outputDir, browsersPath, launch }) {
   };
 }
 
+/**
+ * Writes an MCP config holding only castfy0, for one recording run
+ * (`claude --mcp-config`). The run then has the recorder whatever the user's
+ * own Claude Code settings say: a missing or broken castfy0 entry there made
+ * Claude Code answer "the castfy0 tools are not available" and exit 0, so the
+ * run finished with no recording and no error.
+ *
+ * @param opts  { mcpEntry, outputDir, browsersPath, launch: { command, env } }
+ */
+export async function writeRunMcpConfig(file, opts) {
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  const body = { mcpServers: { castfy0: serverBlockJson(opts) } };
+  await fs.writeFile(file, `${JSON.stringify(body, null, 2)}\n`, 'utf8');
+  return file;
+}
+
 function serverBlockJson(opts) {
   return {
     type: 'stdio',

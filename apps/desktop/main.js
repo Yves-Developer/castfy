@@ -21,14 +21,20 @@ import { buildCommand, detectAgents, pickAgent } from './agents.js';
 import { RUN_USAGE_FILE, saveRunUsage } from './run-usage.js';
 import { buildReport } from './report.js';
 import { browserStatus, installBrowsers } from './browsers.js';
-import { connectClient, detectClients, disconnectClient } from './clients.js';
+import { connectClient, detectClients, disconnectClient, writeRunMcpConfig } from './clients.js';
 import { ProjectStore } from './projects.js';
 import { ensureSourceVideo } from './ensure-source.js';
 import { agentEnv, openLogin, signedIn } from './agent-auth.js';
 import { PROGRESS_FILE, ProgressTail } from './progress.js';
 import { RunStore, resolveUnfinished } from './runs.js';
 import { SettingsStore } from './settings.js';
-import { adoptLoginShellPath, killRunTree, mcpLaunch, spawnOptionsForRun } from './platform.js';
+import {
+  adoptLoginShellPath,
+  agentSpawn,
+  killRunTree,
+  mcpLaunch,
+  spawnOptionsForRun,
+} from './platform.js';
 import { devtoolsEndpoint, openRecordingWindow, sanitizeInput } from './recording-window.js';
 import { readZoomTrack, saveZoomOff } from './zoom-track.js';
 
@@ -1191,7 +1197,7 @@ const AGENT_OUTPUT_MAX = 200_000;
  * Keeps what the agent printed with the recording it made (agent-output.txt),
  * so a problem report can show what the agent said and why it stopped.
  */
-async function saveAgentOutput(sessionDir, { label, code, stdout, stderr }) {
+async function saveAgentOutput(dir, { label, code, stdout, stderr }, name = 'agent-output.txt') {
   const tail = (text) =>
     text.length > AGENT_OUTPUT_MAX ? `…${text.slice(-AGENT_OUTPUT_MAX)}` : text;
   const body = [
@@ -1204,7 +1210,18 @@ async function saveAgentOutput(sessionDir, { label, code, stdout, stderr }) {
     tail(stderr),
     '',
   ].join('\n');
-  await fs.writeFile(path.join(sessionDir, 'agent-output.txt'), body, 'utf8');
+  await fs.writeFile(path.join(dir, name), body, 'utf8');
+}
+
+/** The last run's agent output, in Castfy's own folder; see settle in demo:run. */
+const LAST_RUN_OUTPUT = 'last-run-output.txt';
+/** The MCP config a Claude Code run gets castfy0 from; see writeRunMcpConfig. */
+const RUN_MCP_CONFIG = 'castfy0-run-mcp.json';
+
+/** The end of what an agent said, short enough to show under an error. */
+function lastWords(text) {
+  const words = String(text ?? '').trim();
+  return words.length > 400 ? `…${words.slice(-400)}` : words;
 }
 
 /**
@@ -1523,15 +1540,17 @@ let progressTail = null;
  * One run can create several: an agent that starts on a typo'd URL and then
  * calls castfy0_start again leaves an empty first folder behind. Taking the
  * first one linked the project to that empty folder — no steps, no video.
- * The newest finished recording is the one the agent meant; failing that, the
- * newest folder at all.
+ * The newest finished recording (steps.json, written by castfy0_end) is the
+ * one the agent meant. Null when none finished: a run whose recorder failed
+ * recorded nothing, and linking its empty folder would push a project's good
+ * take aside for it.
  */
 async function pickRunRecording(sessionIds) {
   const root = libraryRoot();
   for (const id of [...sessionIds].reverse()) {
     if (await exists(path.join(root, id, 'steps.json'))) return id;
   }
-  return sessionIds.at(-1) ?? null;
+  return null;
 }
 
 ipcMain.handle('demo:compose', (_e, input) => composePrompt(input));
@@ -1578,8 +1597,17 @@ ipcMain.handle('demo:run', async (_e, input) => {
   }
 
   const prompt = composePrompt(input);
+  // Claude Code gets castfy0 straight from this file (see writeRunMcpConfig).
+  const mcpConfig =
+    agentId === 'claude-code'
+      ? await writeRunMcpConfig(
+          path.join(app.getPath('userData'), RUN_MCP_CONFIG),
+          expectedRegistration()
+        ).catch(() => null)
+      : null;
   const command = await buildCommand(agentId, {
     allowUnsandboxed: Boolean(settings.state.allowUnsandboxed),
+    mcpConfig,
   });
   if (!command) return { ok: false, error: `${agentId} is no longer installed.` };
 
@@ -1626,9 +1654,10 @@ ipcMain.handle('demo:run', async (_e, input) => {
   }
   await writeHostFile({ endpoint: recording ? endpoint : null, marker: recording?.marker, voice: input.voice });
 
-  running = spawn(command.binary, command.args, {
-    // .cmd shims cannot be executed without a shell on Windows.
-    shell: command.binary.endsWith('.cmd') || command.binary.endsWith('.bat'),
+  // A .cmd shim runs through the shell, with its paths quoted (agentSpawn).
+  const launch = agentSpawn(command.binary, command.args);
+  running = spawn(launch.file, launch.args, {
+    shell: launch.shell,
     // Its own process group outside Windows, so Cancel can stop the browser too.
     ...spawnOptionsForRun(),
     // stdin is a pipe because the prompt goes through it. Passing it as an
@@ -1686,33 +1715,43 @@ ipcMain.handle('demo:run', async (_e, input) => {
       code === 0 && !error && !result?.isError
         ? null
         : explainAgentFailure({ code, stdout: said, stderr });
-    const message = error ?? explained?.message ?? null;
-
-    const finished = runs.finish({ code, error: message });
-
-    // Linking here is what turns a project the user typed a title for into a
+    const cancelled = stoppedByUser;
+    stoppedByUser = false;
+    // Linking below is what turns a project the user typed a title for into a
     // playable demo. See pickRunRecording for which folder that is.
-    const sessionId = await pickRunRecording(finished?.sessionIds ?? []);
+    const sessionId = await pickRunRecording(runs.active?.sessionIds ?? []);
+    // An agent can end "successfully" without ever recording (no castfy0
+    // tools, or it gave up): say so, with its own last words, rather than
+    // drop back to an empty studio as if nothing had been asked.
+    const nothingRecorded =
+      !cancelled && !sessionId && !error && !explained
+        ? {
+            message: 'The agent finished without recording anything.',
+            hint: lastWords(said) || null,
+          }
+        : null;
+    const message = error ?? explained?.message ?? nothingRecorded?.message ?? null;
+
+    runs.finish({ code, error: message });
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
     if (sessionId && result?.usage) {
       await saveRunUsage(path.join(libraryRoot(), sessionId), result.usage).catch(() => {});
     }
-    if (sessionId) {
-      await saveAgentOutput(path.join(libraryRoot(), sessionId), {
-        label: command.label,
-        code,
-        stdout,
-        stderr,
-      }).catch(() => {});
+    // Kept with the recording, and always as the last run's output too: a
+    // run that recorded nothing has no folder, and its output is what a
+    // problem report needs most (report.js).
+    const output = { label: command.label, code, stdout, stderr };
+    const keptIn = sessionId ?? runs.state.runs.find((r) => r.id === run.id)?.sessionIds.at(-1);
+    if (keptIn) {
+      await saveAgentOutput(path.join(libraryRoot(), keptIn), output).catch(() => {});
     }
+    await saveAgentOutput(app.getPath('userData'), output, LAST_RUN_OUTPUT).catch(() => {});
 
-    const cancelled = stoppedByUser;
-    stoppedByUser = false;
     send('demo:done', {
       cancelled,
       code,
       error: message,
-      hint: explained?.hint ?? null,
+      hint: explained?.hint ?? nothingRecorded?.hint ?? null,
       needsLogin: explained?.needsLogin ? agentId : null,
       runId: run.id,
       projectId: run.projectId,

@@ -43,8 +43,19 @@ export const AGENTS = [
      * because a headless run cannot show an approval prompt: an un-allowlisted
      * tool call just stalls. The JSON output carries the run's turns, time and
      * tokens next to its last message (run-usage.js).
+     *
+     * With a run config (writeRunMcpConfig), castfy0 comes from it and only
+     * from it: the recorder is there even when the user's own settings lack
+     * it, and their other MCP servers cannot slow the run's start or fail it.
      */
-    buildArgs: () => ['-p', '--output-format', 'json', '--allowedTools', 'mcp__castfy0'],
+    buildArgs: ({ mcpConfig } = {}) => [
+      '-p',
+      '--output-format',
+      'json',
+      '--allowedTools',
+      'mcp__castfy0',
+      ...(mcpConfig ? ['--mcp-config', mcpConfig, '--strict-mcp-config'] : []),
+    ],
     readResult: readClaudeResult,
   },
   {
