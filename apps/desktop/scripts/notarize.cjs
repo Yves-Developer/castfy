@@ -35,15 +35,20 @@ async function withRetries(label, attempt) {
     } catch (error) {
       if (error.permanent || i >= BACKOFF_MS.length) throw error;
       const wait = BACKOFF_MS[i];
-      console.log(`  • ${label} failed (try ${i + 1}), retrying in ${wait / 1000}s: ${firstLine(error)}`);
+      console.log(`  • ${label} failed (try ${i + 1}), retrying in ${wait / 1000}s: ${lastWords(error)}`);
       await sleep(wait);
     }
   }
 }
 
-function firstLine(error) {
+/**
+ * The line of a failure worth showing. stapler starts with "Processing: <path>"
+ * and says what went wrong at the end, so the last line that is not that.
+ */
+function lastWords(error) {
   const text = `${error.stderr || ''}${error.stdout || ''}${error.message || ''}`.trim();
-  return text.split('\n').find((line) => line.trim()) ?? 'unknown error';
+  const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+  return lines.filter((line) => !line.startsWith('Processing:')).at(-1) ?? lines.at(-1) ?? 'unknown error';
 }
 
 async function notarytool(args, auth) {
@@ -93,8 +98,20 @@ exports.default = async function notarizeApp(context) {
   }
 
   // The ticket can take a moment to reach Apple's ticket server, and the
-  // server's connection is what dropped on beta.21.
-  await withRetries('staple', () => run('xcrun', ['stapler', 'staple', appPath]));
-  await run('xcrun', ['stapler', 'validate', appPath]);
-  console.log('  • notarizing: stapled');
+  // server's connection is what dropped on beta.21 and beta.22's Intel runner.
+  //
+  // Stapling only lets the app open offline the first time: a notarized app
+  // without its ticket still opens, as macOS asks Apple online on first launch.
+  // So once Apple has accepted the app, a stapling that keeps failing is a
+  // warning, not a 50-minute build thrown away. The release workflow still
+  // fails the build if Gatekeeper does not see a notarized app (spctl).
+  try {
+    await withRetries('staple', () => run('xcrun', ['stapler', 'staple', appPath]));
+    await run('xcrun', ['stapler', 'validate', appPath]);
+    console.log('  • notarizing: stapled');
+  } catch (error) {
+    console.log(
+      `::warning::Notarized, but the ticket could not be stapled (${lastWords(error)}). The app opens normally online; the first launch offline is refused until it has been online once.`
+    );
+  }
 };
