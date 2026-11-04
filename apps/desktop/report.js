@@ -115,6 +115,11 @@ export async function buildReport({ sessionDir, userData, outDir, info }) {
         JSON.stringify(recent, null, 2)
       );
     }
+    // What the agent said on the last run, recording or not.
+    await fs
+      .copyFile(path.join(userData, 'last-run-output.txt'), path.join(folder, 'last-run-output.txt'))
+      .catch(() => {});
+
     const settings = await readJson(path.join(userData, 'settings.json'));
     if (settings) {
       await fs.writeFile(

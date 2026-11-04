@@ -111,6 +111,21 @@ export function killRunTree(child, spawnFn) {
 }
 
 /** Spawn options that make `killRunTree` able to reach every descendant. */
+/**
+ * How to start an agent's binary with its arguments.
+ *
+ * A .cmd or .bat shim (npm's claude.cmd, codex.cmd) can only run through the
+ * shell on Windows, and the shell joins the command line unquoted: a path
+ * with a space in it (a user folder like C:\Users\Jean Paul) was split in
+ * two. Such parts are quoted. Anything else runs without a shell, as is.
+ */
+export function agentSpawn(binary, args) {
+  const shell = /\.(cmd|bat)$/i.test(binary);
+  if (!shell) return { file: binary, args, shell: false };
+  const quote = (part) => (/[\s&()^]/.test(part) ? `"${part}"` : part);
+  return { file: quote(binary), args: args.map(quote), shell: true };
+}
+
 export function spawnOptionsForRun() {
   return isWindows ? { windowsHide: true } : { detached: true };
 }

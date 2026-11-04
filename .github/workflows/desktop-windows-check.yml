@@ -1,0 +1,33 @@
+# Checks on Windows what only Windows can show: an agent behind a .cmd shim
+# (npm's claude.cmd) gets its arguments whole when paths have spaces in them.
+# No install needed: the check imports one plain module.
+
+name: Desktop Windows check
+
+on:
+  pull_request:
+    paths:
+      - "apps/desktop/platform.js"
+      - "apps/desktop/main.js"
+      - "apps/desktop/agents.js"
+      - "apps/desktop/scripts/check-agent-spawn.mjs"
+      - ".github/workflows/desktop-windows-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agent-spawn:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Agent arguments survive the Windows shell
+        run: node apps/desktop/scripts/check-agent-spawn.mjs
