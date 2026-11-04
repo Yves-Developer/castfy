@@ -41,6 +41,8 @@ files:
 # <resources>/castfy0-mcp by this hook (not extraResources, which drops its
 # node_modules).
 afterPack: scripts/after-pack.cjs
+# Notarizes and staples, with retries (see the script).
+afterSign: scripts/notarize.cjs
 
 icon: public/web-app-manifest-512x512.png
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
@@ -75,6 +77,9 @@ mac:
   # .github/workflows/desktop-release.yml); unsigned otherwise.
   hardenedRuntime: true
   gatekeeperAssess: false
+  # Done in scripts/notarize.cjs (afterSign) instead, which retries what a
+  # dropped connection to Apple breaks; electron-builder's own does not.
+  notarize: false
   # castfy0 runs as Castfy itself in Node mode (ELECTRON_RUN_AS_NODE), which the
   # hardened runtime only allows with JIT entitlements.
   entitlements: build-resources/entitlements.mac.plist
