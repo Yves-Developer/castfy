@@ -190,8 +190,11 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$app"
           codesign -dv --verbose=2 "$app" 2>&1 | grep -E "Authority|TeamIdentifier|flags"
           if [ -n "$APPLE_API_KEY" ]; then
-            xcrun stapler validate "$app"
-            spctl --assess --type execute --verbose=2 "$app"
+            # A missing staple is a warning (scripts/notarize.cjs); Gatekeeper
+            # accepting the app as notarized is what must hold.
+            xcrun stapler validate "$app" || echo "::warning::The notarization ticket is not stapled to the app"
+            spctl --assess --type execute --verbose=2 "$app" 2>&1 | tee spctl.txt
+            grep -q "source=Notarized Developer ID" spctl.txt || { echo "::error::Gatekeeper does not see a notarized app"; exit 1; }
           fi
 
           # Exports run Remotion's compositor, which finds its ffmpeg
