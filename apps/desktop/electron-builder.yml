@@ -47,6 +47,17 @@ afterSign: scripts/notarize.cjs
 icon: public/web-app-manifest-512x512.png
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 
+# Where the app looks for updates (updater.js): the site serves the latest
+# published release's files there (apps/web/app/updates). Builds run with
+# --publish never, so this uploads nothing; it is written into the app, and
+# makes the build write latest.yml / latest-mac.yml for the release. The
+# channel stays "latest" although versions are betas, so those are the names
+# the updater asks for.
+publish:
+  provider: generic
+  url: https://castfy.app/updates
+detectUpdateChannel: false
+
 win:
   target:
     - target: nsis
@@ -67,6 +78,8 @@ nsis:
 mac:
   target:
     - target: dmg
+    # What an update installs: macOS updates from a zip of the app, not a dmg.
+    - target: zip
   category: public.app-category.video
   # Apple's icon template: the shape is 824px wide on a 1024px canvas, with
   # room for its shadow. The shared icon fills its canvas edge to edge, so in

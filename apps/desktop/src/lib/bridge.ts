@@ -109,6 +109,14 @@ export interface AppSettings {
   voice?: string | null;
 }
 
+/** The updater's state (updater.js): ready means downloaded, waiting for a restart. */
+export interface UpdateState {
+  status: "idle" | "checking" | "downloading" | "ready" | "error";
+  version: string | null;
+  percent: number;
+  error: string | null;
+}
+
 export interface AppInfo {
   version: string;
   platform: string;
@@ -335,6 +343,13 @@ export interface CastfyBridge {
 
   /** The app's version and the OS it runs on. */
   appInfo(): Promise<AppInfo>;
+
+  /** Updates: the current state, a check now, and a restart into a ready one. */
+  updateState(): Promise<UpdateState>;
+  checkForUpdate(): Promise<UpdateState>;
+  /** Refused while recording or exporting (reason says which). */
+  installUpdate(): Promise<{ ok: boolean; reason?: string }>;
+  onUpdateState(cb: (state: UpdateState) => void): () => void;
   /**
    * Saves a problem report (a zip) to Downloads and shows it in the folder:
    * the given recording, or the newest one.

@@ -1,4 +1,6 @@
-# Builds the Castfy desktop installers.
+# Builds the Castfy desktop installers, and the update files the apps
+# already installed read (apps/desktop/updater.js, through castfy.app/updates):
+# publishing the draft release is what offers the update to them.
 #
 # Two ways to start it:
 #   - push a branch like `release/desktop-v0.1.0`: builds, then makes a draft
@@ -177,7 +179,12 @@ jobs:
         env:
           CASTFY0_DIR: ${{ github.workspace }}/castfy0
           TARGET_ARCH: ${{ matrix.arch }}
-        run: pnpm --filter @workspace/desktop ${{ matrix.script }} --${{ matrix.arch }} --publish never
+        # A test build (a release/desktop-v...-rc branch) looks for updates on
+        # the test channel, castfy.app/updates/rc, so it only ever updates to
+        # other test builds, and real installs never see it.
+        run: >
+          pnpm --filter @workspace/desktop ${{ matrix.script }} --${{ matrix.arch }} --publish never
+          ${{ contains(github.ref_name, '-rc') && '-c.publish.url=https://castfy.app/updates/rc' || '' }}
 
       # Fails the build when a signed app is not what Gatekeeper accepts, so a
       # broken signature never reaches testers as a "damaged" app.
@@ -225,6 +232,25 @@ jobs:
         shell: bash
         run: rm -f "$RUNNER_TEMP/developer-id.p12" "$RUNNER_TEMP"/AuthKey_*.p8
 
+      # The update files (updater.js): latest.yml on Windows, latest-mac.yml on
+      # macOS, which name the version and its files with their checksums; the
+      # macOS zip, which is what an update installs; and the .blockmap files,
+      # which let an update download only what changed. Each Mac build writes
+      # a latest-mac.yml for its own architecture only, so they are named
+      # apart here and joined into one in the release job.
+      - name: Collect the update files
+        working-directory: castfy/apps/desktop/release
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            test -f latest-mac.yml || { echo "::error::No latest-mac.yml: the app would never see this update"; exit 1; }
+            mv latest-mac.yml "latest-mac-${{ matrix.arch }}.yml"
+            ls *.zip > /dev/null || { echo "::error::No zip: macOS cannot install this update"; exit 1; }
+          else
+            test -f latest.yml || { echo "::error::No latest.yml: the app would never see this update"; exit 1; }
+          fi
+          ls -la *.yml *.blockmap
+
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
@@ -232,6 +258,9 @@ jobs:
           path: |
             castfy/apps/desktop/release/*.exe
             castfy/apps/desktop/release/*.dmg
+            castfy/apps/desktop/release/*.zip
+            castfy/apps/desktop/release/*.blockmap
+            castfy/apps/desktop/release/latest*.yml
           if-no-files-found: error
 
   release:
@@ -245,6 +274,27 @@ jobs:
           path: installers
           merge-multiple: true
 
+      # One latest-mac.yml listing both Mac builds: electron-updater picks the
+      # arm64 zip on Apple silicon and the other on Intel. The top-level path
+      # and checksum (read by older updaters) are the Apple silicon zip's.
+      - name: Join the macOS update files
+        shell: bash
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pyyaml
+          python3 - <<'PY'
+          import pathlib, yaml
+          d = pathlib.Path("installers")
+          parts = {arch: yaml.safe_load((d / f"latest-mac-{arch}.yml").read_text()) for arch in ("arm64", "x64")}
+          arm, intel = parts["arm64"], parts["x64"]
+          assert arm["version"] == intel["version"], (arm["version"], intel["version"])
+          joined = dict(arm)
+          joined["files"] = arm["files"] + intel["files"]
+          (d / "latest-mac.yml").write_text(yaml.safe_dump(joined, sort_keys=False))
+          for arch in parts:
+              (d / f"latest-mac-{arch}.yml").unlink()
+          print((d / "latest-mac.yml").read_text())
+          PY
+
       # From release/desktop-vX, the tag desktop-vX, which the release step
       # creates on the built commit when the draft is published.
       - name: Work out the tag
@@ -254,6 +304,9 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
+          # Test builds are pre-releases: the site's Download buttons and the
+          # real update channel use the latest release, which skips them.
+          prerelease: ${{ contains(github.ref_name, '-rc') }}
           tag_name: ${{ steps.tag.outputs.name }}
           target_commitish: ${{ github.sha }}
           files: installers/*
