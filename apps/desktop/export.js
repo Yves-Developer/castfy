@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import net from 'node:net';
 import path from 'node:path';
 import { bundle } from '@remotion/bundler';
 import { getVideoMetadata, renderMedia, selectComposition } from '@remotion/renderer';
@@ -139,6 +140,28 @@ async function materialiseAsset(publicRoot, sessionDir, assetPath) {
   return `render-assets/${fileName}`;
 }
 
+/**
+ * A port for Remotion's local server, picked by the system from its
+ * ephemeral range (49152 and up on Windows and macOS).
+ *
+ * Left to itself Remotion starts at 3000, the port every dev server uses. On
+ * Windows its free-port check can pass while a dev server holds
+ * localhost:3000 on another address, and the render then loaded that server's
+ * page: "not a valid Remotion project … Does this look like a foreign page?"
+ * on a tester's machine running a Next.js app.
+ */
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      server.close(() => resolve(port));
+    });
+  });
+}
+
 /** Blur boxes as the composition takes them: in range, and nothing else. */
 function cleanBlurs(blurs) {
   if (!Array.isArray(blurs)) return [];
@@ -243,6 +266,7 @@ export async function exportRecording({
     id: 'Demo',
     inputProps,
     browserExecutable,
+    port: await freePort(),
   });
 
   const outputLocation = path.join(sessionDir, outputFile);
@@ -254,6 +278,7 @@ export async function exportRecording({
     outputLocation,
     inputProps,
     browserExecutable,
+    port: await freePort(),
     onProgress: onProgress ? ({ progress }) => onProgress(`${Math.round(progress * 100)}%`) : undefined,
   });
 
