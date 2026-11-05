@@ -7,9 +7,9 @@ import Link from "next/link";
 import { FaDiscord } from "react-icons/fa6";
 import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
-import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
 import MobileMenu from "./mobile-menu";
+import { NavMenu } from "./nav-menu";
 
 interface HeaderProps {
   hideMenuItems?: boolean;
@@ -58,27 +58,21 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
 
         {hideMenuItems ? null : (
           <>
-            <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex">
-              {navLinks.map((link) => (
-                <Link
-                  className="rounded-lg px-3 py-2 font-medium text-muted-foreground text-sm transition-colors hover:bg-secondary hover:text-foreground"
-                  href={link.href}
-                  key={link.href}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <div className="hidden min-w-0 flex-1 justify-center lg:flex">
+              <NavMenu />
             </div>
 
-            <div className="hidden items-center gap-1.5 lg:flex">
+            <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
+              {/* Just the logo where the header is narrow, the name beside it on wide screens. */}
               <SiteButton
+                className="max-xl:w-8 max-xl:px-0"
                 external
                 href={siteConfig.discordUrl}
                 icon={<FaDiscord />}
                 size="sm"
                 variant="discord"
               >
-                Discord
+                <span className="max-xl:sr-only">Discord</span>
               </SiteButton>
               <SiteButton
                 arrow

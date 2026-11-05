@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { SiClaude, SiOpenai } from "react-icons/si";
+import { CursorLogo } from "@/components/cursor-logo";
 import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { pricing, pricingKicker } from "@/config/data";
@@ -113,16 +114,7 @@ function Agents() {
         <SiOpenai />
       </span>
       <span className={tile}>
-        <svg
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
-          <title>Cursor</title>
-          <path d="M12 2 21 7v10l-9 5-9-5V7z" />
-          <path d="M3 7l9 5 9-5M12 12v10" />
-        </svg>
+        <CursorLogo />
       </span>
       <span className="ml-1">Runs in the agent you already pay for</span>
     </div>

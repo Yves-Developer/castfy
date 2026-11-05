@@ -1,4 +1,5 @@
 import { SiClaude, SiOpenai } from "react-icons/si";
+import { CursorLogo } from "@/components/cursor-logo";
 import { DownloadButton, OtherDownloads } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { siteConfig } from "@/config/site";
@@ -57,16 +58,7 @@ function AgentLogos() {
         <SiOpenai />
       </span>
       <span className={`${tile} bg-[#14120b] text-white`}>
-        <svg
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
-          <title>Cursor</title>
-          <path d="M12 2 21 7v10l-9 5-9-5V7z" />
-          <path d="M3 7l9 5 9-5M12 12v10" />
-        </svg>
+        <CursorLogo />
       </span>
     </span>
   );

@@ -1,17 +1,12 @@
-import {
-  BoxIcon,
-  LibraryIcon,
-  PlugIcon,
-  TerminalIcon,
-  VideoIcon,
-} from "lucide-react";
+import { LibraryIcon, PlugIcon, TerminalIcon, VideoIcon } from "lucide-react";
 import { SiClaude, SiOpenai } from "react-icons/si";
+import { CursorLogo } from "@/components/cursor-logo";
 import { Spotlight } from "./spotlight";
 
 const AGENTS = [
   { name: "Claude Code", icon: <SiClaude />, color: "bg-[#d97757]" },
   { name: "Codex", icon: <SiOpenai />, color: "bg-black" },
-  { name: "Cursor", icon: <BoxIcon />, color: "bg-[#14120b]" },
+  { name: "Cursor", icon: <CursorLogo />, color: "bg-[#14120b]" },
 ];
 
 export function HomeAgents() {
