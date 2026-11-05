@@ -4,6 +4,10 @@ import { Button } from "@castfy/ui/components/button";
 import { CheckIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { BetaCodeForm } from "@/features/app/billing/beta-code";
+import {
+  PAYMENTS_OPEN,
+  PaymentsSoon,
+} from "@/features/app/billing/payments-soon";
 import { usePlan, useWatchForPurchase } from "@/features/app/billing/use-plan";
 import { type AccountPlan, bridge } from "@/lib/bridge";
 
@@ -182,11 +186,20 @@ function BuyCard({
           Finish your purchase in your browser; this page updates by itself.
         </p>
       ) : null}
-      <Button className="h-8 text-xs" onClick={onBuy} variant="brand">
-        {checkingOut
-          ? "Open checkout again"
-          : `Buy Castfy — ${TIERS.lifetime.price}`}
-      </Button>
+      {PAYMENTS_OPEN ? (
+        <Button className="h-8 text-xs" onClick={onBuy} variant="brand">
+          {checkingOut
+            ? "Open checkout again"
+            : `Buy Castfy — ${TIERS.lifetime.price}`}
+        </Button>
+      ) : (
+        <>
+          <Button className="h-8 text-xs" disabled variant="brand">
+            Buying opens soon
+          </Button>
+          <PaymentsSoon />
+        </>
+      )}
     </div>
   );
 }

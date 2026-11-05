@@ -11,6 +11,7 @@ import { CheckIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { bridge } from "@/lib/bridge";
 import { BetaCodeForm } from "./beta-code";
+import { PAYMENTS_OPEN, PaymentsSoon } from "./payments-soon";
 import { useWatchForPurchase } from "./use-plan";
 
 /**
@@ -61,8 +62,10 @@ export function UpgradeDialog({
         <DialogHeader>
           <DialogTitle>You've used your {limit} free demos</DialogTitle>
           <DialogDescription>
-            Buy Castfy once to export as many demos as you like. Demos you
-            already exported can still be exported again.
+            {PAYMENTS_OPEN
+              ? "Buy Castfy once to export as many demos as you like."
+              : "Have a beta code? Enter it below to keep exporting, free and unlimited."}{" "}
+            Demos you already exported can still be exported again.
           </DialogDescription>
         </DialogHeader>
 
@@ -87,9 +90,18 @@ export function UpgradeDialog({
         ) : null}
         {error ? <p className="text-destructive text-xs">{error}</p> : null}
 
-        <Button className="h-8 w-full text-xs" onClick={buy} variant="brand">
-          {checkingOut ? "Open checkout again" : `Buy Castfy — ${tier.price}`}
-        </Button>
+        {PAYMENTS_OPEN ? (
+          <Button className="h-8 w-full text-xs" onClick={buy} variant="brand">
+            {checkingOut ? "Open checkout again" : `Buy Castfy — ${tier.price}`}
+          </Button>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Button className="h-8 w-full text-xs" disabled variant="brand">
+              Buying opens soon
+            </Button>
+            <PaymentsSoon />
+          </div>
+        )}
 
         <div className="border-t pt-4">
           <BetaCodeForm onRedeemed={unlocked} />

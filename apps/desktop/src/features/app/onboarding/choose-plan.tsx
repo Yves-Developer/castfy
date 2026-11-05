@@ -5,6 +5,7 @@ import { CheckIcon, Loader2Icon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { BetaCodeForm } from "@/features/app/billing/beta-code";
 import { bridge } from "@/lib/bridge";
+import { PAYMENTS_OPEN, PaymentsSoon } from "../billing/payments-soon";
 
 /** How often to look for the purchase while checkout is open. */
 const CHECKOUT_POLL_MS = 4000;
@@ -140,17 +141,26 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
           className="border-t md:border-t-0 md:border-l"
           tier={TIERS.lifetime}
         >
-          <Button
-            className="h-8 w-full text-xs"
-            disabled={starting}
-            onClick={buy}
-            variant="brand"
-          >
-            {starting ? (
-              <Loader2Icon className="size-3.5 animate-spin" />
-            ) : null}
-            Buy Castfy — {TIERS.lifetime.price}
-          </Button>
+          {PAYMENTS_OPEN ? (
+            <Button
+              className="h-8 w-full text-xs"
+              disabled={starting}
+              onClick={buy}
+              variant="brand"
+            >
+              {starting ? (
+                <Loader2Icon className="size-3.5 animate-spin" />
+              ) : null}
+              Buy Castfy — {TIERS.lifetime.price}
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Button className="h-8 w-full text-xs" disabled variant="brand">
+                Buying opens soon
+              </Button>
+              <PaymentsSoon />
+            </div>
+          )}
         </TierCard>
       </div>
 
