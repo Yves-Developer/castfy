@@ -37,7 +37,7 @@ export function HomeCommunity() {
             Castfy is in beta. Testers shape it in the Discord: flows that
             broke, demos that worked, what to build next. Come say hi.
           </p>
-          <SiteButton dot={false} external href={siteConfig.discordUrl}>
+          <SiteButton arrow external href={siteConfig.discordUrl}>
             Join the Discord
           </SiteButton>
         </div>

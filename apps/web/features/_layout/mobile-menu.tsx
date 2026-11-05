@@ -9,6 +9,7 @@ import {
 import { MenuIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { FaDiscord } from "react-icons/fa6";
 import { SiteButton } from "@/components/site-button";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
@@ -37,17 +38,19 @@ export default function MobileMenu() {
           ))}
           <div className="mt-12 flex flex-col gap-2">
             <SiteButton
+              arrow
               className="w-full"
               external
               href={siteConfig.waitlistUrl}
             >
-              Join the waitlist
+              Join beta
             </SiteButton>
             <SiteButton
               className="w-full"
               external
               href={siteConfig.discordUrl}
-              variant="outline"
+              icon={<FaDiscord />}
+              variant="discord"
             >
               Join the Discord
             </SiteButton>

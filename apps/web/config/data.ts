@@ -1,4 +1,3 @@
-import { FaGithub, FaXTwitter, FaYoutube } from "react-icons/fa6";
 import type { FAQItem, PricingTier } from "@/types";
 import { siteConfig } from "./site";
 
@@ -38,7 +37,7 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
       "Runs on the agent subscription you already pay for",
       "No API key to add, no usage bill from me",
     ],
-    cta: "Join the waitlist",
+    cta: "Download free",
   },
   paid: {
     title: "Castfy",
@@ -111,41 +110,37 @@ export const faqs: FAQItem[] = [
   },
 ];
 
-export const footerNavs = [
+/** The footer's link columns. */
+export const footerNavs: {
+  title: string;
+  links: { label: string; href: string; external?: boolean }[];
+}[] = [
   {
-    group: "product",
-    categories: [
-      {
-        title: "Product",
-        navs: [
-          { label: "How it works", href: "/#how", external: false },
-          { label: "Features", href: "/#features", external: false },
-          { label: "Pricing", href: "/#pricing", external: false },
-          { label: "FAQ", href: "/#faqs", external: false },
-        ],
-      },
+    title: "Product",
+    links: [
+      { label: "How it works", href: "/#how" },
+      { label: "Studio", href: "/#studio" },
+      { label: "Agents", href: "/#agents" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "FAQ", href: "/#faqs" },
     ],
   },
   {
-    group: "company",
-    categories: [
-      {
-        title: "Company",
-        navs: [
-          { label: "Contact", href: "/contact", external: false },
-          {
-            label: "Waitlist",
-            href: "https://waitlist.castfy.app",
-            external: true,
-          },
-        ],
-      },
+    title: "Community",
+    links: [
+      { label: "Discord", href: siteConfig.discordUrl, external: true },
+      { label: "X", href: siteConfig.links.x, external: true },
+      { label: "YouTube", href: siteConfig.links.youtube, external: true },
+      { label: "GitHub", href: siteConfig.links.github, external: true },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "Contact", href: "/contact" },
+      { label: "Join beta", href: siteConfig.waitlistUrl, external: true },
+      { label: "Releases", href: siteConfig.releasesUrl, external: true },
     ],
   },
 ];
 
-export const footerSocialIcons = [
-  { icon: FaXTwitter, href: siteConfig.links.x },
-  { icon: FaYoutube, href: siteConfig.links.youtube },
-  { icon: FaGithub, href: siteConfig.links.github },
-];

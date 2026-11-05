@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { SiClaude, SiOpenai } from "react-icons/si";
+import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { pricing, pricingKicker } from "@/config/data";
 import { siteConfig } from "@/config/site";
@@ -212,14 +213,7 @@ export function PricingCards() {
             </p>
           </div>
           <Price tier={free} />
-          <SiteButton
-            className="w-full"
-            external
-            href={siteConfig.waitlistUrl}
-            variant="outline"
-          >
-            {free.cta}
-          </SiteButton>
+          <DownloadButton className="w-full" variant="outline" />
           <Features icons={ICONS.free} tier={free} />
         </div>
 
@@ -237,7 +231,12 @@ export function PricingCards() {
           </div>
           <Price dark tier={paid} />
           <Agents />
-          <SiteButton className="w-full" external href={siteConfig.waitlistUrl}>
+          <SiteButton
+            arrow
+            className="w-full"
+            external
+            href={siteConfig.waitlistUrl}
+          >
             {paid.cta}
           </SiteButton>
           <Features dark icons={ICONS.paid} tier={paid} />

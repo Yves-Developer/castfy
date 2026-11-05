@@ -1,11 +1,12 @@
 import { SiClaude, SiOpenai } from "react-icons/si";
+import { DownloadButton, OtherDownloads } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { siteConfig } from "@/config/site";
 import { HeroSides } from "./hero-sides";
 
 export function HomeHero() {
   return (
-    <div className="relative flex flex-col items-center gap-8 text-center [filter:blur(calc(var(--p,0)*6px))] [opacity:calc(1-var(--p,0)*1.15)] lg:sticky lg:top-28">
+    <div className="relative z-[6] flex flex-col items-center gap-8 text-center [filter:blur(calc(var(--p,0)*6px))] [opacity:calc(1-var(--p,0)*1.15)] lg:sticky lg:top-28">
       <HeroSides />
       <span className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-1.5 text-muted-foreground text-sm">
         <AgentLogos />
@@ -22,13 +23,19 @@ export function HomeHero() {
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2.5">
-        <SiteButton external href={siteConfig.waitlistUrl}>
-          Join the waitlist
-        </SiteButton>
-        <SiteButton href="/#demo" variant="outline">
-          Watch it make a demo
+        <DownloadButton />
+        {/* On a phone there is nothing to download, so this is the main button. */}
+        <SiteButton
+          arrow
+          className="max-md:border-transparent max-md:bg-brand max-md:text-white"
+          external
+          href={siteConfig.waitlistUrl}
+          variant="outline"
+        >
+          Join beta
         </SiteButton>
       </div>
+      <OtherDownloads className="-mt-4 text-muted-foreground text-sm" />
       <p className="text-muted-foreground text-sm">
         <span className="text-foreground">Requires:</span> Claude Code, Codex,
         or Cursor CLI

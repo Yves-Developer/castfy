@@ -4,6 +4,8 @@ import { useScroll } from "@castfy/ui/hooks/use-scroll";
 import { cn } from "@castfy/ui/lib/utils";
 import { MousePointer2Icon } from "lucide-react";
 import Link from "next/link";
+import { FaDiscord } from "react-icons/fa6";
+import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
@@ -72,14 +74,22 @@ export function Header({ hideMenuItems = false }: HeaderProps) {
               <SiteButton
                 external
                 href={siteConfig.discordUrl}
+                icon={<FaDiscord />}
                 size="sm"
-                variant="ghost"
+                variant="discord"
               >
                 Discord
               </SiteButton>
-              <SiteButton external href={siteConfig.waitlistUrl} size="sm">
-                Join the waitlist
+              <SiteButton
+                arrow
+                external
+                href={siteConfig.waitlistUrl}
+                size="sm"
+                variant="outline"
+              >
+                Join beta
               </SiteButton>
+              <DownloadButton size="sm" />
             </div>
           </>
         )}
