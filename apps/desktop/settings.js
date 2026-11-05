@@ -21,6 +21,10 @@ export class SettingsStore {
        * once; the plan itself lives on the backend, not here.
        */
       planChosen: false,
+      /**
+       * The voiceover chosen last (an Edge voice name), null for none.
+       * Absent until chosen once; see useVoiceChoice in the renderer.
+       */
     };
   }
 

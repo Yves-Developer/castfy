@@ -7,7 +7,8 @@ import {
   DropdownMenuTrigger,
 } from "@castfy/ui/components/dropdown-menu";
 import { CheckIcon, ChevronDownIcon, MicIcon, MicOffIcon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { bridge } from "@/lib/bridge";
 
 /**
  * Picks the recording's voiceover: none, or one of Microsoft Edge's voices
@@ -28,18 +29,54 @@ export const VOICES = [
 
 const STORAGE_KEY = "castfy.voice";
 
-/** The voice chosen last time; null for none. Kept per machine. */
+const isVoice = (value: unknown): value is string =>
+  VOICES.some((v) => v.id === value);
+
+/**
+ * The voice chosen last time; null for none. Kept per machine, in Castfy's
+ * settings file.
+ *
+ * It used to live only in the window's localStorage, which Chromium writes
+ * to disk lazily: after a crash, a force quit or a shutdown with the app
+ * open the choice could be gone, and the picker was back to "No voice". The
+ * settings file is written at once. localStorage stays as the instant first
+ * guess, before the settings have been read.
+ */
 export function useVoiceChoice(): [string | null, (voice: string | null) => void] {
   const [voice, setVoice] = useState<string | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return VOICES.some((v) => v.id === saved) ? saved : null;
+      return isVoice(saved) ? saved : null;
     } catch {
       return null;
     }
   });
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: read once per mount; the first guess only seeds the migration
+  useEffect(() => {
+    let cancelled = false;
+    bridge
+      .settings()
+      .then((settings) => {
+        if (cancelled) {
+          return;
+        }
+        if (settings.voice === undefined) {
+          // Chosen before the settings file kept it: keep it there from now.
+          bridge.setSettings({ voice }).catch(() => undefined);
+          return;
+        }
+        setVoice(isVoice(settings.voice) ? settings.voice : null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const choose = useCallback((next: string | null) => {
     setVoice(next);
+    bridge.setSettings({ voice: next }).catch(() => undefined);
     try {
       if (next) {
         localStorage.setItem(STORAGE_KEY, next);
@@ -47,7 +84,7 @@ export function useVoiceChoice(): [string | null, (voice: string | null) => void
         localStorage.removeItem(STORAGE_KEY);
       }
     } catch {
-      // Only the preference is lost.
+      // The settings file has it.
     }
   }, []);
   return [voice, choose];

@@ -102,6 +102,11 @@ export interface AppSettings {
   allowUnsandboxed: boolean;
   /** The onboarding plan step was answered; it is shown once. */
   planChosen: boolean;
+  /**
+   * The voiceover chosen last: an Edge voice, null for none, undefined when
+   * never chosen (or chosen before it was kept here).
+   */
+  voice?: string | null;
 }
 
 export interface AppInfo {
