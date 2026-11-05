@@ -20,13 +20,49 @@ body {
   overflow-x: clip;
 }
 
+/*
+ * The page frame, like scroll.show's: two rails at most 1280px apart, 80px
+ * in from the screen edge on desktop (32px on tablets, 12px on phones).
+ * `frame` is the rails' box; `page` is the content inside them, 48px in
+ * from each rail on desktop.
+ */
+@utility frame {
+  width: calc(100% - 24px);
+  max-width: 1280px;
+  margin-inline: auto;
+  @media (width >= 48rem) {
+    width: calc(100% - 64px);
+  }
+  @media (width >= 64rem) {
+    width: calc(100% - 160px);
+  }
+}
+
+@utility page {
+  width: calc(100% - 24px);
+  max-width: 1280px;
+  padding-inline: 8px;
+  margin-inline: auto;
+  @media (width >= 48rem) {
+    width: calc(100% - 64px);
+    padding-inline: 24px;
+  }
+  @media (width >= 64rem) {
+    width: calc(100% - 160px);
+    padding-inline: 48px;
+  }
+}
 
 @layer utilities {
   .text-h1 {
     @apply text-balance text-4xl leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5 font-medium;
   }
   .text-h2 {
-    @apply text-balance text-[28px] leading-7.75 tracking-[-0.04em] md:text-4xl md:leading-10 lg:text-[44px] lg:leading-12 font-medium;
+    @apply text-balance text-[30px] leading-[1.12] tracking-[-0.03em] md:text-[40px] lg:text-[46px] font-[450];
+  }
+  .text-sub {
+    color: var(--muted-foreground);
+    @apply text-pretty text-lg leading-7 lg:text-xl lg:leading-8;
   }
   .text-h3 {
     @apply text-[32px] leading-9 md:text-[38px] md:leading-11 lg:text-[42px] lg:leading-12 xl:text-[48px] xl:leading-14 font-medium text-balance;

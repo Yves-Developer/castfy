@@ -9,6 +9,7 @@ import {
   ZoomInIcon,
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { Band } from "./band";
 import { DotBand } from "./patterns";
 
 /** A word of the sentence, or a tile standing for one of Castfy's tools. */
@@ -60,11 +61,11 @@ export function HomePipeline() {
 
   let index = 0;
   return (
-    <section className="relative py-20 md:py-28" id="how">
+    <Band className="relative" id="how">
       <DotBand className="inset-0" />
       <FloatingCards />
       <p
-        className="container relative max-w-200 text-balance text-center text-[26px] leading-[1.5] tracking-[-0.02em] md:text-[36px]"
+        className="relative mx-auto max-w-200 text-balance text-center text-[26px] leading-[1.5] tracking-[-0.02em] md:text-[36px]"
         ref={ref}
       >
         {WORDS.map((word, i) => {
@@ -91,7 +92,7 @@ export function HomePipeline() {
           );
         })}
       </p>
-    </section>
+    </Band>
   );
 }
 

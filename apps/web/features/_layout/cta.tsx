@@ -1,6 +1,7 @@
 import { Button } from "@castfy/ui/components/button";
 import type { Route } from "next";
 import Link from "next/link";
+import { SiteButton } from "@/components/site-button";
 import { siteConfig } from "@/config/site";
 import { WaveEdge } from "@/features/home/patterns";
 /** The closing block: dark, with a voice waveform for its top edge. */
@@ -9,7 +10,7 @@ export function ImgCta() {
     <section className="mt-16 md:mt-24" id="cta">
       <WaveEdge className="text-[#0b0d12]" />
       <div className="bg-[#0b0d12] text-white">
-        <div className="container flex max-w-300 flex-col items-center gap-6 py-24 text-center md:py-32">
+        <div className="page flex flex-col items-center gap-6 py-24 text-center md:py-32">
           <h3 className="max-w-2xl text-balance font-medium text-4xl leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5">
             Your next release deserves a demo today.
           </h3>
@@ -17,11 +18,19 @@ export function ImgCta() {
             A URL and a sentence. {siteConfig.name} does the rest, on your
             machine.
           </p>
-          <Button asChild size="xl" variant="brand">
-            <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
-              <span className="text-inherit text-sm">Join the waitlist</span>
-            </a>
-          </Button>
+          <div className="flex flex-wrap justify-center gap-2.5">
+            <SiteButton external href={siteConfig.waitlistUrl}>
+              Join the waitlist
+            </SiteButton>
+            <SiteButton
+              className="border-white/15 bg-white/5 text-white hover:bg-white/10"
+              external
+              href={siteConfig.discordUrl}
+              variant="outline"
+            >
+              Join the Discord
+            </SiteButton>
+          </div>
         </div>
       </div>
     </section>

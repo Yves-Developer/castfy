@@ -11,7 +11,7 @@ import FooterDate from "./footer-date";
 export function SiteFooter({ className }: { className?: string }) {
   return (
     <footer className={cn("mt-20 md:mt-30 xl:max-w-360", className)}>
-      <div className="container flex w-full flex-col items-start gap-10 pt-5 pb-20 md:flex-row md:gap-25">
+      <div className="page flex flex-col items-start gap-10 pt-5 pb-20 md:flex-row md:gap-25">
         <Link className="font-medium text-lg" href="/">
           {siteConfig.name}
         </Link>
@@ -47,7 +47,7 @@ export function SiteFooter({ className }: { className?: string }) {
           ))}
         </div>
       </div>
-      <div className="container flex w-full flex-wrap items-center justify-center gap-3 md:justify-between md:gap-5 xl:max-w-360">
+      <div className="page flex flex-wrap items-center justify-center gap-3 md:justify-between md:gap-5">
         <div className="flex items-center gap-3.75" id="socialmedia">
           <p className="text-muted-foreground text-xs">Follow us</p>
           <div className="flex items-center gap-2.5">

@@ -1,74 +1,116 @@
-import { Button } from "@castfy/ui/components/button";
+import { cn } from "@castfy/ui/lib/utils";
 import { proof } from "@/config/data";
-import { siteConfig } from "@/config/site";
-import { PanelEdge } from "./patterns";
+import { Band } from "./band";
 
-export function HomeProof() {
+/** Seconds out of "396 s". */
+const seconds = (value: string) => Number.parseFloat(value);
+
+/** How many times shorter the finished demo is, e.g. "48×". */
+function ratio(raw: string, cut: string) {
+  const r = seconds(raw) / seconds(cut);
+  return r >= 10 ? `${Math.round(r)}×` : `${r.toFixed(1)}×`;
+}
+
+/**
+ * The recording as a bar: the finished part in brand blue, the part Castfy
+ * cut as the blur hatch, so the dead time is visible at a glance.
+ */
+function CutBar({
+  raw,
+  cut,
+  tall,
+}: {
+  raw: string;
+  cut: string;
+  tall?: boolean;
+}) {
+  const kept = Math.max(1.5, (seconds(cut) / seconds(raw)) * 100);
   return (
-    <section className="container" id="proof">
-      <div className="text-[#fbf1e1] dark:text-[#2a2216]">
-        <div className="rounded-t-2xl bg-current px-4 py-10 md:px-12 md:py-14">
-          <div className="flex flex-col gap-10 text-foreground">
-            <div className="flex max-w-xl flex-col gap-4">
-              <h2 className="text-h2">The numbers. Even the ugly one.</h2>
-              <p className="text-muted-foreground">
-                Seven recordings, measured on disk. The compression is real and
-                so is the spread.
-              </p>
+    <div
+      aria-hidden
+      className={cn(
+        "flex w-full overflow-hidden rounded-md border",
+        tall ? "h-9" : "h-3"
+      )}
+    >
+      <div className="h-full bg-brand" style={{ width: `${kept}%` }} />
+      <div className="h-full flex-1 text-[#e08a1e]/45 [background-image:repeating-linear-gradient(-45deg,currentColor_0_3px,transparent_3px_9px)]" />
+    </div>
+  );
+}
+
+/**
+ * Proof from real recordings, laid out like a wall of quotes: the biggest
+ * cut in a large card, the others beside it, the ugly one included.
+ */
+export function HomeProof() {
+  const [first, ...rest] = proof.rows;
+  return (
+    <Band edge="hatch" id="proof" ruler tone="amber">
+      <div className="flex flex-col gap-12">
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 text-center">
+          <h2 className="text-h2">The numbers. Even the ugly one.</h2>
+          <p className="text-sub">
+            Real recordings, measured on disk. The compression is real and so is
+            the spread.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+          <div className="flex flex-col justify-between gap-10 rounded-2xl border bg-background p-6 md:p-8">
+            <div className="flex items-center justify-between text-muted-foreground text-sm">
+              <span>{first.label}</span>
+              <span className="rounded-full bg-brand/10 px-2.5 py-0.5 font-mono text-brand text-xs">
+                {ratio(first.raw, first.cut)} shorter
+              </span>
             </div>
-
-            <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-              <div className="overflow-x-auto rounded-xl border">
-                <table className="w-full border-collapse text-left text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="p-4 font-medium text-muted-foreground">
-                        Recording
-                      </th>
-                      <th className="p-4 font-medium text-muted-foreground">
-                        Raw
-                      </th>
-                      <th className="p-4 font-medium">Finished</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {proof.rows.map((row) => (
-                      <tr className="border-b last:border-b-0" key={row.label}>
-                        <td className="p-4 text-muted-foreground">
-                          {row.label}
-                        </td>
-                        <td className="p-4 text-destructive">{row.raw}</td>
-                        <td className="p-4 font-medium text-brand">
-                          {row.cut}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex flex-col justify-center gap-5">
-                <p className="text-muted-foreground leading-6">
-                  {proof.caveat}
-                </p>
-                <p className="text-muted-foreground leading-6">{proof.cost}</p>
-                <Button asChild className="mt-auto w-fit" size="lg">
-                  <a
-                    href={siteConfig.waitlistUrl}
-                    rel="noopener"
-                    target="_blank"
-                  >
-                    <span className="font-medium text-inherit text-sm">
-                      Join the waitlist
-                    </span>
-                  </a>
-                </Button>
+            <div className="flex flex-col gap-5">
+              <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1 font-[450] text-5xl tracking-[-0.03em] md:text-6xl">
+                <span className="text-muted-foreground/50 line-through decoration-2">
+                  {first.raw}
+                </span>
+                <span>→</span>
+                <span className="text-brand">{first.cut}</span>
+              </p>
+              <CutBar cut={first.cut} raw={first.raw} tall />
+              <div className="flex justify-between gap-4 font-mono text-muted-foreground text-xs">
+                <span className="shrink-0">Finished demo</span>
+                <span className="text-right">
+                  Cut by Castfy: page loads, waits, the agent thinking
+                </span>
               </div>
             </div>
           </div>
+
+          <div className="grid gap-4">
+            {rest.map((row) => (
+              <div
+                className="flex flex-col gap-3 rounded-2xl border bg-background p-5"
+                key={row.label}
+              >
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{row.label}</span>
+                  <span className="font-mono text-muted-foreground text-xs">
+                    {ratio(row.raw, row.cut)} shorter
+                  </span>
+                </div>
+                <p className="font-[450] text-2xl tracking-[-0.02em]">
+                  <span className="text-muted-foreground/50 line-through">
+                    {row.raw}
+                  </span>{" "}
+                  → <span className="text-brand">{row.cut}</span>
+                </p>
+                <CutBar cut={row.cut} raw={row.raw} />
+              </div>
+            ))}
+          </div>
         </div>
-        <PanelEdge style="hatch" />
+
+        <div className="mx-auto grid max-w-4xl gap-4 text-muted-foreground text-sm leading-6 md:grid-cols-2">
+          <p>{proof.caveat}</p>
+          <p>{proof.cost}</p>
+        </div>
       </div>
-    </section>
+    </Band>
   );
 }

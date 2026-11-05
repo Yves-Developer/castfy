@@ -3,13 +3,11 @@ import type { FAQItem, PricingTier } from "@/types";
 import { siteConfig } from "./site";
 
 export const navLinks = [
-  { label: "Home", href: "/" },
   { label: "How it works", href: "/#how" },
-  { label: "Features", href: "/#features" },
+  { label: "Studio", href: "/#studio" },
   { label: "Agents", href: "/#agents" },
   { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faqs" },
-  { label: "Contact", href: "/contact" },
 ];
 
 /**
@@ -31,7 +29,8 @@ export const proof = {
 export const pricing: { free: PricingTier; paid: PricingTier } = {
   free: {
     title: "Try it",
-    price: "5 demos, free",
+    price: "Free",
+    unit: "5 demos",
     desc: "No watermark, no card, no expiry. Sign in with Google to start.",
     features: [
       "The full app, every feature",
@@ -43,7 +42,9 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
   },
   paid: {
     title: "Castfy",
+    badge: "Launch price",
     price: "$99",
+    unit: "once",
     was: "$149",
     desc: "One time. $99 for the waitlist, $149 after launch.",
     features: [

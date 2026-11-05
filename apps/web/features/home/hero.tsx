@@ -1,12 +1,11 @@
-import { Button } from "@castfy/ui/components/button";
-import Link from "next/link";
 import { SiClaude, SiOpenai } from "react-icons/si";
+import { SiteButton } from "@/components/site-button";
 import { siteConfig } from "@/config/site";
 import { HeroSides } from "./hero-sides";
 
 export function HomeHero() {
   return (
-    <div className="relative flex flex-col items-center gap-8 text-center">
+    <div className="relative flex flex-col items-center gap-8 text-center [filter:blur(calc(var(--p,0)*6px))] [opacity:calc(1-var(--p,0)*1.15)] lg:sticky lg:top-28">
       <HeroSides />
       <span className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-1.5 text-muted-foreground text-sm">
         <AgentLogos />
@@ -23,21 +22,12 @@ export function HomeHero() {
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2.5">
-        <Button asChild size="lg" variant="brand">
-          <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
-            <span className="font-medium text-inherit text-sm">
-              Join the waitlist
-            </span>
-          </a>
-        </Button>
-        <Button
-          asChild
-          className="tracking-tight"
-          size="lg"
-          variant="secondary"
-        >
-          <Link href="/#demo">Watch it make a demo</Link>
-        </Button>
+        <SiteButton external href={siteConfig.waitlistUrl}>
+          Join the waitlist
+        </SiteButton>
+        <SiteButton href="/#demo" variant="outline">
+          Watch it make a demo
+        </SiteButton>
       </div>
       <p className="text-muted-foreground text-sm">
         <span className="text-foreground">Requires:</span> Claude Code, Codex,

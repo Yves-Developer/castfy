@@ -1,4 +1,3 @@
-import { Button } from "@castfy/ui/components/button";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +9,7 @@ import {
 import { MenuIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { SiteButton } from "@/components/site-button";
 import { navLinks } from "@/config/data";
 import { siteConfig } from "@/config/site";
 export default function MobileMenu() {
@@ -36,9 +36,21 @@ export default function MobileMenu() {
             </div>
           ))}
           <div className="mt-12 flex flex-col gap-2">
-            <Button className="w-full" variant="outline">
-              Join Waitlist
-            </Button>
+            <SiteButton
+              className="w-full"
+              external
+              href={siteConfig.waitlistUrl}
+            >
+              Join the waitlist
+            </SiteButton>
+            <SiteButton
+              className="w-full"
+              external
+              href={siteConfig.discordUrl}
+              variant="outline"
+            >
+              Join the Discord
+            </SiteButton>
           </div>
         </div>
       </SheetContent>
