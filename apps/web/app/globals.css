@@ -14,6 +14,12 @@ html {
   @apply font-inter font-medium;
 }
 
+/* Decoration may bleed past the screen's edges (the hero's side frames). */
+html,
+body {
+  overflow-x: clip;
+}
+
 
 @layer utilities {
   .text-h1 {
