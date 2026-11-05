@@ -88,9 +88,12 @@ export function HeroVideo() {
   const chapter = CHAPTERS[current];
 
   return (
-    <div className="relative flex flex-col gap-5 lg:px-12" id="demo">
+    <div className="relative flex flex-col gap-5" id="demo">
       {/* The stage: brand-blue dots lit from behind, the app inset on it. */}
-      <div className="text-[#e3f2ff] dark:text-[#10243a]">
+      <div
+        className="relative z-10 origin-top text-[#e3f2ff] transition-[scale] duration-75 ease-out [scale:calc(0.9+var(--p,1)*0.1)] dark:text-[#10243a]"
+        data-hero-stage
+      >
         <div className="relative overflow-hidden rounded-t-2xl bg-current px-3 pt-3 pb-3 md:rounded-t-3xl md:px-14 md:pt-5 md:pb-14">
           <div
             aria-hidden

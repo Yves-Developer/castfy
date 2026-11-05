@@ -7,6 +7,8 @@ export const siteConfig = {
   ogImage: "https://www.castfy.app/opengraph-image.png",
   description:
     "Castfy turns a URL and a prompt into a product demo video, recorded by a browser running on your own machine — so it reaches localhost, staging, and anything behind a login.",
+  /** The beta testers' Discord, the same invite the desktop app links to. */
+  discordUrl: "https://discord.gg/PY8RGrex3V",
   links: {
     x: "https://x.com/YvesDC0",
     youtube: "https://www.youtube.com/@CastfyRw",

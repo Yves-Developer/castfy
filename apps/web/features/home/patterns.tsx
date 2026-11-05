@@ -39,9 +39,9 @@ export function Hatch({ className }: { className?: string }) {
 export function Ruler({ from = 0 }: { from?: number }) {
   const labels = Array.from({ length: 13 }, (_, i) => from + i * 5);
   return (
-    <div aria-hidden className="container relative select-none">
-      <Cross className="-top-2 left-3 lg:left-7" />
-      <Cross className="-top-2 right-3 lg:right-7" />
+    <div aria-hidden className="frame relative select-none">
+      <Cross className="-top-2 left-0 -translate-x-1/2" />
+      <Cross className="-top-2 right-0 translate-x-1/2" />
       <div className="relative h-7 overflow-hidden border-t">
         <div className="absolute inset-x-0 top-0 h-2 [background-image:repeating-linear-gradient(90deg,var(--color-border)_0_1px,transparent_1px_calc(100%/60))]" />
         <div className="absolute inset-x-0 top-0 flex justify-between">
@@ -75,18 +75,13 @@ function Cross({ className }: { className?: string }) {
 }
 
 /**
- * Two thin lines down the page at the content's edges, like the margins of a
- * contact sheet. The rulers end on them with a "+".
+ * Two thin lines down the page, 48px outside the content on desktop, like the
+ * margins of a contact sheet. The rulers end on them with a "+".
  */
 export function PageRails() {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 max-md:hidden"
-    >
-      <div className="container h-full">
-        <div className="h-full border-x" />
-      </div>
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-[5]">
+      <div className="frame h-full border-x" />
     </div>
   );
 }

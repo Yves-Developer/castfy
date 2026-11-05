@@ -1,6 +1,7 @@
-import { Button } from "@castfy/ui/components/button";
 import { cn } from "@castfy/ui/lib/utils";
 import type { ReactNode } from "react";
+import { SiteButton } from "@/components/site-button";
+import { Band } from "./band";
 import { type EdgeStyle, PanelEdge } from "./patterns";
 
 /**
@@ -36,53 +37,57 @@ export function Spotlight({
   edge: EdgeStyle;
 }) {
   return (
-    <section className="container flex flex-col gap-10" id={id}>
-      <div className="flex max-w-xl flex-col items-start gap-4">
-        <span className="inline-flex items-center gap-2 text-muted-foreground text-sm [&_svg]:size-4">
-          <span
+    <Band id={id}>
+      <div className="flex flex-col gap-12">
+        <div className="flex max-w-4xl flex-col items-start gap-4">
+          <span className="inline-flex items-center gap-2 text-muted-foreground text-sm [&_svg]:size-4">
+            <span
+              className={cn(
+                "grid size-6 place-items-center rounded-md bg-current [&>svg]:text-foreground",
+                tint
+              )}
+            >
+              {icon}
+            </span>
+            {label}
+          </span>
+          <h2 className="text-h2">{title}</h2>
+          <p className="max-w-2xl text-sub">{text}</p>
+          <SiteButton href={action.href} size="sm" variant="outline">
+            {action.label}
+          </SiteButton>
+        </div>
+
+        <div className={cn("-mx-2 md:-mx-6 lg:-mx-12", tint)}>
+          <div
             className={cn(
-              "grid size-6 place-items-center rounded-md bg-current [&>svg]:text-foreground",
-              tint
+              "relative overflow-hidden bg-current px-4 pt-6 pb-4 md:px-12 md:pt-14 md:pb-10",
+              panelClassName
             )}
           >
-            {icon}
-          </span>
-          {label}
-        </span>
-        <h2 className="text-h2">{title}</h2>
-        <p className="text-muted-foreground">{text}</p>
-        <Button asChild size="sm" variant="outline">
-          <a href={action.href}>{action.label}</a>
-        </Button>
-      </div>
-
-      <div className={tint}>
-        <div
-          className={cn(
-            "relative overflow-hidden rounded-t-2xl bg-current px-4 pt-6 pb-4 md:px-12 md:pt-12 md:pb-8",
-            panelClassName
-          )}
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.55)_1.2px,transparent_1.2px)] [background-size:20px_20px]"
-          />
-          <div className="relative text-foreground">{children}</div>
-        </div>
-        <PanelEdge style={edge} />
-      </div>
-
-      <div className="grid gap-6 border-t pt-6 md:grid-cols-3">
-        {points.map((p) => (
-          <div className="flex flex-col gap-1.5" key={p.title}>
-            <span className="text-muted-foreground [&_svg]:size-4">
-              {p.icon}
-            </span>
-            <h3 className="font-medium">{p.title}</h3>
-            <p className="text-muted-foreground text-sm leading-6">{p.text}</p>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.55)_1.2px,transparent_1.2px)] [background-size:20px_20px]"
+            />
+            <div className="relative text-foreground">{children}</div>
           </div>
-        ))}
+          <PanelEdge style={edge} />
+        </div>
+
+        <div className="grid gap-6 border-t pt-6 md:grid-cols-3">
+          {points.map((p) => (
+            <div className="flex flex-col gap-1.5" key={p.title}>
+              <span className="text-muted-foreground [&_svg]:size-4">
+                {p.icon}
+              </span>
+              <h3 className="font-medium">{p.title}</h3>
+              <p className="text-muted-foreground text-sm leading-6">
+                {p.text}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
-    </section>
+    </Band>
   );
 }
