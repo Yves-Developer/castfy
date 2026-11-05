@@ -37,6 +37,7 @@ import {
 } from './platform.js';
 import { devtoolsEndpoint, openRecordingWindow, sanitizeInput } from './recording-window.js';
 import { readZoomTrack, saveZoomOff } from './zoom-track.js';
+import { Updater } from './updater.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -1092,6 +1093,7 @@ app.whenReady().then(async () => {
   await initStores();
   createWindow();
   watchLibrary();
+  updater.start();
 
   app.on('activate', () => {
     if (!win) createWindow();
@@ -1100,6 +1102,17 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+/** Exports rendering right now; a restart to update waits for them. */
+let exporting = 0;
+
+/** Updates from castfy.app/updates (updater.js). */
+const updater = new Updater({
+  app,
+  ipcMain,
+  send: (channel, payload) => ui?.send(channel, payload),
+  isBusy: () => (running ? 'recording' : exporting > 0 ? 'exporting' : null),
 });
 
 ipcMain.handle('library:list', scanLibrary);
@@ -1254,10 +1267,15 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
         error: `You've used your ${allowance.limit} free demos.`,
       };
     }
-    const result = await runExport(sessionId, spec ?? {}, (message) =>
-      ui?.send('export:progress', { sessionId, message })
-    );
-    return { ok: true, ...result };
+    exporting += 1;
+    try {
+      const result = await runExport(sessionId, spec ?? {}, (message) =>
+        ui?.send('export:progress', { sessionId, message })
+      );
+      return { ok: true, ...result };
+    } finally {
+      exporting -= 1;
+    }
   } catch (err) {
     return { ok: false, error: err?.message ?? String(err) };
   }

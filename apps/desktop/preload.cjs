@@ -24,6 +24,12 @@ contextBridge.exposeInMainWorld('castfy', {
   recut: (sessionId, cuts) => ipcRenderer.invoke('export:recut', sessionId, cuts),
   ensureSource: (sessionId) => ipcRenderer.invoke('media:ensureSource', sessionId),
 
+  // updates (updater.js)
+  updateState: () => ipcRenderer.invoke('update:state'),
+  checkForUpdate: () => ipcRenderer.invoke('update:check'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+  onUpdateState: on('update:state'),
+
   // export
   render: (sessionId, spec) => ipcRenderer.invoke('export:render', sessionId, spec),
   saveExport: (sessionId, title) => ipcRenderer.invoke('export:saveAs', sessionId, title),

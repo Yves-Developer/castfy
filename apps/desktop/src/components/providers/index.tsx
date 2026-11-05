@@ -4,6 +4,7 @@ import { Toaster } from "@castfy/ui/components/sonner";
 import { TooltipProvider } from "@castfy/ui/components/tooltip";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import Disconnected from "@/features/app/_layout/disconnected";
+import { UpdateNotice } from "@/features/app/_layout/update-notice";
 import { Settings } from "@/features/app/_shared/settings";
 import { ThemeProvider } from "./theme-provider";
 
@@ -16,6 +17,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <Toaster />
       <Disconnected />
       <Settings />
+      <UpdateNotice />
     </ThemeProvider>
   );
 }
