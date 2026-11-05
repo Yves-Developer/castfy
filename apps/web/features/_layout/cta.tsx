@@ -1,6 +1,7 @@
 import { Button } from "@castfy/ui/components/button";
 import type { Route } from "next";
 import Link from "next/link";
+import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { siteConfig } from "@/config/site";
 import { WaveEdge } from "@/features/home/patterns";
@@ -19,16 +20,15 @@ export function ImgCta() {
             machine.
           </p>
           <div className="flex flex-wrap justify-center gap-2.5">
-            <SiteButton external href={siteConfig.waitlistUrl}>
-              Join the waitlist
-            </SiteButton>
+            <DownloadButton />
             <SiteButton
+              arrow
               className="border-white/15 bg-white/5 text-white hover:bg-white/10"
               external
-              href={siteConfig.discordUrl}
+              href={siteConfig.waitlistUrl}
               variant="outline"
             >
-              Join the Discord
+              Join beta
             </SiteButton>
           </div>
         </div>
