@@ -1,53 +1,15 @@
-import {
-  LaptopIcon,
-  LayersIcon,
-  MessageSquareIcon,
-  RefreshCwIcon,
-  ScissorsIcon,
-  TerminalIcon,
-} from "lucide-react";
 import { FaGithub, FaXTwitter, FaYoutube } from "react-icons/fa6";
 import type { FAQItem, PricingTier } from "@/types";
 import { siteConfig } from "./site";
 
-/** A demo Castfy made, playing inside the mock editor in the hero. */
-export const demoVideoUrl =
-  "https://pub-79872054c8cb4a23b5f90577293ece4f.r2.dev/Castfy/demo-with-audio-clean.mp4";
-
 export const navLinks = [
   { label: "Home", href: "/" },
-  { label: "How it works", href: "/#journey" },
+  { label: "How it works", href: "/#how" },
   { label: "Features", href: "/#features" },
+  { label: "Agents", href: "/#agents" },
   { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faqs" },
   { label: "Contact", href: "/contact" },
-];
-
-/**
- * Axis comparison against the real alternative (hosted demo tools), not the
- * "by hand" strawman the previous page argued with.
- */
-export const comparison = [
-  {
-    axis: "Where your product runs",
-    cloud: "Their browser, their infrastructure",
-    castfy: "Your machine",
-  },
-  {
-    axis: "Can it reach localhost",
-    cloud: "No",
-    castfy: "Yes",
-  },
-  {
-    axis: "Staging behind a login",
-    cloud: "Hand over access",
-    castfy: "Already inside",
-  },
-  {
-    axis: "Price",
-    cloud: "$27–250 a month",
-    castfy: "$99 once",
-  },
 ];
 
 /**
@@ -148,48 +110,6 @@ export const faqs: FAQItem[] = [
   },
 ];
 
-export const features = [
-  {
-    icon: LaptopIcon,
-    title: "It never leaves your machine",
-    description:
-      "The browser, the recording, the render and the export all run locally. Nothing is uploaded anywhere.",
-  },
-  {
-    icon: TerminalIcon,
-    title: "It reaches what cloud tools can't",
-    description:
-      "A hosted browser cannot open localhost:3000 on your laptop. This one is already there.",
-  },
-  {
-    icon: MessageSquareIcon,
-    title: "You describe it. Nobody records it.",
-    description:
-      'A URL and a sentence. No re-recording yourself because you said "um" at 0:14.',
-  },
-  {
-    icon: RefreshCwIcon,
-    title: "Re-run it when the UI moves",
-    description:
-      "The demo is a prompt, not footage. Ship a redesign, run the same job again.",
-  },
-  {
-    icon: ScissorsIcon,
-    title: "The cuts are yours to overrule",
-    description:
-      "One 88-second recording became 10 seconds of video. Every cut is still editable.",
-  },
-  {
-    icon: LayersIcon,
-    title: "214 gradients, 19 overlays, 25 formats",
-    description:
-      "214 gradients, 90 backgrounds, your own images, 19 shadow overlays, 25 aspect ratios.",
-  },
-];
-
-/** Roadmap. Approved for public mention as "coming" only — see brand-context.md. */
-export const featuresComing = "";
-
 export const footerNavs = [
   {
     group: "product",
@@ -197,7 +117,7 @@ export const footerNavs = [
       {
         title: "Product",
         navs: [
-          { label: "How it works", href: "/#journey", external: false },
+          { label: "How it works", href: "/#how", external: false },
           { label: "Features", href: "/#features", external: false },
           { label: "Pricing", href: "/#pricing", external: false },
           { label: "FAQ", href: "/#faqs", external: false },

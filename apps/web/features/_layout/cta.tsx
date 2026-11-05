@@ -1,32 +1,28 @@
 import { Button } from "@castfy/ui/components/button";
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import ctaImg from "@/public/mac-asset-2.jpg";
+import { WaveEdge } from "@/features/home/patterns";
+/** The closing block: dark, with a voice waveform for its top edge. */
 export function ImgCta() {
   return (
-    <section
-      className="group relative mt-15 flex min-h-[70vh] items-center justify-center md:mt-30"
-      id="cta"
-    >
-      <Image
-        alt="cta image"
-        className="absolute inset-0 object-cover"
-        fill
-        placeholder="blur"
-        src={ctaImg}
-      />
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" />
-      <div className="container relative z-10 flex max-w-300 flex-col items-center justify-center gap-10 py-20">
-        <h3 className="max-w-2xl text-balance text-center font-medium text-4xl text-white leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5">
-          Demo the app you can&apos;t put on the internet.
-        </h3>
-        <Button asChild className="dark" size="xl">
-          <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
-            <span className="text-inherit text-sm">Join the waitlist</span>
-          </a>
-        </Button>
+    <section className="mt-16 md:mt-24" id="cta">
+      <WaveEdge className="text-[#0b0d12]" />
+      <div className="bg-[#0b0d12] text-white">
+        <div className="container flex max-w-300 flex-col items-center gap-6 py-24 text-center md:py-32">
+          <h3 className="max-w-2xl text-balance font-medium text-4xl leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5">
+            Your next release deserves a demo today.
+          </h3>
+          <p className="max-w-md text-white/60">
+            A URL and a sentence. {siteConfig.name} does the rest, on your
+            machine.
+          </p>
+          <Button asChild size="xl" variant="brand">
+            <a href={siteConfig.waitlistUrl} rel="noopener" target="_blank">
+              <span className="text-inherit text-sm">Join the waitlist</span>
+            </a>
+          </Button>
+        </div>
       </div>
     </section>
   );
