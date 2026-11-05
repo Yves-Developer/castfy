@@ -131,7 +131,6 @@ export const footerNavs: {
       { label: "Discord", href: siteConfig.discordUrl, external: true },
       { label: "X", href: siteConfig.links.x, external: true },
       { label: "YouTube", href: siteConfig.links.youtube, external: true },
-      { label: "GitHub", href: siteConfig.links.github, external: true },
     ],
   },
   {

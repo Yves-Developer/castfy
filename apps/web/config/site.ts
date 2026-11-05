@@ -15,7 +15,7 @@ export const siteConfig = {
   discordUrl: "https://discord.gg/PY8RGrex3V",
   links: {
     x: "https://x.com/YvesDC0",
-    youtube: "https://www.youtube.com/@CastfyRw",
+    youtube: "https://www.youtube.com/@Castfy0",
     github: "https://github.com/CastfyRw",
   },
   keywords: [
