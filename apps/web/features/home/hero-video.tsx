@@ -97,7 +97,7 @@ export function HeroVideo() {
         <div className="relative overflow-hidden rounded-t-2xl bg-current px-3 pt-3 pb-3 md:rounded-t-3xl md:px-14 md:pt-5 md:pb-14">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 [background-image:radial-gradient(color-mix(in_oklab,var(--color-brand)_35%,transparent)_1.2px,transparent_1.2px)] [background-size:20px_20px]"
+            className="pointer-events-none absolute inset-0 [background-image:radial-gradient(color-mix(in_oklab,var(--color-brand)_35%,transparent)_1.2px,transparent_1.2px)] [background-size:20px_20px] dark:[background-image:radial-gradient(color-mix(in_oklab,var(--color-brand)_18%,transparent)_1px,transparent_1px)]"
           />
           <div
             aria-hidden

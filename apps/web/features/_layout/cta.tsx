@@ -5,25 +5,28 @@ import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { siteConfig } from "@/config/site";
 import { WaveEdge } from "@/features/home/patterns";
-/** The closing block: dark, with a voice waveform for its top edge. */
+/**
+ * The closing block, with a voice waveform for its top edge: near-black on
+ * the light page, brand blue on the dark one (where black would not show).
+ */
 export function ImgCta() {
   return (
     <section className="mt-16 md:mt-24" id="cta">
-      <WaveEdge className="text-[#0b0d12]" />
-      <div className="bg-[#0b0d12] text-white">
+      <WaveEdge className="text-[#0b0d12] dark:text-brand" />
+      <div className="bg-[#0b0d12] text-white dark:bg-brand">
         <div className="page flex flex-col items-center gap-6 py-24 text-center md:py-32">
           <h3 className="max-w-2xl text-balance font-medium text-4xl leading-9 tracking-[-0.04em] md:text-[42px] md:leading-10.5 lg:text-[54px] lg:leading-13.5">
             Your next release deserves a demo today.
           </h3>
-          <p className="max-w-md text-white/60">
+          <p className="max-w-md text-white/60 dark:text-white/85">
             A URL and a sentence. {siteConfig.name} does the rest, on your
             machine.
           </p>
           <div className="flex flex-wrap justify-center gap-2.5">
-            <DownloadButton />
+            <DownloadButton className="dark:bg-white dark:text-[#0b0d12] dark:hover:bg-white/90" />
             <SiteButton
               arrow
-              className="border-white/15 bg-white/5 text-white hover:bg-white/10"
+              className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/40 dark:bg-white/10 dark:hover:bg-white/20"
               external
               href={siteConfig.waitlistUrl}
               variant="outline"

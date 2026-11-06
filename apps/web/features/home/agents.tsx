@@ -5,8 +5,12 @@ import { Spotlight } from "./spotlight";
 
 const AGENTS = [
   { name: "Claude Code", icon: <SiClaude />, color: "bg-[#d97757]" },
-  { name: "Codex", icon: <SiOpenai />, color: "bg-black" },
-  { name: "Cursor", icon: <CursorLogo />, color: "bg-[#14120b]" },
+  { name: "Codex", icon: <SiOpenai />, color: "bg-black dark:bg-[#2a2d35]" },
+  {
+    name: "Cursor",
+    icon: <CursorLogo />,
+    color: "bg-[#14120b] dark:bg-[#2a2d35]",
+  },
 ];
 
 export function HomeAgents() {

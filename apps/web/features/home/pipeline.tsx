@@ -25,7 +25,11 @@ const SENTENCE: Part[] = [
   "writes and speaks the voiceover,",
   { icon: <EyeOffIcon />, color: "bg-[#ff5c8a]", label: "Blur" },
   "hides what shouldn't be seen, and exports a finished video. Ask in the app, or let your",
-  { icon: <TerminalIcon />, color: "bg-foreground", label: "Agent" },
+  {
+    icon: <TerminalIcon />,
+    color: "bg-foreground dark:bg-[#2a2d35]",
+    label: "Agent",
+  },
   "agent run it.",
 ];
 
