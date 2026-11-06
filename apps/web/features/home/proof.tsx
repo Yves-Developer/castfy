@@ -49,7 +49,7 @@ export function HomeProof() {
     <Band edge="hatch" id="proof" ruler tone="amber">
       <div className="flex flex-col gap-12">
         <div className="mx-auto flex max-w-3xl flex-col gap-4 text-center">
-          <h2 className="text-h2">The waiting never makes the cut.</h2>
+          <h2 className="text-h2">Minutes of agent work. A demo you can ship.</h2>
           <p className="text-sub">
             Four real runs with Claude Code. Page loads, retries and the agent
             thinking are never recorded. You get only the steps, narrated.
