@@ -24,8 +24,8 @@ export const proof = {
     { label: "castfy.app tour", raw: "110 s", cut: "43.8 s" },
   ],
   caveat:
-    "That last row is a tour where the agent barely waited, and every step has a line to speak, so only 2.5x came out. A tool that only ever showed you its best row would be showing you the best day.",
-  cost: "These ran on a Claude subscription, so they cost nothing beyond the plan. Priced at API rates instead, the survey would have been about $1.67 and the others $0.65 to $0.76.",
+    "Every run came out shorter. The castfy.app tour the least, 2.5x, because the agent barely waited and every step has a line to speak. We show it anyway.",
+  cost: "On your Claude subscription, these cost nothing extra. At API rates: $1.67 for the survey, under $0.80 for each of the others.",
 };
 
 export const pricing: { free: PricingTier; paid: PricingTier } = {
