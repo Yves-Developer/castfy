@@ -144,11 +144,11 @@ const COMPARE: {
     paid: true,
   },
   {
-    label: "1080p export, no watermark",
+    label: "1080p export",
     icon: <MonitorPlayIcon />,
     color: "bg-[#e08a1e]",
-    free: true,
-    paid: true,
+    free: "With a small Castfy watermark",
+    paid: "No watermark",
   },
   {
     label: "From Claude Code, Codex or Cursor",

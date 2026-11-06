@@ -392,7 +392,16 @@ export interface CastfyBridge {
   copyPrompt(input: DemoInput): Promise<boolean>;
   run(
     input: DemoInput
-  ): Promise<{ ok: boolean; error?: string; bin?: string; runId?: string; needsLogin?: string }>;
+  ): Promise<{
+    ok: boolean;
+    error?: string;
+    bin?: string;
+    runId?: string;
+    needsLogin?: string;
+    /** The free demos are used up: the limit, for the buy prompt. */
+    limitReached?: boolean;
+    limit?: number;
+  }>;
   /** Opens the agent's own login in a terminal. */
   login(agentId?: string | null): Promise<{ ok: boolean; error?: string; command?: string }>;
   /** Whether the agent is signed in; null when it cannot tell. */
@@ -419,6 +428,8 @@ export interface CastfyBridge {
       /** The recording this run produced, once it has one. */
       sessionId?: string | null;
       projectId?: string | null;
+      /** castfy0 refused: the free demos are used up (the limit). */
+      limitReached?: number | null;
     }) => void
   ): () => void;
 }

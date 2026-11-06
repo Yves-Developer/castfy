@@ -149,4 +149,19 @@ export default defineSchema({
   })
     .index("by_user_createdAt", ["userId", "createdAt"])
     .index("by_user_demo", ["userId", "demoId", "createdAt"]),
+
+  /**
+   * Keys the recorder (castfy0) uses to ask whether it may record. The
+   * desktop app makes one when the user signs in and keeps it next to the
+   * library, where castfy0 reads it, also when Claude Code runs castfy0
+   * outside the app. A key can only spend demos; it is not a sign-in. Only a
+   * SHA-256 of the key is stored.
+   */
+  recorderKeys: defineTable({
+    userId: v.string(),
+    keyHash: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_hash", ["keyHash"])
+    .index("by_user", ["userId"]),
 });

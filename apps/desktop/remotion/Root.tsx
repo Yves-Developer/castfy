@@ -1,4 +1,4 @@
-import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { type BlurBox, BlurBoxes } from './blur';
 import { Pointer } from './pointer';
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from './zoom';
@@ -35,6 +35,11 @@ export interface DemoProps extends Record<string, unknown> {
   /** Library-relative path to a background image, when the background is one. */
   backgroundImage: string | null;
   overlays: OverlaySpec[];
+  /**
+   * The free plan's "Made with Castfy" card, relative to the session, or null
+   * for no watermark. Drawn on top of the whole frame, where zoom cannot crop it.
+   */
+  watermark?: string | null;
   /** Fraction of the frame left as margin around the video. */
   padding: number;
   radius: number;
@@ -127,6 +132,7 @@ export function Demo({
   keeps,
   zoom,
   blurs,
+  watermark,
 }: DemoProps) {
   const frame = useCurrentFrame();
   const behind = overlays.filter((o) => o.layer === 'back');
@@ -192,7 +198,34 @@ export function Demo({
       {front.map((overlay) => (
         <Overlay key={overlay.src + overlay.x} overlay={overlay} />
       ))}
+
+      {watermark ? <Watermark src={watermark} /> : null}
     </AbsoluteFill>
+  );
+}
+
+/** The watermark's width and its distance from the edges, as shares of the frame's width. */
+const WATERMARK_WIDTH = 0.15;
+const WATERMARK_MARGIN = 0.02;
+
+/**
+ * The free plan's watermark, bottom-right on the finished frame: the same
+ * card castfy0 burns into videos made outside the app (castfy0
+ * src/generator/watermark.ts).
+ */
+function Watermark({ src }: { src: string }) {
+  const { width } = useVideoConfig();
+  return (
+    <Img
+      src={staticFile(src)}
+      style={{
+        position: 'absolute',
+        right: width * WATERMARK_MARGIN,
+        bottom: width * WATERMARK_MARGIN,
+        width: width * WATERMARK_WIDTH,
+        height: 'auto',
+      }}
+    />
   );
 }
 

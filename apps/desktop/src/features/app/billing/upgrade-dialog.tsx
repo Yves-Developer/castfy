@@ -63,9 +63,9 @@ export function UpgradeDialog({
           <DialogTitle>You've used your {limit} free demos</DialogTitle>
           <DialogDescription>
             {PAYMENTS_OPEN
-              ? "Buy Castfy once to export as many demos as you like."
-              : "Have a beta code? Enter it below to keep exporting, free and unlimited."}{" "}
-            Demos you already exported can still be exported again.
+              ? "Buy Castfy once to make as many demos as you like, without the watermark."
+              : "Have a beta code? Enter it below to keep going, free and unlimited."}{" "}
+            Demos you already made can still be exported again.
           </DialogDescription>
         </DialogHeader>
 

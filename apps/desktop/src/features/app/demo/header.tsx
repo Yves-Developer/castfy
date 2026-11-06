@@ -1,7 +1,10 @@
 "use client";
+import { FREE_DEMO_LIMIT } from "@castfy/plans";
 import { Button } from "@castfy/ui/components/button";
 import { DownloadIcon, Loader2Icon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { UpgradeDialog } from "@/features/app/billing/upgrade-dialog";
+import { RUN_LIMIT_EVENT } from "@/lib/local-query";
 import { DemoDropMenu } from "./menu";
 import { useExport } from "./use-export";
 import { useStudioProject } from "./use-project";
@@ -86,6 +89,7 @@ export default function DemoHeader() {
           </Button>
         </div>
       </div>
+      <RunLimitDialog />
       <UpgradeDialog
         limit={exporter.limitReached}
         onClose={exporter.dismissLimit}
@@ -95,5 +99,31 @@ export default function DemoHeader() {
         }}
       />
     </header>
+  );
+}
+
+/**
+ * The buy prompt for a run refused because the free demos are used up
+ * (main.js recordingBlocked, or castfy0 itself). Unlocking only closes it:
+ * the user runs again when ready.
+ */
+function RunLimitDialog() {
+  const [limit, setLimit] = useState<number | null>(null);
+  useEffect(() => {
+    const onLimit = (event: Event) => {
+      const value = (event as CustomEvent<number | null>).detail;
+      setLimit(
+        typeof value === "number" && value > 0 ? value : FREE_DEMO_LIMIT
+      );
+    };
+    window.addEventListener(RUN_LIMIT_EVENT, onLimit);
+    return () => window.removeEventListener(RUN_LIMIT_EVENT, onLimit);
+  }, []);
+  return (
+    <UpgradeDialog
+      limit={limit}
+      onClose={() => setLimit(null)}
+      onUnlocked={() => setLimit(null)}
+    />
   );
 }

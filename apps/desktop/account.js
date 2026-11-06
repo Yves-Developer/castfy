@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { app, safeStorage, shell } from 'electron';
@@ -32,11 +33,13 @@ export class Account {
    * @param {string} opts.file      where the encrypted session is kept
    * @param {string} opts.webUrl    the website hosting /api/auth and /device
    * @param {string | null} opts.convexUrl  the Convex backend's .convex.cloud URL
+   * @param {string} [opts.recorderKeyFile]  where castfy0 reads the recorder key
    * @param {(state: object) => void} opts.onChange   account state changed
    * @param {(progress: object) => void} opts.onSignIn  sign-in progress
    */
-  constructor({ file, webUrl, convexUrl, onChange, onSignIn }) {
+  constructor({ file, webUrl, convexUrl, recorderKeyFile, onChange, onSignIn }) {
     this.file = file;
+    this.recorderKeyFile = recorderKeyFile ?? null;
     this.webUrl = webUrl.replace(/\/$/, '');
     this.convexUrl = convexUrl?.replace(/\/$/, '') ?? null;
     /** The Convex JWT and when it expires (ms); minted from the session. */
@@ -110,6 +113,9 @@ export class Account {
       return this.state();
     }
     await this.save(this.token, pickUser(body.user));
+    this.ensureRecorderKey().catch(() => {
+      // Offline or the backend is down: the next launch or run tries again.
+    });
     return this.state();
   }
 
@@ -241,6 +247,9 @@ export class Account {
 
   async signOut() {
     this.cancelSignIn();
+    await this.revokeRecorderKey().catch(() => {
+      // Best effort, like the session: the key file is deleted either way.
+    });
     if (this.token) {
       this.call('/sign-out', { method: 'POST', body: '{}' }).catch(() => {
         // Revoking server-side is best effort; the local session is gone
@@ -429,6 +438,57 @@ export class Account {
     this.user = null;
     this.convexJwt = null;
     await fs.rm(this.file, { force: true });
+    if (this.recorderKeyFile) await fs.rm(this.recorderKeyFile, { force: true });
+  }
+
+  /**
+   * The backend's HTTP actions (.convex.site), where castfy0 asks before it
+   * records: the .convex.cloud address with its last part swapped.
+   */
+  siteUrl() {
+    return this.convexUrl?.replace(/\.convex\.cloud$/, '.convex.site') ?? null;
+  }
+
+  /**
+   * Makes sure castfy0 can ask whether it may record: a recorder key for this
+   * account, registered with the backend and kept in recorderKeyFile, which
+   * castfy0 reads (also when an agent runs it outside the app). The key is
+   * made here and only its SHA-256 goes to the server. It can spend demos and
+   * nothing else, so it is kept readable by the user only, not in the
+   * keychain: castfy0 runs outside Electron and cannot use safeStorage.
+   */
+  async ensureRecorderKey() {
+    if (!(this.recorderKeyFile && this.token && this.user)) return;
+    const siteUrl = this.siteUrl();
+    if (!siteUrl) return;
+    try {
+      const saved = JSON.parse(await fs.readFile(this.recorderKeyFile, 'utf8'));
+      if (saved?.key && saved.userId === this.user.id && saved.siteUrl === siteUrl) return;
+    } catch {
+      // None yet, or unreadable: make a new one.
+    }
+    const key = `rk_${randomBytes(32).toString('base64url')}`;
+    await this.convexCall('mutation', 'billing:issueRecorderKey', { keyHash: sha256(key) });
+    await fs.mkdir(path.dirname(this.recorderKeyFile), { recursive: true });
+    const body = { key, siteUrl, userId: this.user.id, createdAt: new Date().toISOString() };
+    await fs.writeFile(this.recorderKeyFile, `${JSON.stringify(body, null, 2)}\n`, {
+      encoding: 'utf8',
+      mode: 0o600,
+    });
+  }
+
+  /** Ends this app's recorder key on the backend, before signing out. */
+  async revokeRecorderKey() {
+    if (!(this.recorderKeyFile && this.token)) return;
+    let saved;
+    try {
+      saved = JSON.parse(await fs.readFile(this.recorderKeyFile, 'utf8'));
+    } catch {
+      return;
+    }
+    if (saved?.key) {
+      await this.convexCall('mutation', 'billing:revokeRecorderKey', { keyHash: sha256(saved.key) });
+    }
   }
 }
 
@@ -457,4 +517,9 @@ function jwtExpiry(token) {
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** A recorder key's SHA-256, as hex: what the backend stores. */
+function sha256(text) {
+  return createHash('sha256').update(text).digest('hex');
 }

@@ -1,9 +1,10 @@
 /**
  * Castfy's pricing, as the website states it (apps/web/config/data.ts):
  *
- *   Free    5 demos, ever. Full app, 1080p, no watermark.
- *   Castfy  one payment, unlimited demos.
- *   Beta    a tester's beta code, unlimited demos while the beta runs.
+ *   Free    5 demos, ever. Full app, 1080p, with a Castfy watermark.
+ *   Castfy  one payment, unlimited demos, no watermark.
+ *   Beta    a tester's beta code, unlimited demos while the beta runs, no
+ *           watermark.
  *
  * The paid tier is a one-time Dodo Payments product, not a subscription. The
  * backend grants it from Dodo's payment webhooks (packages/backend/convex/
@@ -63,7 +64,10 @@ export function getPlanByProductId(productId: string): PlanKey | null {
   return product ? "lifetime" : null;
 }
 
-/** Demos the free tier may export, over the account's whole life. */
+/**
+ * Demos the free tier may make, over the account's whole life: counted when
+ * castfy0 records one, in the app or from an agent outside it.
+ */
 export const FREE_DEMO_LIMIT = 5;
 
 export interface PlanLimits {
@@ -75,10 +79,9 @@ export interface PlanLimits {
 export function getPlanLimits(plan: PlanKey): PlanLimits {
   return {
     demos: plan === "free" ? FREE_DEMO_LIMIT : "unlimited",
-    // Both tiers export 1080p with no watermark; the limit is the only
-    // difference.
     exportQuality: "1080p",
-    watermark: false,
+    // Free videos carry a small Castfy watermark; paid and beta ones don't.
+    watermark: plan === "free",
   };
 }
 
@@ -114,10 +117,10 @@ export const TIERS: Record<TierKey, PlanTier> = {
     key: "free",
     title: "Free",
     price: `${FREE_DEMO_LIMIT} demos, free`,
-    description: "No watermark, no card, no expiry.",
+    description: "No card, no expiry.",
     features: [
       "The full app, every feature",
-      "1080p export with no watermark",
+      "1080p export, with a small Castfy watermark",
       "Runs on the agent subscription you already pay for",
       "No API key to add, no usage bill",
     ],
@@ -129,7 +132,7 @@ export const TIERS: Record<TierKey, PlanTier> = {
     description: `One time. ${PRICE.symbol}${PRICE.amount} at launch, ${PRICE.symbol}${PRICE.regular} after.`,
     features: [
       "Unlimited demos",
-      "Everything in Free, without the limit",
+      "Everything in Free, without the limit or the watermark",
       "Re-run any flow when your UI changes",
       "A year of updates, and the version you bought keeps working forever",
     ],
