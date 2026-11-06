@@ -67,7 +67,7 @@ export function Spotlight({
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.55)_1.2px,transparent_1.2px)] [background-size:20px_20px]"
+              className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.55)_1.2px,transparent_1.2px)] [background-size:20px_20px] dark:[background-image:radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)]"
             />
             <div className="relative text-foreground">{children}</div>
           </div>

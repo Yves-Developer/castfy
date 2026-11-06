@@ -18,7 +18,7 @@ const TILES: Record<number, { icon: ReactNode; color: string }> = {
   7: { icon: <ZoomInIcon />, color: "bg-[#7c5cff]" },
   9: { icon: <MicIcon />, color: "bg-[#1f9d6b]" },
   12: { icon: <EyeOffIcon />, color: "bg-[#ff5c8a]" },
-  16: { icon: <TerminalIcon />, color: "bg-[#0b0d12]" },
+  16: { icon: <TerminalIcon />, color: "bg-[#0b0d12] dark:bg-[#2a2d35]" },
   19: { icon: <CaptionsIcon />, color: "bg-[#e08a1e]" },
   22: { icon: <RefreshCwIcon />, color: "bg-[#12b5cb]" },
 };

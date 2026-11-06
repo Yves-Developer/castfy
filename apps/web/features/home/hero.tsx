@@ -54,10 +54,10 @@ function AgentLogos() {
       <span className={`${tile} bg-[#d97757] text-white`}>
         <SiClaude />
       </span>
-      <span className={`${tile} bg-black text-white`}>
+      <span className={`${tile} bg-black text-white dark:bg-[#2a2d35]`}>
         <SiOpenai />
       </span>
-      <span className={`${tile} bg-[#14120b] text-white`}>
+      <span className={`${tile} bg-[#14120b] text-white dark:bg-[#2a2d35]`}>
         <CursorLogo />
       </span>
     </span>

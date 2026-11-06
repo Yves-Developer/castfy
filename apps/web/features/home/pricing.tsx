@@ -209,7 +209,7 @@ export function PricingCards() {
           <Features icons={ICONS.free} tier={free} />
         </div>
 
-        <div className="flex flex-col gap-6 rounded-[20px] bg-[#0b0d12] p-7 text-white shadow-[0_30px_80px_-40px_rgba(0,30,70,0.6)]">
+        <div className="flex flex-col gap-6 rounded-[20px] bg-[#0b0d12] p-7 text-white shadow-[0_30px_80px_-40px_rgba(0,30,70,0.6)] dark:bg-[#0c1522] dark:shadow-[0_0_0_1px_rgba(0,153,255,0.55)]">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-medium text-xl">{paid.title}</h3>
