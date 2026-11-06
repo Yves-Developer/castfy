@@ -1,4 +1,6 @@
 {
   "webUrl": "https://castfy.app",
-  "convexUrl": "https://scrupulous-heron-245.convex.cloud"
+  "convexUrl": "https://scrupulous-heron-245.convex.cloud",
+  "posthogKey": "phc_wHdp3Jg84CTqEoYtP56KHsm39ZQkFtypfs7v4ydQiMqS",
+  "posthogHost": "https://us.i.posthog.com"
 }
