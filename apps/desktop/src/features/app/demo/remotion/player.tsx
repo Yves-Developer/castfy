@@ -1,6 +1,8 @@
 "use client";
 import { Player, type PlayerRef } from "@remotion/player";
+import { MicIcon, MousePointer2Icon, ZoomInIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DotField, TOOL, ToolTile } from "@/components/brand";
 import { useLive, useRecordingBrowser } from "@/lib/live-view";
 import { useBackgroundStore } from "@/lib/store";
 import { LiveView } from "./live-view";
@@ -314,11 +316,25 @@ export function RemotionPlayer({
 
   if (!generatedVideoUrl) {
     return (
-      <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center">
-        <p className="font-semibold text-xs">Nothing recorded yet</p>
-        <p className="max-w-60 text-balance text-muted-foreground text-xs">
-          Use the agent panel to record this demo. It will play here when the
-          run finishes.
+      <div className="relative flex aspect-video w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border text-center text-muted-foreground">
+        <DotField />
+        <span className="relative flex gap-1.5">
+          <ToolTile color={TOOL.click}>
+            <MousePointer2Icon />
+          </ToolTile>
+          <ToolTile color={TOOL.zoom}>
+            <ZoomInIcon />
+          </ToolTile>
+          <ToolTile color={TOOL.voice}>
+            <MicIcon />
+          </ToolTile>
+        </span>
+        <p className="relative font-medium text-foreground text-sm">
+          Nothing recorded yet
+        </p>
+        <p className="relative max-w-64 text-balance text-[13px] leading-5">
+          Paste a URL in the agent panel and say what to show. The demo plays
+          here when the run finishes.
         </p>
       </div>
     );

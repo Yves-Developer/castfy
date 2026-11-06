@@ -1,5 +1,6 @@
 import { AspectRatio } from "@castfy/ui/components/aspect-ratio";
-import { Loader2Icon } from "lucide-react";
+import { FilmIcon, Loader2Icon } from "lucide-react";
+import { DotField } from "@/components/brand";
 import Image from "@/components/compat/image";
 import Link from "@/components/compat/link";
 import type { Tdemo } from "@/types";
@@ -24,7 +25,10 @@ export function DemoCard({ demo }: { demo: Tdemo }) {
             src={demo.img}
           />
         ) : (
-          <div className="block size-full rounded-lg bg-muted transition-all duration-300 group-hover:scale-105" />
+          <div className="relative grid size-full place-items-center text-muted-foreground transition-all duration-300 group-hover:scale-105">
+            <DotField className="[mask-image:none]" />
+            <FilmIcon className="relative size-5 opacity-60" />
+          </div>
         )}
         {exporting.busy ? (
           <div

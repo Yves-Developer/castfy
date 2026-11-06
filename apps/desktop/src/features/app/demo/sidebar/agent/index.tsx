@@ -27,12 +27,14 @@ import {
   LinkIcon,
   Loader2,
   SquareIcon,
+  TerminalIcon,
   Volume1Icon,
   VolumeXIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { z } from "zod";
+import { DotField, TOOL, ToolTile } from "@/components/brand";
 import { bridge, type RunUsage } from "@/lib/bridge";
 import { finishedRecording } from "@/lib/local-query";
 import { useBackgroundStore } from "@/lib/store";
@@ -361,9 +363,19 @@ export function AgentTab() {
               }}
               name="webUrl"
             />
-            <div className="flex h-full flex-1 items-center justify-center">
-              <p className="text-center font-medium text-muted-foreground">
-                Get started with <br /> our agent
+            <div className="relative flex h-full flex-1 flex-col items-center justify-center gap-3 overflow-hidden text-center text-muted-foreground">
+              <DotField />
+              <ToolTile
+                className="relative size-9 rounded-xl [&_svg]:size-4.5"
+                color={TOOL.agent}
+              >
+                <TerminalIcon />
+              </ToolTile>
+              <p className="relative font-medium text-foreground text-sm">
+                Your agent records it
+              </p>
+              <p className="relative max-w-52 text-balance text-[13px] leading-5">
+                Paste the URL above, then say below what to show.
               </p>
             </div>
             <div className="mt-auto block">
