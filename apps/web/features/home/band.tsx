@@ -22,8 +22,9 @@ const TONES = {
 /**
  * One section of the home page: a full-width band with the same space above
  * and below, a line across the top where the page rails get a "+", or a
- * ruler for the first band after the hero. Soft bands are light grey; a band
- * can end in one of Castfy's pattern edges, drawn in its colour, hanging into the next one.
+ * ruler for the first band after the hero. Soft bands are light grey, between
+ * the page rails like the content; a band can end in one of Castfy's pattern
+ * edges, drawn in its colour, hanging into the next one.
  */
 export function Band({
   id,
@@ -46,11 +47,18 @@ export function Band({
   const colour = TONES[tone ?? (soft ? "soft" : "plain")];
   return (
     <section className="relative" id={id}>
+      {/* The line across the top runs the full width, through the rails. */}
+      {ruler ? null : (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 left-1/2 w-screen -translate-x-1/2 border-t"
+        />
+      )}
+      {/* The colour stays between the page rails, like the content. */}
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2",
-          !ruler && "border-t",
+          "frame pointer-events-none absolute inset-y-0 right-0 left-0",
           colour.bg
         )}
       />
@@ -75,7 +83,7 @@ export function Band({
         <div
           aria-hidden
           className={cn(
-            "absolute bottom-0 left-1/2 z-10 w-screen -translate-x-1/2 translate-y-full",
+            "frame absolute right-0 bottom-0 left-0 z-10 translate-y-full",
             colour.edge
           )}
         >
