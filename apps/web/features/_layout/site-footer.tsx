@@ -60,7 +60,7 @@ export function SiteFooter({ className }: { className?: string }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
           {footerNavs.map((column) => (
             <div className="flex flex-col gap-3" key={column.title}>
               <span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">

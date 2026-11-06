@@ -141,5 +141,13 @@ export const footerNavs: {
       { label: "Releases", href: siteConfig.releasesUrl, external: true },
     ],
   },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+      { label: "Refunds", href: "/refund" },
+    ],
+  },
 ];
 
