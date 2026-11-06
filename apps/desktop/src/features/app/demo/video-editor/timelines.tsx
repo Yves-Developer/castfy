@@ -16,6 +16,7 @@ import { useBackgroundStore } from "@/lib/store";
 import { planShots, type Shot, shotEndMs } from "../../../../../remotion/zoom";
 import type { CutsApi } from "../use-cuts";
 import { useClipThumbnails, useWaveform } from "./timeline-media";
+import { TOOL, ToolTile } from "@/components/brand";
 
 const FPS = 30;
 
@@ -50,7 +51,7 @@ const MIN_LABEL_PX = 64;
 /** Label spacings to choose from, seconds. */
 const LABEL_STEPS = [1, 2, 5, 10, 15, 30, 60, 120, 300];
 /** Track heights, px: the video track is the tall one, as in an editor. */
-const RULER_H = 22;
+const RULER_H = 24;
 const VIDEO_H = 52;
 const LANE_H = 24;
 const VOICE_H = 32;
@@ -203,7 +204,7 @@ export default function StudioTimelines({
 
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-lg border border-[#2a2a2e] bg-[#161618] text-[#c9c9cf]"
+      className="flex flex-col overflow-hidden rounded-lg border border-[#e2e2e7] bg-[#f7f7f9] text-[#3a3a42] dark:border-[#2a2a2e] dark:bg-[#161618] dark:text-[#c9c9cf]"
       data-castfy-state={JSON.stringify({
         currentFrame,
         durationInFrames,
@@ -214,13 +215,13 @@ export default function StudioTimelines({
       })}
     >
       {/* Toolbar: where the playhead is, and the timeline zoom */}
-      <div className="flex h-8 items-center justify-between border-[#2a2a2e] border-b bg-[#1c1c1f] px-3 text-[11px]">
+      <div className="flex h-8 items-center justify-between border-[#e2e2e7] border-b bg-white dark:border-[#2a2a2e] dark:bg-[#1c1c1f] px-3 text-[11px]">
         <div className="flex items-center gap-3 tabular-nums">
-          <span className="text-white">{timecode(progress * totalMs)}</span>
-          <span className="text-[#6e6e76]">/ {timecode(totalMs)}</span>
+          <span className="text-foreground dark:text-white">{timecode(progress * totalMs)}</span>
+          <span className="text-[#8a8a93] dark:text-[#6e6e76]">/ {timecode(totalMs)}</span>
           {zoom.removed > 0 ? (
             <button
-              className="rounded px-1.5 py-0.5 text-[#9b8cff] hover:bg-white/5"
+              className="rounded px-1.5 py-0.5 text-[#6d57e8] hover:bg-black/5 dark:text-[#9b8cff] dark:hover:bg-white/5"
               onClick={zoom.restore}
               type="button"
             >
@@ -231,7 +232,7 @@ export default function StudioTimelines({
         <div className="flex items-center gap-1.5">
           <button
             aria-label="Zoom the timeline out"
-            className="rounded p-0.5 text-[#8a8a92] hover:bg-white/5 hover:text-white disabled:opacity-30"
+            className="rounded p-0.5 text-[#8a8a92] hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5 dark:hover:text-white disabled:opacity-30"
             disabled={timelineZoom <= 1}
             onClick={() => setTimelineZoom((z) => Math.max(1, z / 1.5))}
             type="button"
@@ -240,7 +241,7 @@ export default function StudioTimelines({
           </button>
           <input
             aria-label="Timeline zoom"
-            className="h-1 w-24 cursor-pointer accent-white"
+            className="h-1 w-24 cursor-pointer accent-[#3a3a42] dark:accent-white"
             max={MAX_TIMELINE_ZOOM}
             min={1}
             onChange={(e) => setTimelineZoom(Number(e.target.value))}
@@ -250,7 +251,7 @@ export default function StudioTimelines({
           />
           <button
             aria-label="Zoom the timeline in"
-            className="rounded p-0.5 text-[#8a8a92] hover:bg-white/5 hover:text-white disabled:opacity-30"
+            className="rounded p-0.5 text-[#8a8a92] hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5 dark:hover:text-white disabled:opacity-30"
             disabled={timelineZoom >= MAX_TIMELINE_ZOOM}
             onClick={() => setTimelineZoom((z) => Math.min(MAX_TIMELINE_ZOOM, z * 1.5))}
             type="button"
@@ -263,20 +264,20 @@ export default function StudioTimelines({
       {timeline ? (
         <div className="flex">
           {/* Track headers */}
-          <div className="flex w-10 flex-none flex-col border-[#2a2a2e] border-r bg-[#1c1c1f]">
+          <div className="flex w-10 flex-none flex-col border-[#e2e2e7] border-r bg-white dark:border-[#2a2a2e] dark:bg-[#1c1c1f]">
             <div style={{ height: RULER_H }} />
-            <TrackHeader height={VIDEO_H} icon={<FilmIcon className="size-3.5" />} label="Video" />
+            <TrackHeader color={TOOL.neutral} height={VIDEO_H} icon={<FilmIcon />} label="Video" />
             {zoom.available ? (
-              <TrackHeader height={LANE_H} icon={<ZoomInIcon className="size-3.5" />} label="Zoom" />
+              <TrackHeader color={TOOL.zoom} height={LANE_H} icon={<ZoomInIcon />} label="Zoom" />
             ) : null}
             {timeline.narration.length > 0 ? (
               <>
-                <TrackHeader height={VOICE_H} icon={<MicIcon className="size-3.5" />} label="Voice" />
-                <TrackHeader height={LANE_H} icon={<TypeIcon className="size-3.5" />} label="Captions" />
+                <TrackHeader color={TOOL.voice} height={VOICE_H} icon={<MicIcon />} label="Voice" />
+                <TrackHeader color={TOOL.type} height={LANE_H} icon={<TypeIcon />} label="Captions" />
               </>
             ) : null}
             {showCuts ? (
-              <TrackHeader height={LANE_H} icon={<ScissorsIcon className="size-3.5" />} label="Cuts" />
+              <TrackHeader color={TOOL.blur} height={LANE_H} icon={<ScissorsIcon />} label="Cuts" />
             ) : null}
           </div>
 
@@ -379,7 +380,7 @@ export default function StudioTimelines({
           </div>
         </div>
       ) : (
-        <p className="py-4 text-center text-[11px] text-[#6e6e76]">
+        <p className="py-4 text-center text-[11px] text-[#8a8a93] dark:text-[#6e6e76]">
           Record this demo to see its timeline.
         </p>
       )}
@@ -387,22 +388,27 @@ export default function StudioTimelines({
   );
 }
 
+/** A track's name, as a tile in its tool's colour (components/brand). */
 function TrackHeader({
+  color,
   height,
   icon,
   label,
 }: {
+  color: string;
   height: number;
   icon: React.ReactNode;
   label: string;
 }) {
   return (
     <div
-      className="flex items-center justify-center border-[#232326] border-t text-[#7c7c84]"
+      className="flex items-center justify-center border-[#e6e6ea] border-t dark:border-[#232326]"
       style={{ height }}
       title={label}
     >
-      {icon}
+      <ToolTile className="size-5 rounded-[5px] [&_svg]:size-3" color={color}>
+        {icon}
+      </ToolTile>
       <span className="sr-only">{label}</span>
     </div>
   );
@@ -410,7 +416,7 @@ function TrackHeader({
 
 function Lane({ height, children }: { height: number; children: React.ReactNode }) {
   return (
-    <div className="relative border-[#232326] border-t" style={{ height }}>
+    <div className="relative border-[#e6e6ea] border-t dark:border-[#232326]" style={{ height }}>
       {children}
     </div>
   );
@@ -470,7 +476,7 @@ function Ruler({
       style={{ height: RULER_H }}
     >
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 bg-white/[0.03]"
+        className="pointer-events-none absolute inset-y-0 left-0 bg-black/[0.03] dark:bg-white/[0.03]"
         data-castfy="progress"
         style={{ width: `${playheadPercent}%` }}
       />
@@ -480,9 +486,9 @@ function Ruler({
           key={tick.at}
           style={{ left: `${(tick.at / Math.max(seconds, 1e-6)) * 100}%` }}
         >
-          <div className={cn("w-px bg-[#46464d]", tick.major ? "h-2" : "h-1")} />
+          <div className={cn("w-px", tick.major ? "h-2.5 bg-[#a0a0a8] dark:bg-[#6a6a73]" : "h-1.5 bg-[#cfcfd5] dark:bg-[#3c3c44]")} />
           {tick.major ? (
-            <span className="-translate-y-full absolute top-[-2px] left-1 text-[9px] text-[#7c7c84] tabular-nums">
+            <span className="-translate-y-full absolute top-[-2px] left-1 font-mono text-[10px] leading-none text-[#6e6e76] tabular-nums dark:text-[#8a8a93]">
               {rulerLabel(tick.at)}
             </span>
           ) : null}
@@ -492,13 +498,13 @@ function Ruler({
   );
 }
 
-/** A white playhead with its handle in the ruler, through every track. */
+/** The playhead (dark in light mode, white in dark mode) with its handle in the ruler, through every track. */
 function Playhead({ percent }: { percent: number }) {
   return (
     <div className="pointer-events-none absolute inset-y-0 right-0 left-0">
       <div className="absolute inset-y-0 w-0" data-castfy="playhead" style={{ left: `${percent}%` }}>
-        <div className="-translate-x-1/2 absolute top-0 h-3 w-2.5 rounded-b-[3px] rounded-t-[1px] bg-white shadow" />
-        <div className="-translate-x-1/2 absolute top-0 bottom-0 w-px bg-white" />
+        <div className="-translate-x-1/2 absolute top-0 h-3 w-2.5 rounded-b-[3px] rounded-t-[1px] bg-foreground shadow dark:bg-white" />
+        <div className="-translate-x-1/2 absolute top-0 bottom-0 w-px bg-foreground dark:bg-white" />
       </div>
     </div>
   );
@@ -519,7 +525,7 @@ function VideoClip({
 }) {
   return (
     <div
-      className="absolute inset-y-[3px] overflow-hidden rounded-[5px] border border-[#3b3b42] bg-[#2a2a30]"
+      className="absolute inset-y-[3px] overflow-hidden rounded-[5px] border border-[#d6d6dc] bg-[#e6e6ea] dark:border-[#3b3b42] dark:bg-[#2a2a30]"
       style={{
         left: `${left}%`,
         width: `${Math.max(0.4, width)}%`,

@@ -9,6 +9,8 @@ import { playheadMs, previewVideo, useBlurTool, videoDurationMs } from "./tool";
 const MIN_SIZE = 0.01;
 /** A box drawn before the video knows its length lasts this long. */
 const FALLBACK_MS = 5000;
+/** How far before the playhead a new box starts: more than a frame. */
+const START_LEAD_MS = 50;
 
 interface Rect {
   height: number;
@@ -177,7 +179,11 @@ export function BlurLayer() {
       const h = Math.abs(drag.y1 - drag.y0);
       if (w >= MIN_SIZE && h >= MIN_SIZE) {
         // From here to the end: a personal email on screen usually stays.
-        const startMs = playheadMs();
+        // A little before the playhead: paused, the preview shows the frame
+        // at the timeline's time, which can be a few ms behind the video's,
+        // and a box starting after it would not show on the frame it was
+        // drawn on.
+        const startMs = Math.max(0, playheadMs() - START_LEAD_MS);
         const duration = videoDurationMs();
         const endMs = duration > startMs ? duration : startMs + FALLBACK_MS;
         const id = addBlur({ x, y, w, h, startMs, endMs });

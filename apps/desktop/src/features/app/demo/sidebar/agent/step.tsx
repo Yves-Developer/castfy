@@ -18,29 +18,52 @@ import {
   UploadIcon,
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
+import { TOOL, ToolTile } from "@/components/brand";
 import type { AgentStep, PackagingStage } from "@/types";
 
 const ICON = "size-3.5";
 
-/** How each castfy0 action reads in the timeline, and the icon beside it. */
-const ACTIONS: Record<string, { label: string; icon: ReactNode }> = {
-  navigate: { label: "Open page", icon: <Globe className={ICON} /> },
-  click: { label: "Click", icon: <MousePointer className={ICON} /> },
-  fill: { label: "Type", icon: <Keyboard className={ICON} /> },
-  select: { label: "Choose", icon: <ChevronDown className={ICON} /> },
-  hover: { label: "Hover", icon: <Move className={ICON} /> },
-  scroll: { label: "Scroll", icon: <ArrowUpDown className={ICON} /> },
-  presskey: { label: "Press key", icon: <Type className={ICON} /> },
-  press_key: { label: "Press key", icon: <Type className={ICON} /> },
-  drag: { label: "Drag", icon: <Move className={ICON} /> },
-  upload: { label: "Upload", icon: <UploadIcon className={ICON} /> },
-  wait: { label: "Wait", icon: <Clock3Icon className={ICON} /> },
-  assert: { label: "Check", icon: <ShieldCheck className={ICON} /> },
-  screenshot: { label: "Screenshot", icon: <CameraIcon className={ICON} /> },
-  newtab: { label: "New tab", icon: <PanelTopIcon className={ICON} /> },
-  switchtab: { label: "Switch tab", icon: <PanelTopIcon className={ICON} /> },
-  closetab: { label: "Close tab", icon: <PanelTopIcon className={ICON} /> },
+/**
+ * How each castfy0 action reads in the timeline, its icon, and its tile's
+ * colour: the tool colours the website uses (components/brand).
+ */
+const ACTIONS: Record<string, { label: string; icon: ReactNode; color: string }> = {
+  navigate: { label: "Open page", icon: <Globe className={ICON} />, color: TOOL.page },
+  click: { label: "Click", icon: <MousePointer className={ICON} />, color: TOOL.click },
+  fill: { label: "Type", icon: <Keyboard className={ICON} />, color: TOOL.type },
+  select: { label: "Choose", icon: <ChevronDown className={ICON} />, color: TOOL.click },
+  hover: { label: "Hover", icon: <Move className={ICON} />, color: TOOL.click },
+  scroll: { label: "Scroll", icon: <ArrowUpDown className={ICON} />, color: TOOL.page },
+  presskey: { label: "Press key", icon: <Type className={ICON} />, color: TOOL.type },
+  press_key: { label: "Press key", icon: <Type className={ICON} />, color: TOOL.type },
+  drag: { label: "Drag", icon: <Move className={ICON} />, color: TOOL.click },
+  upload: { label: "Upload", icon: <UploadIcon className={ICON} />, color: TOOL.page },
+  wait: { label: "Wait", icon: <Clock3Icon className={ICON} />, color: TOOL.neutral },
+  assert: { label: "Check", icon: <ShieldCheck className={ICON} />, color: TOOL.voice },
+  screenshot: { label: "Screenshot", icon: <CameraIcon className={ICON} />, color: TOOL.zoom },
+  newtab: { label: "New tab", icon: <PanelTopIcon className={ICON} />, color: TOOL.page },
+  switchtab: { label: "Switch tab", icon: <PanelTopIcon className={ICON} />, color: TOOL.page },
+  closetab: { label: "Close tab", icon: <PanelTopIcon className={ICON} />, color: TOOL.page },
 };
+
+/** Terminal colour codes (ESC[2m and the like) that error text can carry. */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: ESC is exactly what is removed
+const ANSI = /\u001b\[[0-9;]*m|\[(?:2|22|39|0)m/g;
+/** Playwright's call log after the message: how it waited, not what failed. */
+const CALL_LOG = /^(call log:|- )/i;
+
+/**
+ * An error as a person reads it: without terminal colour codes, and only its
+ * first line or two (a Playwright error goes on with a call log).
+ */
+export function readableError(error: string): string {
+  const lines = error
+    .replace(ANSI, "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !CALL_LOG.test(l));
+  return lines.slice(0, 2).join(" ");
+}
 
 export function describeAction(action: string) {
   const known = ACTIONS[action.toLowerCase()];
@@ -52,6 +75,7 @@ export function describeAction(action: string) {
   return {
     label: words.charAt(0).toUpperCase() + words.slice(1).toLowerCase(),
     icon: <Globe className={ICON} />,
+    color: TOOL.neutral,
   };
 }
 
@@ -80,40 +104,41 @@ function StepRow({
   /** Asks for this step to change in a new take; absent while recording. */
   onChange?: () => void;
 }) {
-  const { label, icon } = describeAction(step.action);
+  const { label, icon, color } = describeAction(step.action);
   const failed = step.status === "error";
   const elapsed = elapsedLabel(step.t, startedAt);
 
   return (
     <li className="group relative flex gap-3 pb-3 last:pb-0">
-      <span
+      <ToolTile
         className={cn(
-          "relative z-10 flex size-6 flex-none items-center justify-center rounded-md border bg-background text-muted-foreground",
-          latest && "border-primary/60 text-foreground",
-          failed && "border-destructive/60 text-destructive"
+          "relative z-10",
+          latest && "ring-2 ring-[#0099ff]/50 ring-offset-1 ring-offset-background",
+          step.excluded && "opacity-40"
         )}
+        color={failed ? "bg-destructive" : color}
       >
         {icon}
-      </span>
+      </ToolTile>
 
       <div className="min-w-0 flex-1 pt-0.5">
         <div className="flex items-center gap-2">
           <span className="font-medium text-foreground text-xs">{label}</span>
           {step.excluded ? (
-            <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-px text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-px text-[11px] text-muted-foreground">
               <ScissorsIcon className="size-2.5" />
               Cut
             </span>
           ) : null}
           {elapsed ? (
-            <span className="ml-auto text-[10px] text-muted-foreground tabular-nums">
+            <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">
               {elapsed}
             </span>
           ) : null}
           {onChange ? (
             <button
               className={cn(
-                "text-[10px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
+                "text-[11px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
                 !elapsed && "ml-auto"
               )}
               onClick={onChange}
@@ -134,7 +159,9 @@ function StepRow({
         {failed && step.error ? (
           <p className="mt-1 flex items-start gap-1.5 text-destructive text-xs">
             <CircleAlertIcon className="mt-0.5 size-3 flex-none" />
-            <span className="break-words">{step.error}</span>
+            <span className="line-clamp-2 break-words" title={step.error}>
+              {readableError(step.error)}
+            </span>
           </p>
         ) : null}
       </div>
@@ -174,7 +201,7 @@ export function StepsTimeline({
       <header className="flex items-center justify-between">
         <h3 className="font-medium text-xs">Agent actions</h3>
         {steps.length > 0 ? (
-          <span className="text-[10px] text-muted-foreground tabular-nums">
+          <span className="text-[11px] text-muted-foreground tabular-nums">
             {steps.length} {steps.length === 1 ? "step" : "steps"}
           </span>
         ) : null}
