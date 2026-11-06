@@ -51,8 +51,8 @@ export function HomeProof() {
         <div className="mx-auto flex max-w-3xl flex-col gap-4 text-center">
           <h2 className="text-h2">The numbers. Even the ugly one.</h2>
           <p className="text-sub">
-            Real recordings, measured on disk. The compression is real and so is
-            the spread.
+            Real runs: how long the agent worked, against the finished, narrated
+            demo. The time saved is real and so is the spread.
           </p>
         </div>
 

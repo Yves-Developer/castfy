@@ -10,19 +10,22 @@ export const navLinks = [
 ];
 
 /**
- * Measured on disk from `edits.json`, 2026-08-30. The 25.3s row is kept
- * deliberately: publishing only the 48x result would be publishing the best day.
+ * Real runs of Castfy beta.25 with Claude Code and a voiceover, 2026-11-06:
+ * how long the agent worked (run-usage.json) against the finished demo
+ * (demo.mp4). Castfy records only the steps, so the waiting never makes it
+ * into the video. The 2.5x tour is kept deliberately: publishing only the
+ * best rows would be publishing the best day.
  */
 export const proof = {
   rows: [
-    { label: "Onboarding flow", raw: "396 s", cut: "8.2 s" },
-    { label: "Pricing walkthrough", raw: "244 s", cut: "6.3 s" },
-    { label: "castfy.app tour", raw: "87.6 s", cut: "9.9 s" },
-    { label: "Short settings demo", raw: "25.3 s", cut: "23.4 s" },
+    { label: "Typeform survey, filled in", raw: "459 s", cut: "99.5 s" },
+    { label: "Pricing walkthrough", raw: "187 s", cut: "39.0 s" },
+    { label: "One FAQ answer", raw: "70.8 s", cut: "19.0 s" },
+    { label: "castfy.app tour", raw: "110 s", cut: "43.8 s" },
   ],
   caveat:
-    "That last row is a demo with almost no dead time in it, so almost nothing came out. A tool that only ever showed you the 48x result would be showing you the best day.",
-  cost: "The castfy.app tour ran on a Claude subscription, so it cost nothing beyond the plan. Priced at API rates instead, the same run would have been about $1.00.",
+    "That last row is a tour where the agent barely waited, and every step has a line to speak, so only 2.5x came out. A tool that only ever showed you its best row would be showing you the best day.",
+  cost: "These ran on a Claude subscription, so they cost nothing beyond the plan. Priced at API rates instead, the survey would have been about $1.67 and the others $0.65 to $0.76.",
 };
 
 export const pricing: { free: PricingTier; paid: PricingTier } = {
@@ -51,7 +54,6 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
       "Everything in the free tier, without the limit",
       "Re-run any flow when your UI changes",
       "A year of updates, and the version you bought keeps working forever",
-      "First 100 buyers get updates for life",
     ],
     cta: "Get launch pricing",
     note: "Recordings run on your own Claude, Codex or Cursor subscription. A demo spends quota you already pay for, not money.",
@@ -150,4 +152,3 @@ export const footerNavs: {
     ],
   },
 ];
-
