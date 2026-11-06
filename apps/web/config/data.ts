@@ -48,15 +48,15 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
     price: "$99",
     unit: "once",
     was: "$149",
-    desc: "One time. $99 for the waitlist, $149 after launch.",
+    desc: "One time. $99 at launch, $149 after.",
     features: [
       "Unlimited demos",
       "Everything in the free tier, without the limit",
       "Re-run any flow when your UI changes",
       "A year of updates, and the version you bought keeps working forever",
     ],
-    cta: "Get launch pricing",
-    note: "Recordings run on your own Claude, Codex or Cursor subscription. A demo spends quota you already pay for, not money.",
+    cta: "Join the beta",
+    note: "Free during the private beta: testers get a beta code for unlimited demos. Recordings run on your own Claude, Codex or Cursor subscription, so a demo spends quota you already pay for, not money.",
   },
 };
 
@@ -73,7 +73,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Do I need a coding agent?",
     answer:
-      "You need one installed and signed in: Claude Code, Codex, or the Cursor CLI. You do not operate it — Castfy writes the job and runs it headless, so you see a step timeline rather than a chat. It uses that subscription, not an API key.",
+      "You need one installed and signed in. Claude Code is the one Castfy is tested with and recommended; Codex and the Cursor CLI work too, but are still experimental. You do not operate it — Castfy writes the job and runs it headless, so you see a step timeline rather than a chat. It uses that subscription, not an API key.",
   },
   {
     question: "How is this different from a hosted demo tool?",
@@ -108,7 +108,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Is it available yet?",
     answer:
-      "Not yet. It is being built in public, for Windows and macOS. Join the list and you will get launch pricing and the first build.",
+      "The private beta opens on November 10, for macOS and Windows. Everyone on the waitlist gets the first build and a personal beta code, which makes Castfy free and unlimited for the beta. Join the list to be included.",
   },
 ];
 
