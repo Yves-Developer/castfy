@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -115,6 +116,9 @@ app.setName('Castfy');
  * Same resolution the MCP uses (castfy0 src/session/manager.ts). The two
  * processes never talk — agreeing on this directory IS the integration.
  */
+/** The recorder key's file name in the library (account.js ensureRecorderKey). */
+const RECORDER_KEY_FILE = '.castfy-recorder.json';
+
 function libraryRoot() {
   const configured = process.env.CASTFY0_OUTPUT_DIR?.trim();
   return configured ? path.resolve(configured) : path.join(app.getPath('userData'), 'recordings');
@@ -491,8 +495,34 @@ async function serveMedia(absPath, rangeHeader) {
  * not stderr, and exit 1 with an empty stderr. Reading only stderr produced a
  * bare "exit 1" for a situation the user could act on immediately.
  */
+/**
+ * castfy0 refused to record: the free demos are used up, or it could not tell
+ * who is signed in (castfy0 src/session/entitlement.ts). The agent passes the
+ * message on and often exits 0, so this is read whatever the exit code.
+ */
+export function explainCastfyRefusal(text = '') {
+  const spent = text.match(/used your (\d+) free Castfy demos/i);
+  if (spent) {
+    return {
+      message: `You've used your ${spent[1]} free demos.`,
+      hint: 'Buy Castfy to keep recording.',
+      limitReached: Number(spent[1]),
+    };
+  }
+  if (/Castfy needs you to sign in before it can record/i.test(text)) {
+    return {
+      message: 'Castfy could not check your account before recording.',
+      hint: 'Check your connection, or sign out and back in to Castfy, then try again.',
+    };
+  }
+  return null;
+}
+
 export function explainAgentFailure({ code, stdout = '', stderr = '' }) {
   const text = `${stdout}\n${stderr}`;
+
+  const refused = explainCastfyRefusal(text);
+  if (refused) return refused;
 
   const limit = text.match(/[^\n]*(?:session limit|usage limit|rate limit)[^\n]*/i);
   if (limit) {
@@ -883,9 +913,31 @@ function remotionEntry() {
   return path.join(dirname, 'remotion', 'index.ts');
 }
 
+/**
+ * This install's key for free-plan demos' clean picture, made once: castfy0
+ * keeps that picture under it, for the export only (castfy0
+ * src/generator/clean-vault.ts). Hex, 32 bytes.
+ */
+let cleanKeyHex = null;
+async function cleanVideoKey() {
+  if (cleanKeyHex) return cleanKeyHex;
+  const file = path.join(app.getPath('userData'), 'clean-video.key');
+  try {
+    const saved = (await fs.readFile(file, 'utf8')).trim();
+    if (/^[0-9a-f]{64}$/.test(saved)) return (cleanKeyHex = saved);
+  } catch {
+    // None yet.
+  }
+  const made = randomBytes(32).toString('hex');
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(file, `${made}\n`, { encoding: 'utf8', mode: 0o600 });
+  return (cleanKeyHex = made);
+}
+
 async function runExport(sessionId, spec = {}, onProgress) {
   const { exportRecording } = await loadExport();
   return exportRecording({
+    cleanKey: Buffer.from(await cleanVideoKey(), 'hex'),
     sessionId,
     libraryRoot: libraryRoot(),
     entryPoint: remotionEntry(),
@@ -1074,6 +1126,9 @@ async function initStores() {
     file: path.join(app.getPath('userData'), 'account.json'),
     webUrl: await webUrl(),
     convexUrl: await convexUrl(),
+    // castfy0 finds it through CASTFY0_OUTPUT_DIR, which every registration
+    // of it already carries (castfy0 src/session/entitlement.ts).
+    recorderKeyFile: path.join(libraryRoot(), RECORDER_KEY_FILE),
     onChange: (state) => {
       trackAccount(state);
       ui?.send('account:changed', state);
@@ -1276,6 +1331,31 @@ function lastWords(text) {
 }
 
 /**
+ * Whether a recording may start, by the account's plan: the free demos left.
+ * castfy0 checks again when it starts (and spends the demo); this only saves
+ * an agent run that would be refused.
+ */
+async function recordingBlocked() {
+  if (account?.state().status !== 'signed-in') return null;
+  try {
+    const me = await account.plan();
+    rememberPlan(me);
+    const limit = me?.limits?.demos;
+    if (typeof limit !== 'number' || me.usage?.remaining !== 0) return null;
+    analytics?.capture('demo_blocked', { limit });
+    return {
+      ok: false,
+      limitReached: true,
+      limit,
+      error: `You've used your ${limit} free demos. Buy Castfy to keep recording.`,
+    };
+  } catch {
+    // Offline or the backend is down: castfy0 asks again when it starts.
+    return null;
+  }
+}
+
+/**
  * Whether this export may run, by the account's plan: billing.beginExport
  * spends one of the free demos, unless this recording was exported before.
  *
@@ -1286,12 +1366,21 @@ function lastWords(text) {
  */
 async function exportAllowance(sessionId) {
   if (account?.state().status !== 'signed-in') return { allowed: true };
+  // Offline: watermarked unless the account was last seen on a paid or beta
+  // plan, so going offline is not a way around the free plan's watermark.
+  const offline = { allowed: true, watermark: lastPlanKey !== 'lifetime' && lastPlanKey !== 'beta' };
   try {
-    return (await account.beginExport(sessionId)) ?? { allowed: true };
+    return (await account.beginExport(sessionId)) ?? offline;
   } catch (error) {
-    if (error instanceof TypeError) return { allowed: true };
+    if (error instanceof TypeError) return offline;
     throw error;
   }
+}
+
+/** The plan the backend last answered with (billing.me), for offline exports. */
+let lastPlanKey = null;
+function rememberPlan(me) {
+  if (me?.plan?.key) lastPlanKey = me.plan.key;
 }
 
 ipcMain.handle('export:render', async (_e, sessionId, spec) => {
@@ -1309,7 +1398,9 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
     exporting += 1;
     const startedAt = Date.now();
     try {
-      const result = await runExport(sessionId, spec ?? {}, (message) =>
+      // The plan decides the watermark, not the window: spec cannot turn it off.
+      const exportSpec = { ...(spec ?? {}), watermark: allowance.watermark === true };
+      const result = await runExport(sessionId, exportSpec, (message) =>
         ui?.send('export:progress', { sessionId, message })
       );
       analytics?.capture('export_finished', {
@@ -1453,7 +1544,9 @@ ipcMain.handle('account:sessions', async () => {
 });
 ipcMain.handle('billing:plan', async () => {
   try {
-    return { ok: true, plan: await account.plan() };
+    const plan = await account.plan();
+    rememberPlan(plan);
+    return { ok: true, plan };
   } catch (error) {
     return { ok: false, error: error?.message ?? String(error) };
   }
@@ -1655,12 +1748,21 @@ ipcMain.handle('demo:run', async (_e, input) => {
     };
   }
 
+  // Out of free demos: say so before the agent spends any of the user's
+  // subscription on a run castfy0 would refuse.
+  const blocked = await recordingBlocked();
+  if (blocked) return blocked;
+
   // Without the browser the agent would start, connect, and fail on its first
   // castfy0_start — a minute in. Saying so up front is kinder.
   const browsers = await browserStatus({ mcpEntry: mcpEntry(), browsersPath: browsersPath() });
   if (!browsers.ready) {
     return { ok: false, error: 'The recording browser is not installed yet. Finish setup first.' };
   }
+
+  // castfy0 asks the backend before it records, with the key kept next to
+  // the library; if making it failed earlier (offline), try again now.
+  await account?.ensureRecorderKey().catch(() => {});
 
   const prompt = composePrompt(input);
   // Claude Code gets castfy0 straight from this file (see writeRunMcpConfig).
@@ -1684,6 +1786,11 @@ ipcMain.handle('demo:run', async (_e, input) => {
     // The composer's switch: in the background (a hidden window, shown live
     // in the studio) unless the user wants to watch the browser itself.
     CASTFY0_BROWSER_WINDOW: input.headless === false ? 'visible' : 'hidden',
+    // The app's own run: castfy0 keeps a free-plan demo's clean picture for
+    // the export, which draws the watermark where zoom cannot crop it.
+    CASTFY0_HOST_APP: 'castfy',
+    // Where a free-plan demo's clean picture is kept for the export.
+    CASTFY0_CLEAN_KEY: await cleanVideoKey(),
   });
   delete env.CASTFY0_HOST_CDP;
   delete env.CASTFY0_HOST_PAGE;
@@ -1784,7 +1891,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
     // Agents explain themselves on stdout as often as stderr.
     const explained =
       code === 0 && !error && !result?.isError
-        ? null
+        ? (runs.active?.sessionIds ?? []).length > 0
+          ? null
+          : explainCastfyRefusal(said)
         : explainAgentFailure({ code, stdout: said, stderr });
     const cancelled = stoppedByUser;
     stoppedByUser = false;
@@ -1841,6 +1950,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
       error: message,
       hint: explained?.hint ?? nothingRecorded?.hint ?? null,
       needsLogin: explained?.needsLogin ? agentId : null,
+      limitReached: explained?.limitReached ?? null,
       runId: run.id,
       projectId: run.projectId,
       sessionId,

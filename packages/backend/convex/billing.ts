@@ -131,52 +131,138 @@ export const me = query({
 });
 
 /**
- * Called by the desktop app before it renders an export. Spends one of the
- * free demos unless this demo was already exported, and returns the settings
- * the render must use.
+ * Spends one of the free demos on this demo, unless it was already counted,
+ * and returns the settings its video must use. With `spend: false` it only
+ * answers whether it could. Shared by exports (the app)
+ * and recordings (castfy0), which use the same id for a demo: recording it
+ * counts it once, and exporting it later does not count it again.
  *
  * Refusal is a return value, not a throw: running out is an expected state
  * the app shows a buy prompt for, not an error.
  */
+async function spendDemo(
+  ctx: MutationCtx,
+  userId: string,
+  demoId: string,
+  { spend = true }: { spend?: boolean } = {}
+) {
+  const plan = await planFor(ctx, userId);
+  const limits = getPlanLimits(plan);
+  const render = {
+    plan,
+    watermark: limits.watermark,
+    exportQuality: limits.exportQuality,
+  };
+
+  const alreadyCounted = await ctx.db
+    .query("exports")
+    .withIndex("by_user_demo", (q) =>
+      q.eq("userId", userId).eq("demoId", demoId)
+    )
+    .first();
+  if (alreadyCounted) {
+    return { allowed: true as const, ...render };
+  }
+
+  if (limits.demos !== "unlimited") {
+    const used = await countExports(ctx, userId);
+    if (used >= limits.demos) {
+      return {
+        allowed: false as const,
+        reason: "limit_reached" as const,
+        plan,
+        limit: limits.demos,
+      };
+    }
+  }
+
+  if (spend) {
+    await ctx.db.insert("exports", {
+      userId,
+      demoId,
+      createdAt: Date.now(),
+    });
+  }
+  return { allowed: true as const, ...render };
+}
+
+/** Called by the desktop app before it renders an export. */
 export const beginExport = mutation({
   args: { demoId: v.string() },
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx);
-    const plan = await planFor(ctx, user._id);
-    const limits = getPlanLimits(plan);
-    const render = {
-      watermark: limits.watermark,
-      exportQuality: limits.exportQuality,
-    };
+    return await spendDemo(ctx, user._id, args.demoId);
+  },
+});
 
-    const alreadyCounted = await ctx.db
-      .query("exports")
-      .withIndex("by_user_demo", (q) =>
-        q.eq("userId", user._id).eq("demoId", args.demoId)
-      )
-      .first();
-    if (alreadyCounted) {
-      return { allowed: true as const, ...render };
+/** A recorder key's SHA-256 is 64 hex characters. */
+const KEY_HASH_PATTERN = /^[0-9a-f]{64}$/;
+
+/**
+ * Registers a recorder key for the signed-in user. The app makes the key
+ * itself and sends only its SHA-256, so the key never reaches the server.
+ */
+export const issueRecorderKey = mutation({
+  args: { keyHash: v.string() },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!KEY_HASH_PATTERN.test(args.keyHash)) {
+      throw new Error("Not a recorder key hash.");
     }
-
-    if (limits.demos !== "unlimited") {
-      const used = await countExports(ctx, user._id);
-      if (used >= limits.demos) {
-        return {
-          allowed: false as const,
-          reason: "limit_reached" as const,
-          plan,
-          limit: limits.demos,
-        };
-      }
+    const existing = await ctx.db
+      .query("recorderKeys")
+      .withIndex("by_hash", (q) => q.eq("keyHash", args.keyHash))
+      .unique();
+    if (!existing) {
+      await ctx.db.insert("recorderKeys", {
+        userId: user._id,
+        keyHash: args.keyHash,
+        createdAt: Date.now(),
+      });
     }
+    return null;
+  },
+});
 
-    await ctx.db.insert("exports", {
-      userId: user._id,
-      demoId: args.demoId,
-      createdAt: Date.now(),
+/** Ends a recorder key, when the app signs out. Only the owner's keys. */
+export const revokeRecorderKey = mutation({
+  args: { keyHash: v.string() },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    const row = await ctx.db
+      .query("recorderKeys")
+      .withIndex("by_hash", (q) => q.eq("keyHash", args.keyHash))
+      .unique();
+    if (row && row.userId === user._id) {
+      await ctx.db.delete(row._id);
+    }
+    return null;
+  },
+});
+
+/**
+ * castfy0 asks, through POST /recorder/begin, before it records a demo, and
+ * says through POST /recorder/finish when the demo is made. Starting only
+ * checks; finishing counts it. A run that fails part-way, or never gets a
+ * browser, does not use up a free demo. An unknown key reads as signed out.
+ */
+export const recorderCall = internalMutation({
+  args: {
+    keyHash: v.string(),
+    demoId: v.string(),
+    stage: v.union(v.literal("begin"), v.literal("finish")),
+  },
+  handler: async (ctx, args) => {
+    const key = await ctx.db
+      .query("recorderKeys")
+      .withIndex("by_hash", (q) => q.eq("keyHash", args.keyHash))
+      .unique();
+    if (!key) {
+      return { allowed: false as const, reason: "signed_out" as const };
+    }
+    return await spendDemo(ctx, key.userId, args.demoId, {
+      spend: args.stage === "finish",
     });
-    return { allowed: true as const, ...render };
   },
 });
 

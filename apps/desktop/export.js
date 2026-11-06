@@ -1,7 +1,10 @@
+import { createDecipheriv } from 'node:crypto';
+import { createReadStream, createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { bundle } from '@remotion/bundler';
 import { getVideoMetadata, renderMedia, selectComposition } from '@remotion/renderer';
 import { findHeadlessShell } from './browsers.js';
@@ -34,6 +37,53 @@ const SOURCE_PREFERENCE = [
  * A trimmed export is silent until narration can be re-timed.
  */
 const UNCUT_SOURCE_PREFERENCE = ['demo-source.mp4', 'demo.webm', 'demo.mp4'];
+
+/** The free plan's watermark, in the app's public folder (remotion/Root.tsx draws it). */
+const WATERMARK_IMAGE = 'castfy-watermark.png';
+
+/**
+ * A free-plan demo's clean picture: demo.mp4 carries the watermark, and
+ * castfy0 keeps this copy, readable only by the app (castfy0
+ * src/generator/clean-vault.ts). AES-256-CTR: the magic, the IV, then the
+ * ciphertext.
+ */
+const CLEAN_VAULT_FILE = '.demo-clean.castfy';
+const VAULT_MAGIC = Buffer.from('CFV1');
+
+/**
+ * Decrypts a demo's clean picture next to the render's other assets, for the
+ * export to render from. Null when the demo has none or it cannot be read
+ * with this key: the export then uses demo.mp4 as it is.
+ */
+async function openCleanVault(sessionDir, key) {
+  if (!key) return null;
+  const vaultPath = path.join(sessionDir, CLEAN_VAULT_FILE);
+  let handle;
+  try {
+    handle = await fs.open(vaultPath, 'r');
+  } catch {
+    return null;
+  }
+  try {
+    const header = Buffer.alloc(VAULT_MAGIC.length + 16);
+    await handle.read(header, 0, header.length, 0);
+    if (!header.subarray(0, VAULT_MAGIC.length).equals(VAULT_MAGIC)) return null;
+    const iv = header.subarray(VAULT_MAGIC.length);
+    const renderDir = path.join(sessionDir, 'render-assets');
+    await fs.mkdir(renderDir, { recursive: true });
+    const out = path.join(renderDir, 'demo-clean.mp4');
+    await pipeline(
+      createReadStream(vaultPath, { start: header.length }),
+      createDecipheriv('aes-256-ctr', key, iv),
+      createWriteStream(out)
+    );
+    return 'render-assets/demo-clean.mp4';
+  } catch {
+    return null;
+  } finally {
+    await handle.close();
+  }
+}
 
 /**
  * The kept spans for a cut, in source time.
@@ -216,6 +266,10 @@ export async function exportRecording({
   cuts = null,
   /** Blur boxes from the studio (remotion/blur.tsx), timed in the finished video. */
   blurs = [],
+  /** Draw the free plan's watermark (billing.beginExport says when). */
+  watermark = false,
+  /** The install's key for free-plan demos' clean picture (main.js cleanVideoKey). */
+  cleanKey = null,
   browsersPath,
   onProgress,
 }) {
@@ -228,7 +282,27 @@ export async function exportRecording({
   );
   if (!sourceFile) throw new Error('This recording has no video to export.');
 
-  const source = path.join(sessionDir, sourceFile);
+  // demo.mp4 of a free-plan demo carries the watermark: render from its clean
+  // picture instead, and draw the watermark on the frame (or not, after an
+  // upgrade). Removed again once the render is done.
+  const cleanCopy = sourceFile === 'demo.mp4' ? await openCleanVault(sessionDir, cleanKey) : null;
+  try {
+    return await renderExport({
+      sessionDir, sessionId, sourceFile, renderFile: cleanCopy ?? sourceFile, entryPoint, publicRoot,
+      outputFile, backgroundCss, backgroundImage, overlays, padding, radius, width, height,
+      trimming, cuts, blurs, watermark, browsersPath, onProgress,
+    });
+  } finally {
+    if (cleanCopy) await fs.rm(path.join(sessionDir, cleanCopy), { force: true });
+  }
+}
+
+async function renderExport({
+  sessionDir, sessionId, sourceFile, renderFile, entryPoint, publicRoot, outputFile,
+  backgroundCss, backgroundImage, overlays, padding, radius, width, height,
+  trimming, cuts, blurs, watermark, browsersPath, onProgress,
+}) {
+  const source = path.join(sessionDir, renderFile);
   const { durationInSeconds } = await getVideoMetadata(source);
   const durationInFrames = Math.max(1, Math.round(durationInSeconds * FPS));
   const keeps = trimming ? keepRangesFromCuts(cuts, durationInSeconds * 1000) : [];
@@ -239,6 +313,10 @@ export async function exportRecording({
 
   onProgress?.('Preparing assets…');
   const bgAsset = await materialiseAsset(publicRoot, sessionDir, backgroundImage);
+  const watermarkAsset = watermark
+    ? await materialiseAsset(publicRoot, sessionDir, WATERMARK_IMAGE)
+    : null;
+  if (watermark && !watermarkAsset) throw new Error("The Castfy watermark image is missing from the app.");
   const overlaySpecs = [];
   for (const overlay of overlays) {
     const src = await materialiseAsset(publicRoot, sessionDir, overlay.src);
@@ -247,17 +325,19 @@ export async function exportRecording({
 
   // Built after the assets are in place, and keyed on them, so the bundle can
   // never be the one from before they existed.
-  const assetNames = [bgAsset, ...overlaySpecs.map((o) => o.src)].filter(Boolean).sort();
+  const assetNames = [bgAsset, watermarkAsset, ...overlaySpecs.map((o) => o.src)]
+    .filter(Boolean)
+    .sort();
   const serveUrl = await getSessionBundle({
     entryPoint,
     sessionDir,
-    key: `${sessionId}|${sourceFile}|${assetNames.join(',')}`,
+    key: `${sessionId}|${renderFile}|${assetNames.join(',')}`,
   });
   const browserExecutable = await findHeadlessShell(browsersPath);
 
   const inputProps = {
     // Relative to the session, which is this bundle's publicDir.
-    src: sourceFile,
+    src: renderFile,
     backgroundCss,
     backgroundImage: bgAsset,
     overlays: overlaySpecs,
@@ -268,6 +348,7 @@ export async function exportRecording({
     height,
     keeps,
     blurs: cleanBlurs(blurs),
+    watermark: watermarkAsset,
     // Auto-zoom follows the recording's own clock, so only untrimmed footage
     // from the segment recorder gets it.
     zoom: !trimming && sourceFile === 'demo.mp4' ? await readZoomTrack(sessionDir) : null,

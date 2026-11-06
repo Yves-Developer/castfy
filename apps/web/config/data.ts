@@ -33,10 +33,10 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
     title: "Try it",
     price: "Free",
     unit: "5 demos",
-    desc: "No watermark, no card, no expiry. Sign in with Google to start.",
+    desc: "No card, no expiry. Sign in with Google to start.",
     features: [
       "The full app, every feature",
-      "1080p export with no watermark",
+      "1080p export, with a small Castfy watermark",
       "Runs on the agent subscription you already pay for",
       "No API key to add, no usage bill from me",
     ],

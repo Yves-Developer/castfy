@@ -62,13 +62,15 @@ export default function TermsPage() {
       <LegalSection title="Plans and payment">
         <ul>
           <li>
-            <strong>Free:</strong> five exported demos per account, with every
-            feature and no watermark.
+            <strong>Free:</strong> five demos per account, with every feature.
+            Their videos carry a small Castfy watermark. A demo counts when it
+            is recorded, in the Castfy app or by an agent outside it, and once
+            only, however often you export it.
           </li>
           <li>
-            <strong>Castfy:</strong> a one-time purchase for unlimited demos,
-            including a year of updates. The version you have when that year
-            ends keeps working.
+            <strong>Castfy:</strong> a one-time purchase for unlimited demos
+            without the watermark, including a year of updates. The version you
+            have when that year ends keeps working.
           </li>
         </ul>
         <p>

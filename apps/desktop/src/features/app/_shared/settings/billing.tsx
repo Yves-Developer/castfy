@@ -133,7 +133,7 @@ function PlanSummary({ plan }: { plan: AccountPlan }) {
             ? `Unlimited demos with your beta code, until ${formatDate(plan.plan.betaEndsAt)}.`
             : "Unlimited demos with your beta code, while the beta runs.")}
         {key === "free" &&
-          `${used} of ${limit ?? FREE_DEMO_LIMIT} free demos exported. A demo counts once, however often you export it.`}
+          `${used} of ${limit ?? FREE_DEMO_LIMIT} free demos used. A demo counts once, when it is recorded, however often you export it.`}
       </p>
       {key === "free" && limit ? (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">

@@ -98,7 +98,10 @@ async function mutation<T = any>(ref: FunctionRef, args: Args): Promise<T> {
           ? args.previousSteps.map(String)
           : null,
       });
-      if (!result.ok) throw new Error(result.error ?? 'Could not start the recording.');
+      if (!result.ok) {
+        if (result.limitReached) showRunLimit(result.limit ?? null);
+        throw new Error(result.error ?? 'Could not start the recording.');
+      }
       run.id = result.runId ?? null;
       // The caller treats this as a job id to follow; the run id is the only
       // handle that exists before the engine creates its session folder.
@@ -199,7 +202,8 @@ function listenToRuns(): void {
     }
   });
 
-  bridge.onDone(async ({ code, error, hint, sessionId, cancelled }) => {
+  bridge.onDone(async ({ code, error, hint, sessionId, cancelled, limitReached }) => {
+    if (limitReached) showRunLimit(limitReached);
     setLive({ sessionId: null, step: null });
     const recorded = liveSessionId;
     liveSessionId = null;
@@ -351,4 +355,12 @@ export function useConvexQuery<T>(ref: FunctionRef, args: Args): T | undefined {
   }, [ref, argsKey]);
 
   return data;
+}
+
+/** The event the demo page opens the buy prompt on (demo/header.tsx). */
+export const RUN_LIMIT_EVENT = 'castfy:run-limit';
+
+/** A run was refused because the free demos are used up. */
+function showRunLimit(limit: number | null) {
+  window.dispatchEvent(new CustomEvent(RUN_LIMIT_EVENT, { detail: limit }));
 }
