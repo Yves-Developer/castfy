@@ -38,6 +38,7 @@ import {
 import { devtoolsEndpoint, openRecordingWindow, sanitizeInput } from './recording-window.js';
 import { readZoomTrack, saveZoomOff } from './zoom-track.js';
 import { Updater } from './updater.js';
+import { Analytics } from './analytics.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -58,6 +59,8 @@ let projects = new ProjectStore('');
 let settings = new SettingsStore('');
 /** @type {Account | null} */
 let account = null;
+/** Usage events (analytics.js), from initStores on. */
+let analytics = null;
 
 /**
  * The backend a packaged app talks to, shipped with it (castfy.config.json).
@@ -1057,14 +1060,33 @@ async function initStores() {
   settings = new SettingsStore(path.join(app.getPath('userData'), 'settings.json'));
   await settings.load();
 
+  const shipped = await shippedConfig();
+  analytics = new Analytics({
+    app,
+    file: path.join(app.getPath('userData'), 'analytics.json'),
+    key: process.env.CASTFY_POSTHOG_KEY ?? shipped.posthogKey,
+    host: process.env.CASTFY_POSTHOG_HOST ?? shipped.posthogHost,
+    enabled: () => settings.state.analytics !== false,
+  });
+  const launch = await analytics.load();
+
   account = new Account({
     file: path.join(app.getPath('userData'), 'account.json'),
     webUrl: await webUrl(),
     convexUrl: await convexUrl(),
-    onChange: (state) => ui?.send('account:changed', state),
+    onChange: (state) => {
+      trackAccount(state);
+      ui?.send('account:changed', state);
+    },
     onSignIn: (progress) => ui?.send('account:signInProgress', progress),
   });
   await account.load();
+  // Already signed in from an earlier launch: events are the account's.
+  analytics.identify(account.state().user);
+  analytics.capture('app_opened', { first_launch: launch.firstLaunch });
+  if (launch.previousVersion && launch.previousVersion !== app.getVersion()) {
+    analytics.capture('app_updated', { from_version: launch.previousVersion });
+  }
 
   // Recordings started straight from Claude Code never went through New Demo,
   // so give them a project or they would never show up in the library.
@@ -1114,6 +1136,22 @@ const updater = new Updater({
   send: (channel, payload) => ui?.send(channel, payload),
   isBusy: () => (running ? 'recording' : exporting > 0 ? 'exporting' : null),
 });
+
+/** Signing in or out, as analytics sees it (see analytics.js). */
+let wasSignedIn = null;
+function trackAccount(state) {
+  const signedIn = state?.status === 'signed-in';
+  if (signedIn === wasSignedIn) return;
+  const first = wasSignedIn === null;
+  wasSignedIn = signedIn;
+  if (signedIn) {
+    analytics?.identify(state.user);
+    if (!first) analytics?.capture('signed_in');
+  } else if (!first) {
+    analytics?.capture('signed_out');
+    analytics?.reset();
+  }
+}
 
 ipcMain.handle('library:list', scanLibrary);
 ipcMain.handle('library:get', (_e, id) => getSession(id));
@@ -1260,6 +1298,7 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
   try {
     const allowance = await exportAllowance(sessionId);
     if (!allowance.allowed) {
+      analytics?.capture('export_blocked', { limit: allowance.limit });
       return {
         ok: false,
         limitReached: true,
@@ -1268,15 +1307,22 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
       };
     }
     exporting += 1;
+    const startedAt = Date.now();
     try {
       const result = await runExport(sessionId, spec ?? {}, (message) =>
         ui?.send('export:progress', { sessionId, message })
       );
+      analytics?.capture('export_finished', {
+        render_s: Math.round((Date.now() - startedAt) / 1000),
+        width: result.width,
+        height: result.height,
+      });
       return { ok: true, ...result };
     } finally {
       exporting -= 1;
     }
   } catch (err) {
+    analytics?.capture('export_failed');
     return { ok: false, error: err?.message ?? String(err) };
   }
 });
@@ -1460,9 +1506,11 @@ ipcMain.handle('agents:select', async (_e, id) => {
   return settings.state.activeAgent;
 });
 
-ipcMain.handle('clients:connect', async (_e, id) =>
-  connectClient(id, expectedRegistration())
-);
+ipcMain.handle('clients:connect', async (_e, id) => {
+  const result = await connectClient(id, expectedRegistration());
+  analytics?.capture(result?.ok ? 'agent_connected' : 'agent_connect_failed', { agent: id });
+  return result;
+});
 
 // --- recorder setup ------------------------------------------------------------
 
@@ -1694,6 +1742,11 @@ ipcMain.handle('demo:run', async (_e, input) => {
   // attributed to this run and a crash leaves a record instead of a folder that
   // reads as "recording" forever.
   const run = runs.start({ url: input.url, goal: input.goal, projectId: input.projectId ?? null });
+  analytics?.capture('demo_started', {
+    agent: agentId,
+    voice: Boolean(input.voice),
+    watched: input.headless === false,
+  });
 
   /**
    * Re-reads the run's progress files every second, alongside the watcher.
@@ -1751,6 +1804,23 @@ ipcMain.handle('demo:run', async (_e, input) => {
     const message = error ?? explained?.message ?? nothingRecorded?.message ?? null;
 
     runs.finish({ code, error: message });
+    // What happened, as a category: never the error text, which can hold a
+    // URL or a path from the user's machine.
+    analytics?.capture(cancelled ? 'demo_cancelled' : message ? 'demo_failed' : 'demo_finished', {
+      agent: agentId,
+      duration_s: Math.round((Date.now() - run.startedAt) / 1000),
+      ...(message && !cancelled
+        ? {
+            reason: error
+              ? 'could_not_start'
+              : explained?.needsLogin
+                ? 'agent_signed_out'
+                : nothingRecorded
+                  ? 'nothing_recorded'
+                  : 'agent_error',
+          }
+        : {}),
+    });
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
     if (sessionId && result?.usage) {
       await saveRunUsage(path.join(libraryRoot(), sessionId), result.usage).catch(() => {});
@@ -1832,6 +1902,8 @@ ipcMain.handle('demo:cancel', () => {
 
 // A run is its own process group, so quitting would otherwise leave it going.
 app.on('before-quit', () => {
+  // Whatever is still waiting goes now; quitting does not wait for it.
+  analytics?.flush();
   recording?.close();
   removeHostFile();
   if (running) killRunTree(running, spawn);

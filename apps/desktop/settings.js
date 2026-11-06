@@ -22,6 +22,10 @@ export class SettingsStore {
        */
       planChosen: false,
       /**
+       * Sends usage events (analytics.js). On unless turned off in Settings.
+       */
+      analytics: true,
+      /**
        * The voiceover chosen last (an Edge voice name), null for none.
        * Absent until chosen once; see useVoiceChoice in the renderer.
        */

@@ -5,8 +5,51 @@ import {
 } from "@castfy/ui/components/avatar";
 import { Button } from "@castfy/ui/components/button";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { bridge } from "@/lib/bridge";
 import { initials, signOut, useAccount } from "@/lib/use-account";
+
+/**
+ * "Share usage data": whether the app sends usage events (analytics.js).
+ * They say which steps were reached, linked to this account, never what was
+ * recorded or typed.
+ */
+function UsageData() {
+  const [on, setOn] = useState<boolean | null>(null);
+  useEffect(() => {
+    bridge
+      .settings()
+      .then((s) => setOn(s.analytics !== false))
+      .catch(() => setOn(true));
+  }, []);
+  if (on === null) {
+    return null;
+  }
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-xl border p-3.5">
+      <input
+        checked={on}
+        className="mt-0.5 size-3.5 accent-foreground"
+        onChange={(e) => {
+          const next = e.target.checked;
+          setOn(next);
+          bridge.setSettings({ analytics: next }).catch(() => {
+            // Preference only; the next event reads whatever was saved.
+          });
+        }}
+        type="checkbox"
+      />
+      <span className="flex flex-col gap-0.5">
+        <span className="font-medium text-[13px]">Share usage data</span>
+        <span className="text-[11px] text-muted-foreground">
+          Which steps you reach (a demo started, finished, exported) and how
+          long they took, with your app version, so we can see where Castfy
+          gets stuck. Never what you record, type or name.
+        </span>
+      </span>
+    </label>
+  );
+}
 
 /**
  * The signed-in account, as Google reports it. Read-only: Google is the only
@@ -47,6 +90,8 @@ export function AccountProfile() {
           your Google account.
         </p>
       </dl>
+
+      <UsageData />
 
       <Button
         className="w-full"

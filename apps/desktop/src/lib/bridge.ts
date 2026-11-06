@@ -107,6 +107,8 @@ export interface AppSettings {
    * never chosen (or chosen before it was kept here).
    */
   voice?: string | null;
+  /** Sends usage events (analytics.js); on unless turned off. */
+  analytics?: boolean;
 }
 
 /** The updater's state (updater.js): ready means downloaded, waiting for a restart. */
