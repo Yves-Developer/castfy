@@ -38,8 +38,8 @@ export function HomeHero() {
       </div>
       <OtherDownloads className="-mt-4 text-muted-foreground text-sm" />
       <p className="text-muted-foreground text-sm">
-        <span className="text-foreground">Requires:</span> Claude Code, Codex,
-        or Cursor CLI
+        <span className="text-foreground">Requires:</span> Claude Code (Codex
+        and Cursor CLI experimental)
       </p>
     </div>
   );
