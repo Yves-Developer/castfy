@@ -40,8 +40,8 @@ function CutBar({
 }
 
 /**
- * Proof from real recordings, laid out like a wall of quotes: the biggest
- * cut in a large card, the others beside it, the ugly one included.
+ * Proof from real runs, laid out like a wall of quotes: the survey in a
+ * large card, the others beside it, the lowest one included.
  */
 export function HomeProof() {
   const [first, ...rest] = proof.rows;
@@ -49,10 +49,10 @@ export function HomeProof() {
     <Band edge="hatch" id="proof" ruler tone="amber">
       <div className="flex flex-col gap-12">
         <div className="mx-auto flex max-w-3xl flex-col gap-4 text-center">
-          <h2 className="text-h2">The numbers. Even the ugly one.</h2>
+          <h2 className="text-h2">Minutes of agent work. A demo you can ship.</h2>
           <p className="text-sub">
-            Real recordings, measured on disk. The compression is real and so is
-            the spread.
+            Four real runs with Claude Code. Page loads, retries and the agent
+            thinking are never recorded. You get only the steps, narrated.
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export function HomeProof() {
               <div className="flex justify-between gap-4 font-mono text-muted-foreground text-xs">
                 <span className="shrink-0">Finished demo</span>
                 <span className="text-right">
-                  Cut by Castfy: page loads, waits, the agent thinking
+                  Never recorded: page loads, waits, the agent thinking
                 </span>
               </div>
             </div>
