@@ -58,6 +58,30 @@ export function SiteFooter({ className }: { className?: string }) {
               Join beta
             </SiteButton>
           </div>
+          <a
+            href="https://www.scrolllaunch.com/products/castfy?ref=badge"
+            rel="noopener"
+            target="_blank"
+          >
+            {/* biome-ignore lint/performance/noImgElement: the directory serves its own badge */}
+            <img
+              alt="Featured on ScrollLaunch"
+              className="dark:hidden"
+              height={48}
+              loading="lazy"
+              src="https://www.scrolllaunch.com/api/badge/castfy"
+              width={220}
+            />
+            {/* biome-ignore lint/performance/noImgElement: the directory serves its own badge */}
+            <img
+              alt="Featured on ScrollLaunch"
+              className="hidden dark:block"
+              height={48}
+              loading="lazy"
+              src="https://www.scrolllaunch.com/api/badge/castfy?theme=dark"
+              width={220}
+            />
+          </a>
         </div>
 
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
