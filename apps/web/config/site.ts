@@ -1,12 +1,14 @@
 export const siteConfig = {
   name: "Castfy",
-  url: "https://www.castfy.app",
+  /** The apex domain: www.castfy.app redirects here. */
+  url: "https://castfy.app",
   /** Kept reachable for existing users; deliberately not linked from the site. */
   appUrl: "https://dashboard.castfy.app",
   waitlistUrl: "https://waitlist.castfy.app",
-  ogImage: "https://www.castfy.app/opengraph-image.png",
+  ogImage: "https://castfy.app/opengraph-image.png",
+  /** About 150 characters: search results cut longer ones off. */
   description:
-    "Castfy turns a URL and a prompt into a product demo video, recorded by a browser running on your own machine — so it reaches localhost, staging, and anything behind a login.",
+    "Turn a URL into a narrated product demo video. Your coding agent clicks through your app on your own machine, so localhost, staging and logins all work.",
   /** Where the desktop app is published (see .github/workflows/desktop-release.yml). */
   releasesUrl: "https://github.com/Yves-Developer/castfy/releases",
   latestReleaseApi:
@@ -21,6 +23,10 @@ export const siteConfig = {
   keywords: [
     "Castfy",
     "product demo video",
+    "AI demo video maker",
+    "Claude Code demo",
+    "screen recording automation",
+    "narrated product demo",
     "demo automation",
     "local demo recorder",
     "localhost demo",

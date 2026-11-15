@@ -4,6 +4,9 @@ import { SupportInfo } from "@/features/support/info";
 
 export const metadata: Metadata = {
   title: "Contact us",
+  description:
+    "Questions, bugs or ideas about Castfy: write to us or join the Discord.",
+  alternates: { canonical: "/contact" },
 };
 export default function ContactPage() {
   return (

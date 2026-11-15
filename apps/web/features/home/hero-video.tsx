@@ -119,7 +119,7 @@ export function HeroVideo() {
               muted
               onClick={toggle}
               playsInline
-              poster="/hero/castfy-hero-poster.jpg"
+              poster="/hero/castfy-hero-poster.webp"
               preload="metadata"
               ref={video}
             >

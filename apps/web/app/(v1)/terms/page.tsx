@@ -9,6 +9,7 @@ import {
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "The terms for using Castfy, its website and your account.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

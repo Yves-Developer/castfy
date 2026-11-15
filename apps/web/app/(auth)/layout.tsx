@@ -1,6 +1,12 @@
 import { MousePointer2Icon } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+
+/** Steps in a task, not pages to find in a search. */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Sign-in and the pages the desktop app sends people to. No marketing header
