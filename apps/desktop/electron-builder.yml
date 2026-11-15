@@ -3,6 +3,7 @@
 #   pnpm dist:dir   unpacked app in release/, for a quick local check
 #   pnpm dist:win   Windows installer (.exe)  — build on Windows
 #   pnpm dist:mac   macOS disk image (.dmg)   — build on macOS
+#   pnpm dist:linux Linux AppImage            — build on Linux
 #
 # Each platform and architecture builds on its own machine: castfy0's ffmpeg,
 # Remotion's compositor and esbuild all install a native binary for the host

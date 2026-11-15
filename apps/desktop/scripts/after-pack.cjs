@@ -132,4 +132,37 @@ exports.default = async function afterPack(context) {
   if (context.electronPlatformName === 'darwin') {
     await patchCompositorForMacos12(path.join(resources, 'app', 'node_modules'));
   }
+  if (context.electronPlatformName === 'linux') {
+    await wrapLinuxLauncher(context);
+  }
 };
+
+/**
+ * On Linux, starts Castfy with --no-sandbox through a small launcher.
+ *
+ * An AppImage cannot ship Chromium's setuid sandbox helper (the image is
+ * mounted without setuid), and Ubuntu 23.10 and later block the user-namespace
+ * sandbox for unconfined apps, so Electron would quit on start there with
+ * "The SUID sandbox helper binary was found, but is not configured
+ * correctly". The switch has to be on the command line: set from main.js it
+ * comes too late. The real binary keeps working on its own, which is what
+ * castfy0 runs (ELECTRON_RUN_AS_NODE, via process.execPath).
+ */
+async function wrapLinuxLauncher(context) {
+  const name = context.packager.executableName;
+  const launcher = path.join(context.appOutDir, name);
+  const binary = path.join(context.appOutDir, `${name}-bin`);
+  await fs.rename(launcher, binary);
+  await fs.writeFile(
+    launcher,
+    [
+      '#!/bin/sh',
+      '# Castfy launcher: see scripts/after-pack.cjs (wrapLinuxLauncher).',
+      'HERE="$(dirname "$(readlink -f "$0")")"',
+      `exec "$HERE/${name}-bin" --no-sandbox "$@"`,
+      '',
+    ].join('\n'),
+    { mode: 0o755 }
+  );
+  console.log(`  • wrapped ${name} to start with --no-sandbox`);
+}

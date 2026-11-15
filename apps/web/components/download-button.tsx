@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaApple, FaWindows } from "react-icons/fa6";
+import { FaApple, FaLinux, FaWindows } from "react-icons/fa6";
 import { siteConfig } from "@/config/site";
 import { SiteButton } from "./site-button";
 
@@ -9,9 +9,16 @@ const MOBILE = /Android|iPhone|iPad|iPod/i;
 const WINDOWS = /Windows/i;
 const MAC = /Macintosh|Mac OS X/i;
 const MAC_NAME = /Macintosh/;
+const LINUX = /Linux|X11/i;
 
 /** What the visitor is on, as far as the browser says. */
-export type Platform = "mac" | "mac-intel" | "windows" | "other" | "mobile";
+export type Platform =
+  | "mac"
+  | "mac-intel"
+  | "windows"
+  | "linux"
+  | "other"
+  | "mobile";
 
 export function detectPlatform(): Platform {
   const ua = navigator.userAgent;
@@ -24,6 +31,10 @@ export function detectPlatform(): Platform {
   }
   if (MAC.test(ua)) {
     return "mac";
+  }
+  // After the phone check, which catches Android ("Linux; Android").
+  if (LINUX.test(ua)) {
+    return "linux";
   }
   return "other";
 }
@@ -115,8 +126,9 @@ export function usePlatform() {
 
 /**
  * Download for the visitor's computer: the Mac build for its chip (Apple
- * silicon unless it is found to be Intel), the Windows installer on Windows, the releases page elsewhere. On a
- * phone, where there is nothing to install, it is not shown.
+ * silicon unless it is found to be Intel), the Windows installer on Windows,
+ * the AppImage on Linux, the releases page elsewhere. On a phone, where there
+ * is nothing to install, it is not shown.
  */
 export function DownloadButton({
   size = "md",
@@ -159,6 +171,20 @@ export function DownloadButton({
       </SiteButton>
     );
   }
+  if (platform === "linux") {
+    return (
+      <SiteButton
+        className={className}
+        download
+        href="/download/linux"
+        icon={<FaLinux />}
+        size={size}
+        variant={variant}
+      >
+        Download for Linux
+      </SiteButton>
+    );
+  }
   return (
     <SiteButton
       className={className}
@@ -190,6 +216,10 @@ export function OtherDownloads({ className }: { className?: string }) {
         ·{" "}
         <a className={link} href="/download/windows">
           Windows
+        </a>{" "}
+        ·{" "}
+        <a className={link} href="/download/linux">
+          Linux
         </a>
       </p>
     );
@@ -204,13 +234,33 @@ export function OtherDownloads({ className }: { className?: string }) {
         ·{" "}
         <a className={link} href="/download/mac-intel">
           Intel
+        </a>{" "}
+        · Linux:{" "}
+        <a className={link} href="/download/linux">
+          AppImage
+        </a>
+      </p>
+    );
+  }
+  if (platform === "linux") {
+    return (
+      <p className={className}>
+        AppImage, for x64. Also for{" "}
+        <a className={link} href="/download/mac">
+          Mac
+        </a>{" "}
+        ·{" "}
+        <a className={link} href="/download/windows">
+          Windows
         </a>
       </p>
     );
   }
   if (platform === "mobile") {
     return (
-      <p className={className}>Castfy runs on a Mac or Windows computer.</p>
+      <p className={className}>
+        Castfy runs on a Mac, Windows or Linux computer.
+      </p>
     );
   }
   return null;
