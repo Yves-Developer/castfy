@@ -8,6 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Refund Policy",
   description: "How refunds work for Castfy.",
+  alternates: { canonical: "/refund" },
 };
 
 /** How long after a purchase a refund is given without questions. */

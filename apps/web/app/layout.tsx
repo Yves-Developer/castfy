@@ -8,7 +8,7 @@ import { fontVariables } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Product demos, made on your machine`,
+    default: `${siteConfig.name} — Turn a URL into a narrated product demo video`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -23,8 +23,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: siteConfig.name,
+    title: `${siteConfig.name} — Turn a URL into a narrated product demo video`,
     description: siteConfig.description,
+    url: siteConfig.url,
     siteName: siteConfig.name,
     images: [
       {
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — Product demos, made on your machine`,
+    title: `${siteConfig.name} — Turn a URL into a narrated product demo video`,
     description: siteConfig.description,
     images: [`${siteConfig.ogImage}`],
     creator: "@YvesDC0",
@@ -53,8 +54,12 @@ const jsonLd = {
   "@type": "Organization",
   name: siteConfig.name,
   url: siteConfig.url,
-  logo: `${siteConfig.url}/favicon.ico`,
-  sameAs: [siteConfig.links.x, siteConfig.links.github, siteConfig.links.youtube],
+  logo: `${siteConfig.url}/web-app-manifest-512x512.png`,
+  sameAs: [
+    siteConfig.links.x,
+    siteConfig.links.github,
+    siteConfig.links.youtube,
+  ],
   description: siteConfig.description,
 };
 export default function RootLayout({

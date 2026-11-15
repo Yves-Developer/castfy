@@ -8,6 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "What Castfy collects, why, and who it is shared with.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
