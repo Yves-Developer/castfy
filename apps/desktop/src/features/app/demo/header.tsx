@@ -103,7 +103,7 @@ export default function DemoHeader() {
 }
 
 /**
- * The buy prompt for a run refused because the free demos are used up
+ * The buy prompt for a run refused because the account has no plan
  * (main.js recordingBlocked, or castfy0 itself). Unlocking only closes it:
  * the user runs again when ready.
  */
@@ -113,7 +113,7 @@ function RunLimitDialog() {
     const onLimit = (event: Event) => {
       const value = (event as CustomEvent<number | null>).detail;
       setLimit(
-        typeof value === "number" && value > 0 ? value : FREE_DEMO_LIMIT
+        typeof value === "number" && value >= 0 ? value : FREE_DEMO_LIMIT
       );
     };
     window.addEventListener(RUN_LIMIT_EVENT, onLimit);

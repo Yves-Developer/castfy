@@ -1,14 +1,16 @@
 /**
  * Castfy's pricing, as the website states it (apps/web/config/data.ts):
  *
- *   Free    5 demos, ever. Full app, 1080p, with a Castfy watermark.
  *   Castfy  one payment, unlimited demos, no watermark.
  *   Beta    a tester's beta code, unlimited demos while the beta runs, no
  *           watermark.
  *
+ * There is no free tier. An account with neither (key "free", shown as "No
+ * plan") cannot record: its demo limit is 0.
+ *
  * The paid tier is a one-time Dodo Payments product, not a subscription. The
  * backend grants it from Dodo's payment webhooks (packages/backend/convex/
- * auth.ts) and counts demos against the free limit (billing.ts).
+ * auth.ts); billing.ts refuses recordings for an account without a plan.
  */
 
 // Guarded: this module is also imported in browsers (the desktop app's
@@ -19,6 +21,16 @@ const DODO_ENVIRONMENT = (
     ? undefined
     : process.env.DODO_PAYMENTS_ENVIRONMENT
 ) as PlanEnvironment | undefined;
+
+/**
+ * The paid product's id, from the Convex dashboard when set: going live is
+ * then a change of keys, mode and this id, without a code change. Falls back
+ * to PRODUCTS below. Guarded like DODO_ENVIRONMENT.
+ */
+const DODO_PRODUCT_ID =
+  typeof process === "undefined"
+    ? undefined
+    : process.env.DODO_PRODUCT_ID?.trim() || undefined;
 
 /** Dodo's two modes: test_mode takes test cards, live_mode real ones. */
 export type PlanEnvironment = "live_mode" | "test_mode";
@@ -55,7 +67,11 @@ export function getProducts() {
       "DODO_PAYMENTS_ENVIRONMENT must be 'live_mode' or 'test_mode'"
     );
   }
-  return PRODUCTS[DODO_ENVIRONMENT];
+  const products = PRODUCTS[DODO_ENVIRONMENT];
+  if (!DODO_PRODUCT_ID) {
+    return products;
+  }
+  return { lifetime: { ...products.lifetime, id: DODO_PRODUCT_ID } };
 }
 
 /** The plan a product grants, or null for a product this app doesn't sell. */
@@ -65,10 +81,12 @@ export function getPlanByProductId(productId: string): PlanKey | null {
 }
 
 /**
- * Demos the free tier may make, over the account's whole life: counted when
- * castfy0 records one, in the app or from an agent outside it.
+ * Demos an account without a plan may make: none. Castfy has no free tier;
+ * a beta code or a purchase is the way in. Still a number, not a removed
+ * plan, so the backend, castfy0 and older apps keep one code path: a limit
+ * of 0 reads as "needs a plan", above 0 as "free demos used up".
  */
-export const FREE_DEMO_LIMIT = 5;
+export const FREE_DEMO_LIMIT = 0;
 
 export interface PlanLimits {
   demos: number | "unlimited";
@@ -86,7 +104,7 @@ export function getPlanLimits(plan: PlanKey): PlanLimits {
 }
 
 const PLAN_NAMES: Record<PlanKey, string> = {
-  free: "Free",
+  free: "No plan",
   lifetime: "Castfy",
   beta: "Beta",
 };
@@ -97,8 +115,10 @@ export function getPlanName(plan: PlanKey): string {
 
 /** The paid tier's price. `regular` is the price after launch. */
 export const PRICE = {
-  amount: 99,
-  regular: 149,
+  amount: 29,
+  regular: 49,
+  /** How many buyers get `amount` before it goes up to `regular`. */
+  earlyBuyers: 20,
   currency: "USD",
   symbol: "$",
 } as const;
@@ -115,24 +135,24 @@ export interface PlanTier {
 export const TIERS: Record<TierKey, PlanTier> = {
   free: {
     key: "free",
-    title: "Free",
-    price: `${FREE_DEMO_LIMIT} demos, free`,
-    description: "No card, no expiry.",
+    title: "Private beta",
+    price: "Free with a beta code",
+    description: "For testers, while the beta runs.",
     features: [
+      "Unlimited demos, no watermark",
       "The full app, every feature",
-      "1080p export, with a small Castfy watermark",
       "Runs on the agent subscription you already pay for",
-      "No API key to add, no usage bill",
+      "No code yet? Join the waitlist at castfy.app",
     ],
   },
   lifetime: {
     key: "lifetime",
     title: "Castfy",
     price: `${PRICE.symbol}${PRICE.amount}`,
-    description: `One time. ${PRICE.symbol}${PRICE.amount} at launch, ${PRICE.symbol}${PRICE.regular} after.`,
+    description: `One time. ${PRICE.symbol}${PRICE.amount} for the first ${PRICE.earlyBuyers} buyers, then ${PRICE.symbol}${PRICE.regular}.`,
     features: [
-      "Unlimited demos",
-      "Everything in Free, without the limit or the watermark",
+      "Unlimited demos, no watermark",
+      "Every feature, 1080p export",
       "Re-run any flow when your UI changes",
       "A year of updates, and the version you bought keeps working forever",
     ],

@@ -11,13 +11,14 @@ import { CheckIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { bridge } from "@/lib/bridge";
 import { BetaCodeForm } from "./beta-code";
-import { PAYMENTS_OPEN, PaymentsSoon } from "./payments-soon";
+import { PaymentsSoon, TestModeNote, usePayments } from "./payments-soon";
 import { useWatchForPurchase } from "./use-plan";
 
 /**
- * Shown when an export is refused because the free demos are used up: buy
- * Castfy, or redeem a beta code. Either one unlocks, and `onUnlocked` runs
- * the export again.
+ * Shown when a recording or export is refused because the account has no
+ * plan (limit 0) or used up the free demos it had before Castfy dropped its
+ * free tier: buy Castfy, or redeem a beta code. Either one unlocks, and
+ * `onUnlocked` runs the export again.
  */
 export function UpgradeDialog({
   limit,
@@ -30,6 +31,7 @@ export function UpgradeDialog({
 }) {
   const [checkingOut, setCheckingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const payments = usePayments();
 
   const unlocked = () => {
     setCheckingOut(false);
@@ -60,12 +62,20 @@ export function UpgradeDialog({
     >
       <DialogContent className="max-w-100">
         <DialogHeader>
-          <DialogTitle>You've used your {limit} free demos</DialogTitle>
+          <DialogTitle>
+            {limit
+              ? `You've used your ${limit} free demos`
+              : payments.open
+                ? "Get Castfy to start recording"
+                : "Enter your beta code to start recording"}
+          </DialogTitle>
           <DialogDescription>
-            {PAYMENTS_OPEN
+            {payments.open
               ? "Buy Castfy once to make as many demos as you like, without the watermark."
-              : "Have a beta code? Enter it below to keep going, free and unlimited."}{" "}
-            Demos you already made can still be exported again.
+              : "Castfy is in private beta. Enter your code below for unlimited demos, or join the waitlist at castfy.app to get one."}
+            {limit
+              ? " Demos you already made can still be exported again."
+              : null}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,11 +100,13 @@ export function UpgradeDialog({
         ) : null}
         {error ? <p className="text-destructive text-xs">{error}</p> : null}
 
-        {PAYMENTS_OPEN ? (
+        {payments.open ? (
           <Button className="h-8 w-full text-xs" onClick={buy} variant="brand">
             {checkingOut ? "Open checkout again" : `Buy Castfy — ${tier.price}`}
           </Button>
-        ) : (
+        ) : null}
+        {payments.open && payments.testMode ? <TestModeNote /> : null}
+        {payments.open ? null : (
           <div className="flex flex-col gap-2">
             <Button className="h-8 w-full text-xs" disabled variant="brand">
               Buying opens soon

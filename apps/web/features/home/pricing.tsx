@@ -133,7 +133,7 @@ const COMPARE: {
     label: "Demos",
     icon: <InfinityIcon />,
     color: "bg-brand",
-    free: "5",
+    free: "Unlimited",
     paid: "Unlimited",
   },
   {
@@ -147,7 +147,7 @@ const COMPARE: {
     label: "1080p export",
     icon: <MonitorPlayIcon />,
     color: "bg-[#e08a1e]",
-    free: "With a small Castfy watermark",
+    free: "No watermark",
     paid: "No watermark",
   },
   {
@@ -161,15 +161,15 @@ const COMPARE: {
     label: "Updates",
     icon: <CalendarClockIcon />,
     color: "bg-[#12b5cb]",
-    free: false,
+    free: "While the beta runs",
     paid: "A year, and your version keeps working",
   },
   {
     label: "Price",
     icon: <GiftIcon />,
     color: "bg-[#ff5c8a]",
-    free: "Free",
-    paid: "$99 once ($149 after launch)",
+    free: "Free with a beta code",
+    paid: "$29 once ($49 after the first 20)",
   },
 ].map((r) => ({
   ...r,

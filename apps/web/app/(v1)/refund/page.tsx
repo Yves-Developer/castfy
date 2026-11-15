@@ -18,8 +18,9 @@ export default function RefundPage() {
     <LegalPage
       intro={
         <p>
-          Castfy has a free plan so you can try it first. If you buy it and it
-          is not right for you, here is how to get your money back.
+          Castfy has no free plan, so every purchase comes with a full refund
+          window. If you buy it and it is not right for you, here is how to get
+          your money back.
         </p>
       }
       title="Refund Policy"
@@ -40,8 +41,8 @@ export default function RefundPage() {
           show it within 5 to 10 business days.
         </p>
         <p>
-          Once refunded, your account goes back to the free plan. Your
-          recordings and projects stay on your computer.
+          Once refunded, your account no longer has a plan and cannot record new
+          demos. Your recordings and projects stay on your computer.
         </p>
       </LegalSection>
 

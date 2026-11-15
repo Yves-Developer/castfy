@@ -1,12 +1,13 @@
-import { FREE_DEMO_LIMIT, TIERS } from "@castfy/plans";
+import { TIERS } from "@castfy/plans";
 import { Badge } from "@castfy/ui/components/badge";
 import { Button } from "@castfy/ui/components/button";
 import { CheckIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { BetaCodeForm } from "@/features/app/billing/beta-code";
 import {
-  PAYMENTS_OPEN,
   PaymentsSoon,
+  TestModeNote,
+  usePayments,
 } from "@/features/app/billing/payments-soon";
 import { usePlan, useWatchForPurchase } from "@/features/app/billing/use-plan";
 import { type AccountPlan, bridge } from "@/lib/bridge";
@@ -21,8 +22,8 @@ function formatDate(ms: number): string {
 }
 
 /**
- * The account's plan: what it is, the free demos used, and what can be done
- * about it (buy Castfy, redeem a beta code, see receipts).
+ * The account's plan: what it is, and what can be done about it (redeem a
+ * beta code, buy Castfy, see receipts). Without either, it cannot record.
  */
 export function AccountBilling() {
   const { plan, loading, error, refresh } = usePlan();
@@ -90,6 +91,8 @@ export function AccountBilling() {
     <div className="flex flex-col gap-6">
       <PlanSummary plan={plan} />
 
+      {key === "free" ? <BetaCodeForm onRedeemed={refresh} /> : null}
+
       {key === "lifetime" ? (
         <Button
           className="h-8 self-start text-xs"
@@ -102,8 +105,6 @@ export function AccountBilling() {
       ) : (
         <BuyCard checkingOut={checkingOut} onBuy={buy} />
       )}
-
-      {key === "free" ? <BetaCodeForm onRedeemed={refresh} /> : null}
 
       {actionError ? (
         <p className="text-destructive text-xs">{actionError}</p>
@@ -123,7 +124,7 @@ function PlanSummary({ plan }: { plan: AccountPlan }) {
       <div className="flex items-center gap-2">
         <p className="font-medium text-sm">{plan.plan.name}</p>
         <Badge className="text-[10px]" variant="secondary">
-          {key === "free" ? "Current plan" : "Active"}
+          {key === "free" ? "Can't record yet" : "Active"}
         </Badge>
       </div>
       <p className="text-muted-foreground text-xs">
@@ -133,7 +134,9 @@ function PlanSummary({ plan }: { plan: AccountPlan }) {
             ? `Unlimited demos with your beta code, until ${formatDate(plan.plan.betaEndsAt)}.`
             : "Unlimited demos with your beta code, while the beta runs.")}
         {key === "free" &&
-          `${used} of ${limit ?? FREE_DEMO_LIMIT} free demos used. A demo counts once, when it is recorded, however often you export it.`}
+          (limit
+            ? `${used} of ${limit} free demos used. Enter a beta code below to keep recording.`
+            : "Castfy is in private beta. Enter your beta code below for unlimited demos, or join the waitlist at castfy.app to get one.")}
       </p>
       {key === "free" && limit ? (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
@@ -160,6 +163,7 @@ function BuyCard({
   checkingOut: boolean;
   onBuy: () => void;
 }) {
+  const payments = usePayments();
   return (
     <div className="flex flex-col gap-3 rounded-xl border p-4">
       <div className="flex items-baseline justify-between">
@@ -186,12 +190,15 @@ function BuyCard({
           Finish your purchase in your browser; this page updates by itself.
         </p>
       ) : null}
-      {PAYMENTS_OPEN ? (
-        <Button className="h-8 text-xs" onClick={onBuy} variant="brand">
-          {checkingOut
-            ? "Open checkout again"
-            : `Buy Castfy — ${TIERS.lifetime.price}`}
-        </Button>
+      {payments.open ? (
+        <>
+          <Button className="h-8 text-xs" onClick={onBuy} variant="brand">
+            {checkingOut
+              ? "Open checkout again"
+              : `Buy Castfy — ${TIERS.lifetime.price}`}
+          </Button>
+          {payments.testMode ? <TestModeNote /> : null}
+        </>
       ) : (
         <>
           <Button className="h-8 text-xs" disabled variant="brand">

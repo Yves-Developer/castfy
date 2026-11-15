@@ -137,6 +137,8 @@ export interface AccountPlan {
     betaEndsAt: number | null;
   };
   limits: PlanLimits;
+  /** Whether Buy works for this account, and in Dodo's test mode. Absent from older backends. */
+  checkout?: { open: boolean; testMode: boolean };
   usage: { demos: number; remaining: number | null };
 }
 
