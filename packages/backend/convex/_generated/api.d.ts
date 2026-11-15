@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as jobs from "../jobs.js";
 import type * as notify from "../notify.js";
+import type * as waitlist from "../waitlist.js";
 
 import type {
   ApiFromModules,
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   jobs: typeof jobs;
   notify: typeof notify;
+  waitlist: typeof waitlist;
 }>;
 
 /**

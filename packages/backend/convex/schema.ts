@@ -164,4 +164,18 @@ export default defineSchema({
   })
     .index("by_hash", ["keyHash"])
     .index("by_user", ["userId"]),
+
+  /**
+   * Beta codes sent automatically to people who joined the waitlist
+   * (waitlist.ts), one per address, so signing up twice never sends a second
+   * code. `code` is empty for addresses marked as already invited by hand.
+   */
+  waitlistInvites: defineTable({
+    /** Lowercased. */
+    email: v.string(),
+    code: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_created", ["createdAt"]),
 });
