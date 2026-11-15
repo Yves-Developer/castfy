@@ -529,6 +529,7 @@ export function explainAgentFailure({ code, stdout = '', stderr = '' }) {
     return {
       message: limit[0].trim(),
       hint: 'Recordings run on your own subscription, so this resets with it.',
+      usageLimit: true,
     };
   }
 
@@ -1136,6 +1137,11 @@ async function initStores() {
     onSignIn: (progress) => ui?.send('account:signInProgress', progress),
   });
   await account.load();
+  // Where the account starts, so the first sign-in after launch counts as a
+  // change: load() does not call onChange, and without this the first
+  // sign-in of a new install read as the starting state and sent no
+  // signed_in at all.
+  wasSignedIn = account.state().status === 'signed-in';
   // Already signed in from an earlier launch: events are the account's.
   analytics.identify(account.state().user);
   analytics.capture('app_opened', { first_launch: launch.firstLaunch });
@@ -1191,6 +1197,16 @@ const updater = new Updater({
   send: (channel, payload) => ui?.send(channel, payload),
   isBusy: () => (running ? 'recording' : exporting > 0 ? 'exporting' : null),
 });
+
+/** Why a run failed, as one word for analytics (demo_failed's reason). */
+function failureReason({ error, explained, nothingRecorded }) {
+  if (error) return 'could_not_start';
+  if (explained?.needsLogin) return 'agent_signed_out';
+  if (explained?.limitReached !== undefined) return 'no_plan';
+  if (explained?.usageLimit) return 'agent_usage_limit';
+  if (nothingRecorded) return 'nothing_recorded';
+  return 'agent_error';
+}
 
 /** Signing in or out, as analytics sees it (see analytics.js). */
 let wasSignedIn = null;
@@ -1920,13 +1936,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
       duration_s: Math.round((Date.now() - run.startedAt) / 1000),
       ...(message && !cancelled
         ? {
-            reason: error
-              ? 'could_not_start'
-              : explained?.needsLogin
-                ? 'agent_signed_out'
-                : nothingRecorded
-                  ? 'nothing_recorded'
-                  : 'agent_error',
+            reason: failureReason({ error, explained, nothingRecorded }),
           }
         : {}),
     });
