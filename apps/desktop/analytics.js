@@ -95,6 +95,9 @@ export class Analytics {
       $os: OS_NAMES[process.platform] ?? process.platform,
       $os_version: os.release(),
       arch: process.arch,
+      // An Intel build on Apple silicon runs under Rosetta and reports x64:
+      // this tells those Macs apart from real Intel ones.
+      rosetta: this.app.runningUnderARM64Translation === true,
       $lib: "castfy-desktop",
       install_id: this.state.installId,
     };
