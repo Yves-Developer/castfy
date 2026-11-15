@@ -470,6 +470,32 @@ function randomCode(): string {
 }
 
 /**
+ * Makes one beta code that no other code has, and stores it. Shared by
+ * createBetaCodes and the waitlist's automatic invites (waitlist.ts).
+ */
+export async function insertBetaCode(
+  ctx: MutationCtx,
+  { note, expiresAt }: { note?: string; expiresAt?: number } = {}
+): Promise<string> {
+  for (;;) {
+    const code = randomCode();
+    const taken = await ctx.db
+      .query("betaCodes")
+      .withIndex("by_code", (q) => q.eq("code", code))
+      .unique();
+    if (!taken) {
+      await ctx.db.insert("betaCodes", {
+        code,
+        note,
+        expiresAt,
+        createdAt: Date.now(),
+      });
+      return code;
+    }
+  }
+}
+
+/**
  * Makes beta codes, one per tester. From packages/backend:
  *
  *   npx convex run billing:createBetaCodes '{"count": 20, "note": "first wave"}'

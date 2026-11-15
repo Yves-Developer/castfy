@@ -1,6 +1,7 @@
 "use server";
 
 import { Resend } from "resend";
+import { type InviteOutcome, sendBetaInvite } from "./beta-invite";
 import type { TWaitlistFormSchema } from "./schema";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -34,20 +35,40 @@ const PERSONAL_DOMAINS = new Set([
  * The Discord embed for a sign-up: a card with a colored strip, the address,
  * and the company it likely comes from when it is a work address.
  */
-function signupEmbed(email: string) {
+/** The beta code line of the Discord post: what the automatic invite did. */
+const INVITE_LABELS: Record<InviteOutcome["status"], string> = {
+  sent: "Sent",
+  not_sent: "Made, but the email failed: send it by hand",
+  already_invited: "Already has one",
+  off: "Automatic codes are off: send one by hand",
+  blocked: "Not sent: throwaway address",
+  capped: "Not sent: today's limit reached, send one by hand",
+  failed: "Not sent: the backend did not answer, send one by hand",
+};
+
+function signupEmbed(email: string, invite: InviteOutcome | null) {
   const domain = email.split("@")[1]?.toLowerCase() ?? "";
   const work = domain !== "" && !PERSONAL_DOMAINS.has(domain);
+  const fields = [
+    { name: "Email", value: email, inline: true },
+    {
+      name: "Type",
+      value: work ? `Work (${domain})` : "Personal",
+      inline: true,
+    },
+  ];
+  if (invite) {
+    const code = "code" in invite ? ` (${invite.code})` : "";
+    fields.push({
+      name: "Beta code",
+      value: `${INVITE_LABELS[invite.status]}${code}`,
+      inline: false,
+    });
+  }
   return {
     title: "New waitlist sign-up",
     color: EMBED_COLOR,
-    fields: [
-      { name: "Email", value: email, inline: true },
-      {
-        name: "Type",
-        value: work ? `Work (${domain})` : "Personal",
-        inline: true,
-      },
-    ],
+    fields,
     footer: { text: "waitlist.castfy.app" },
     timestamp: new Date().toISOString(),
   };
@@ -57,7 +78,7 @@ function signupEmbed(email: string) {
  * Posts the sign-up to the team's Discord channel. Best effort: a failure is
  * logged and otherwise ignored, because the person is already on the list.
  */
-async function announceSignup(email: string) {
+async function announceSignup(email: string, invite: InviteOutcome | null) {
   if (!discordWebhookUrl) {
     return;
   }
@@ -67,7 +88,7 @@ async function announceSignup(email: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username: "Castfy Waitlist",
-        embeds: [signupEmbed(email)],
+        embeds: [signupEmbed(email, invite)],
         // An address must never ping anyone.
         allowed_mentions: { parse: [] },
       }),
@@ -100,7 +121,8 @@ export async function subscribe(formData: TWaitlistFormSchema) {
       return { success: false, error: response.error };
     }
 
-    await announceSignup(email);
+    const invite = await sendBetaInvite(resend, email);
+    await announceSignup(email, invite);
     return { success: true };
   } catch (error) {
     return { success: false, error };
