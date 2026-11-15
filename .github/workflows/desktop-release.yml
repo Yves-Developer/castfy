@@ -258,7 +258,10 @@ jobs:
           else
             test -f latest.yml || { echo "::error::No latest.yml: the app would never see this update"; exit 1; }
           fi
-          ls -la *.yml *.blockmap
+          ls -la *.yml
+          # Windows and macOS write .blockmap files beside their installers; an
+          # AppImage carries its block map inside, so Linux has none.
+          ls -la *.blockmap 2>/dev/null || true
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
