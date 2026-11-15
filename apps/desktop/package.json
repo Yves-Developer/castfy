@@ -13,6 +13,7 @@
     "dist": "pnpm build:renderer && pnpm stage:castfy0 && electron-builder",
     "dist:win": "pnpm build:renderer && pnpm stage:castfy0 && electron-builder --win",
     "dist:mac": "pnpm build:renderer && pnpm stage:castfy0 && electron-builder --mac",
+    "dist:linux": "pnpm build:renderer && pnpm stage:castfy0 && electron-builder --linux",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
  * Serves the desktop app's update files (apps/desktop/updater.js) from the
  * GitHub releases:
  *
- * - latest.yml (Windows) and latest-mac.yml (macOS) come from the newest
+ * - latest.yml (Windows), latest-mac.yml (macOS) and latest-linux.yml
+ *   (Linux) come from the newest
  *   release of the channel: the latest published release, or for test builds
  *   the newest published pre-release. They name the version and its files.
  * - Any other file, an installer, a zip or a .blockmap, is sent on to that
@@ -18,7 +19,11 @@ import { NextResponse } from "next/server";
  * only this file.
  */
 const REPO = "https://api.github.com/repos/Yves-Developer/castfy";
-const UPDATE_FILES = new Set(["latest.yml", "latest-mac.yml"]);
+const UPDATE_FILES = new Set([
+  "latest.yml",
+  "latest-mac.yml",
+  "latest-linux.yml",
+]);
 /** Castfy-<version>-<os>-<arch>.<ext>, as artifactName in electron-builder.yml writes it. */
 const ARTIFACT =
   /^Castfy-(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)-(?:mac|win|linux)-/;

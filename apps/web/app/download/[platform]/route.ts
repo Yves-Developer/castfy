@@ -3,7 +3,8 @@ import { siteConfig } from "@/config/site";
 import { recordDownload } from "@/server/download-event";
 
 /**
- * /download/mac, /download/mac-intel and /download/windows send the visitor
+ * /download/mac, /download/mac-intel, /download/windows and /download/linux
+ * send the visitor
  * to that file in the latest desktop release on GitHub. The file names carry
  * the version (Castfy-0.1.0-beta.23-mac-arm64.dmg), so the release is looked
  * up rather than linked by name; the answer is cached for ten minutes.
@@ -15,6 +16,8 @@ const SUFFIX: Record<string, string> = {
   mac: "-mac-arm64.dmg",
   "mac-intel": "-mac-x64.dmg",
   windows: "-win-x64.exe",
+  // electron-builder names an x64 AppImage x86_64, not x64.
+  linux: "-linux-x86_64.AppImage",
 };
 
 interface Release {

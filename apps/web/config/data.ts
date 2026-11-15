@@ -108,7 +108,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Is it available yet?",
     answer:
-      "Yes, in private beta, for macOS and Windows. Join the waitlist to get a personal beta code, which makes Castfy free and unlimited for the beta. There is no free tier: after the beta, Castfy is one payment, $29 for the first 20 buyers.",
+      "Yes, in private beta, for macOS, Windows and Linux. Join the waitlist to get a personal beta code, which makes Castfy free and unlimited for the beta. There is no free tier: after the beta, Castfy is one payment, $29 for the first 20 buyers.",
   },
 ];
 

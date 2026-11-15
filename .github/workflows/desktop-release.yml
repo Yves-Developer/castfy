@@ -3,7 +3,8 @@
 # publishing the draft release is what offers the update to them.
 #
 # Two ways to start it:
-#   - push a branch like `release/desktop-v0.1.0`: builds, then makes a draft
+#   - push a branch like `release/desktop-v0.1.0`: builds (Windows, macOS
+#     Apple silicon and Intel, Linux AppImage), then makes a draft
 #     GitHub Release `desktop-v0.1.0` with the installers;
 #   - by hand from the Actions tab: builds only.
 #
@@ -69,6 +70,10 @@ jobs:
           - name: macOS Intel
             runner: macos-15-intel
             script: dist:mac
+            arch: x64
+          - name: Linux x64
+            runner: ubuntu-latest
+            script: dist:linux
             arch: x64
 
     steps:
@@ -233,7 +238,8 @@ jobs:
         run: rm -f "$RUNNER_TEMP/developer-id.p12" "$RUNNER_TEMP"/AuthKey_*.p8
 
       # The update files (updater.js): latest.yml on Windows, latest-mac.yml on
-      # macOS, which name the version and its files with their checksums; the
+      # macOS and latest-linux.yml on Linux, which name the version and its
+      # files with their checksums; the
       # macOS zip, which is what an update installs; and the .blockmap files,
       # which let an update download only what changed. Each Mac build writes
       # a latest-mac.yml for its own architecture only, so they are named
@@ -246,6 +252,9 @@ jobs:
             test -f latest-mac.yml || { echo "::error::No latest-mac.yml: the app would never see this update"; exit 1; }
             mv latest-mac.yml "latest-mac-${{ matrix.arch }}.yml"
             ls *.zip > /dev/null || { echo "::error::No zip: macOS cannot install this update"; exit 1; }
+          elif [ "$RUNNER_OS" = "Linux" ]; then
+            test -f latest-linux.yml || { echo "::error::No latest-linux.yml: the app would never see this update"; exit 1; }
+            ls *.AppImage > /dev/null || { echo "::error::No AppImage was built"; exit 1; }
           else
             test -f latest.yml || { echo "::error::No latest.yml: the app would never see this update"; exit 1; }
           fi
@@ -259,6 +268,7 @@ jobs:
             castfy/apps/desktop/release/*.exe
             castfy/apps/desktop/release/*.dmg
             castfy/apps/desktop/release/*.zip
+            castfy/apps/desktop/release/*.AppImage
             castfy/apps/desktop/release/*.blockmap
             castfy/apps/desktop/release/latest*.yml
           if-no-files-found: error
