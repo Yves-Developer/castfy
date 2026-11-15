@@ -118,7 +118,7 @@ function inviteText(code: string) {
 }
 
 function button(href: string, label: string, color: string) {
-  return `<a href="${href}" style="display:inline-block;background:${color};color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:10px">${label}</a>`;
+  return `<a href="${href}" style="display:inline-block;background:${color};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;line-height:20px;padding:8px 16px;border-radius:8px">${label}</a>`;
 }
 
 function inviteHtml(code: string) {
@@ -130,11 +130,15 @@ function inviteHtml(code: string) {
 <p style="${p}">Hi,</p>
 <p style="${p}">Thanks for joining the Castfy waitlist! You're in.</p>
 <p style="${p}">Your beta code: <strong style="font-size:18px;letter-spacing:0.5px">${code}</strong></p>
-<p style="margin:0 0 24px">${button(DOWNLOAD_URL, "Download Castfy", "#0099FF")}</p>
-<p style="${p}">Open it, sign in, and enter your code on the plans step (or Settings → Billing). Then paste a URL, say what to show, and let your agent record it.</p>
+<p style="${p}">How to start:</p>
+<ol style="margin:0 0 16px;padding-left:24px;font-size:15px;line-height:24px;color:#0b0d12">
+<li style="margin:0 0 8px">Download Castfy:<br><span style="display:inline-block;margin-top:6px">${button(DOWNLOAD_URL, "Download Castfy", "#0099FF")}</span></li>
+<li style="margin:0 0 8px">Open it, sign in, and enter your code on the plans step (or Settings → Billing).</li>
+<li>Paste a URL, say what to show, and let your agent record it.</li>
+</ol>
 <p style="${p}">Your code gives you unlimited demos with no watermark during the beta.</p>
 <p style="${p}">When something breaks, tell me: your OS, which agent you used, and whether it was the agent (wrong click) or the edit (cut, zoom or narration). Reply to this email or post in Discord:</p>
-<p style="margin:0 0 24px">${button(DISCORD_URL, "Join the Discord", "#5865F2")}</p>
+<p style="margin:0 0 16px">${button(DISCORD_URL, "Join the Discord", "#5865F2")}</p>
 <p style="${p}">Thanks for testing,<br>Yves</p>
 <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0 16px">
 <p style="margin:0 0 6px;font-size:12px;line-height:18px;color:#6b7280">You're receiving this because you joined the Castfy waitlist at castfy.app. Reply to stop these emails.</p>
