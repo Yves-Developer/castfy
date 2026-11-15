@@ -30,39 +30,39 @@ export const proof = {
 
 export const pricing: { free: PricingTier; paid: PricingTier } = {
   free: {
-    title: "Try it",
+    title: "Private beta",
     price: "Free",
-    unit: "5 demos",
-    desc: "No card, no expiry. Sign in with Google to start.",
+    unit: "with a beta code",
+    desc: "For testers while the beta runs. Got a code? Download Castfy and enter it after you sign in.",
     features: [
+      "Unlimited demos, no watermark",
       "The full app, every feature",
-      "1080p export, with a small Castfy watermark",
       "Runs on the agent subscription you already pay for",
-      "No API key to add, no usage bill from me",
+      "Your feedback goes straight to the maker",
     ],
-    cta: "Download free",
+    cta: "Download",
   },
   paid: {
     title: "Castfy",
-    badge: "Launch price",
-    price: "$99",
+    badge: "Early bird",
+    price: "$29",
     unit: "once",
-    was: "$149",
-    desc: "One time. $99 at launch, $149 after.",
+    was: "$49",
+    desc: "One time. $29 for the first 20 buyers, then $49.",
     features: [
-      "Unlimited demos",
-      "Everything in the free tier, without the limit",
+      "Unlimited demos, no watermark",
+      "Every feature, 1080p export",
       "Re-run any flow when your UI changes",
       "A year of updates, and the version you bought keeps working forever",
     ],
-    cta: "Join the beta",
-    note: "Free during the private beta: testers get a beta code for unlimited demos. Recordings run on your own Claude, Codex or Cursor subscription, so a demo spends quota you already pay for, not money.",
+    cta: "Join the waitlist",
+    note: "Buying opens soon. Until then, Castfy is in private beta: join the waitlist for a beta code. Recordings run on your own Claude, Codex or Cursor subscription, so a demo spends quota you already pay for, not money.",
   },
 };
 
 /** Verified 2026-08-31. Re-check before publishing; a wrong competitor price gets screenshotted. */
 export const pricingKicker =
-  "Demosmith's Pro plan is $99 a month. This is $99.";
+  "Demosmith's Pro plan is $99 a month. This is $29, once.";
 
 export const faqs: FAQItem[] = [
   {
@@ -108,7 +108,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Is it available yet?",
     answer:
-      "The private beta opens on November 10, for macOS and Windows. Everyone on the waitlist gets the first build and a personal beta code, which makes Castfy free and unlimited for the beta. Join the list to be included.",
+      "Yes, in private beta, for macOS and Windows. Join the waitlist to get a personal beta code, which makes Castfy free and unlimited for the beta. There is no free tier: after the beta, Castfy is one payment, $29 for the first 20 buyers.",
   },
 ];
 

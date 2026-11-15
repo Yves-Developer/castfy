@@ -5,22 +5,32 @@ import { CheckIcon, Loader2Icon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { BetaCodeForm } from "@/features/app/billing/beta-code";
 import { bridge } from "@/lib/bridge";
-import { PAYMENTS_OPEN, PaymentsSoon } from "../billing/payments-soon";
+import {
+  PaymentsSoon,
+  TestModeNote,
+  usePayments,
+} from "../billing/payments-soon";
 
 /** How often to look for the purchase while checkout is open. */
 const CHECKOUT_POLL_MS = 4000;
 
+/** Where people without a beta code get one. */
+const WAITLIST_URL = "https://waitlist.castfy.app";
+
 /**
- * Onboarding's plan step, after sign-in, priced as on the website: 5 free
- * demos, or Castfy for one payment. Starting free moves on at once; buying
- * opens Dodo checkout in the browser and the step waits until the purchase
- * reaches the backend (Dodo's webhook), then moves on by itself. Shown once:
+ * Onboarding's plan step, after sign-in, priced as on the website: a beta
+ * code, or Castfy for one payment. There is no free tier, so this is how an
+ * account gets to record. Redeeming moves on at once; buying opens Dodo
+ * checkout in the browser and the step waits until the purchase reaches the
+ * backend (Dodo's webhook), then moves on by itself. "Not now" moves on
+ * without a plan: the library opens, and recording asks again. Shown once:
  * answering it sets settings.planChosen.
  */
 export function ChoosePlan({ onDone }: { onDone: () => void }) {
   const [checkingOut, setCheckingOut] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const payments = usePayments();
 
   const finish = useCallback(async () => {
     await bridge.setSettings({ planChosen: true });
@@ -101,7 +111,7 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
             onClick={finish}
             type="button"
           >
-            Start with the free demos for now
+            Not now
           </button>
         </div>
       </div>
@@ -112,11 +122,11 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
       <header className="flex max-w-125 flex-col items-center gap-1.5 text-center">
         <h1 className="font-semibold text-lg tracking-tight">
-          Choose how to start
+          Castfy is in private beta
         </h1>
         <p className="text-balance text-muted-foreground text-sm">
-          Try Castfy free, or buy it once and never think about limits. You can
-          buy anytime from Settings → Billing.
+          Enter your beta code for unlimited demos while the beta runs, or buy
+          Castfy once. You can do either later in Settings → Billing.
         </p>
       </header>
 
@@ -128,31 +138,36 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
 
       <div className="grid w-full max-w-200 grid-cols-1 rounded-xl border md:grid-cols-2">
         <TierCard tier={TIERS.free}>
-          <Button
-            className="h-8 w-full text-xs"
-            disabled={starting}
-            onClick={finish}
-            variant="secondary"
-          >
-            Start free
-          </Button>
+          <div className="flex flex-col gap-2">
+            <BetaCodeForm onRedeemed={finish} />
+            <button
+              className="self-start text-[11px] text-muted-foreground underline hover:text-foreground"
+              onClick={() => bridge.openExternal(WAITLIST_URL)}
+              type="button"
+            >
+              No code yet? Join the waitlist
+            </button>
+          </div>
         </TierCard>
         <TierCard
           className="border-t md:border-t-0 md:border-l"
           tier={TIERS.lifetime}
         >
-          {PAYMENTS_OPEN ? (
-            <Button
-              className="h-8 w-full text-xs"
-              disabled={starting}
-              onClick={buy}
-              variant="brand"
-            >
-              {starting ? (
-                <Loader2Icon className="size-3.5 animate-spin" />
-              ) : null}
-              Buy Castfy — {TIERS.lifetime.price}
-            </Button>
+          {payments.open ? (
+            <div className="flex flex-col gap-2">
+              <Button
+                className="h-8 w-full text-xs"
+                disabled={starting}
+                onClick={buy}
+                variant="brand"
+              >
+                {starting ? (
+                  <Loader2Icon className="size-3.5 animate-spin" />
+                ) : null}
+                Buy Castfy — {TIERS.lifetime.price}
+              </Button>
+              {payments.testMode ? <TestModeNote /> : null}
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <Button className="h-8 w-full text-xs" disabled variant="brand">
@@ -164,18 +179,18 @@ export function ChoosePlan({ onDone }: { onDone: () => void }) {
         </TierCard>
       </div>
 
-      <div className="w-full max-w-100 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-        <p className="mb-3 text-[11px] text-muted-foreground">
-          Invited to the beta? Your code gives you unlimited demos, free, while
-          the beta runs.
-        </p>
-        <BetaCodeForm onRedeemed={finish} />
-      </div>
-
       <p className="max-w-125 text-balance text-center text-[11px] text-muted-foreground">
         Recordings run on your own Claude, Codex or Cursor subscription. A demo
         spends quota you already pay for, not money.
       </p>
+
+      <button
+        className="text-[11px] text-muted-foreground underline hover:text-foreground"
+        onClick={finish}
+        type="button"
+      >
+        Not now
+      </button>
     </div>
   );
 }

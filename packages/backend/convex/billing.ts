@@ -2,10 +2,12 @@ import {
   getPlanByProductId,
   getPlanLimits,
   getPlanName,
+  getProducts,
+  isPlaceholderProduct,
   type PlanKey,
 } from "@castfy/plans";
 import { v } from "convex/values";
-import { components } from "./_generated/api";
+import { components, internal } from "./_generated/api";
 import {
   internalMutation,
   type MutationCtx,
@@ -92,6 +94,38 @@ async function countExports(ctx: QueryCtx, userId: string): Promise<number> {
  * Everything the app needs to draw the account: who is signed in, their plan,
  * its limits and what they've used. Null when signed out.
  */
+/**
+ * Whether this account sees a working Buy button, and whether checkout is in
+ * Dodo's test mode. Live mode opens it for everyone once a real product is
+ * set; test mode only for the addresses in DODO_TEST_BUYERS (comma-separated),
+ * so the owner can test checkout while testers still see "opens soon". Going
+ * live is a change of Convex settings, not an app release.
+ */
+function checkoutFor(email: string) {
+  const environment = process.env.DODO_PAYMENTS_ENVIRONMENT;
+  const closed = { open: false, testMode: environment === "test_mode" };
+  if (!process.env.DODO_PAYMENTS_API_KEY) {
+    return closed;
+  }
+  let productId: string;
+  try {
+    productId = getProducts().lifetime.id;
+  } catch {
+    return closed;
+  }
+  if (isPlaceholderProduct(productId)) {
+    return closed;
+  }
+  if (environment === "live_mode") {
+    return { open: true, testMode: false };
+  }
+  const testers = (process.env.DODO_TEST_BUYERS ?? "")
+    .split(",")
+    .map((address) => address.trim().toLowerCase())
+    .filter(Boolean);
+  return { open: testers.includes(email.toLowerCase()), testMode: true };
+}
+
 export const me = query({
   args: {},
   handler: async (ctx) => {
@@ -119,6 +153,7 @@ export const me = query({
         betaEndsAt: beta?.expiresAt ?? null,
       },
       limits,
+      checkout: checkoutFor(user.email),
       usage: {
         demos: used,
         remaining:
@@ -202,6 +237,9 @@ const KEY_HASH_PATTERN = /^[0-9a-f]{64}$/;
  * Registers a recorder key for the signed-in user. The app makes the key
  * itself and sends only its SHA-256, so the key never reaches the server.
  */
+/** An account this young signing in counts as a new tester in the alert. */
+const NEW_ACCOUNT_MS = 15 * 60 * 1000;
+
 export const issueRecorderKey = mutation({
   args: { keyHash: v.string() },
   handler: async (ctx, args) => {
@@ -214,10 +252,26 @@ export const issueRecorderKey = mutation({
       .withIndex("by_hash", (q) => q.eq("keyHash", args.keyHash))
       .unique();
     if (!existing) {
+      // A new key is a fresh sign-in in the app: tell the team's Discord
+      // (notify.appSignIn), first time or another device.
+      const devices = await ctx.db
+        .query("recorderKeys")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .take(20);
       await ctx.db.insert("recorderKeys", {
         userId: user._id,
         keyHash: args.keyHash,
         createdAt: Date.now(),
+      });
+      const plan = await planFor(ctx, user._id);
+      await ctx.scheduler.runAfter(0, internal.notify.appSignIn, {
+        email: user.email,
+        name: user.name || undefined,
+        plan: getPlanName(plan),
+        // Recorder keys go on sign-out, so "first time" comes from the
+        // account's age, not from having no key.
+        firstTime: Date.now() - Number(user.createdAt) < NEW_ACCOUNT_MS,
+        devices: devices.length + 1,
       });
     }
     return null;

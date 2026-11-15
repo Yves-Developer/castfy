@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const LEGAL_EMAIL = "castfy.app@gmail.com";
 
 /** The date the legal pages last changed; shown on each of them. */
-export const LEGAL_UPDATED = "November 6, 2026";
+export const LEGAL_UPDATED = "November 15, 2026";
 
 /** A legal page: a title, when it last changed, then its sections. */
 export function LegalPage({

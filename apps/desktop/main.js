@@ -496,17 +496,30 @@ async function serveMedia(absPath, rangeHeader) {
  * bare "exit 1" for a situation the user could act on immediately.
  */
 /**
- * castfy0 refused to record: the free demos are used up, or it could not tell
- * who is signed in (castfy0 src/session/entitlement.ts). The agent passes the
- * message on and often exits 0, so this is read whatever the exit code.
+ * What an account that may not record is told: it has no plan (limit 0, as
+ * Castfy has no free tier), or it used up free demos it had before that.
+ */
+export function noPlanMessage(limit) {
+  return limit > 0
+    ? `You've used your ${limit} free demos.`
+    : 'Castfy needs a beta code or a purchase to record.';
+}
+
+/**
+ * castfy0 refused to record: the account has no plan, or castfy0 could not
+ * tell who is signed in (castfy0 src/session/entitlement.ts). The agent
+ * passes the message on and often exits 0, so this is read whatever the exit
+ * code.
  */
 export function explainCastfyRefusal(text = '') {
   const spent = text.match(/used your (\d+) free Castfy demos/i);
-  if (spent) {
+  const noPlan = /Castfy needs a beta code or a purchase/i.test(text);
+  if (spent || noPlan) {
+    const limit = spent ? Number(spent[1]) : 0;
     return {
-      message: `You've used your ${spent[1]} free demos.`,
-      hint: 'Buy Castfy to keep recording.',
-      limitReached: Number(spent[1]),
+      message: noPlanMessage(limit),
+      hint: 'Enter your beta code in Settings → Billing, or join the waitlist at castfy.app to get one.',
+      limitReached: limit,
     };
   }
   if (/Castfy needs you to sign in before it can record/i.test(text)) {
@@ -1331,7 +1344,7 @@ function lastWords(text) {
 }
 
 /**
- * Whether a recording may start, by the account's plan: the free demos left.
+ * Whether a recording may start, by the account's plan: none without one.
  * castfy0 checks again when it starts (and spends the demo); this only saves
  * an agent run that would be refused.
  */
@@ -1347,7 +1360,7 @@ async function recordingBlocked() {
       ok: false,
       limitReached: true,
       limit,
-      error: `You've used your ${limit} free demos. Buy Castfy to keep recording.`,
+      error: noPlanMessage(limit),
     };
   } catch {
     // Offline or the backend is down: castfy0 asks again when it starts.
@@ -1392,7 +1405,7 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
         ok: false,
         limitReached: true,
         limit: allowance.limit,
-        error: `You've used your ${allowance.limit} free demos.`,
+        error: noPlanMessage(allowance.limit),
       };
     }
     exporting += 1;
@@ -1748,7 +1761,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
     };
   }
 
-  // Out of free demos: say so before the agent spends any of the user's
+  // No plan: say so before the agent spends any of the user's
   // subscription on a run castfy0 would refuse.
   const blocked = await recordingBlocked();
   if (blocked) return blocked;

@@ -13,6 +13,7 @@ import type * as billing from "../billing.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as jobs from "../jobs.js";
+import type * as notify from "../notify.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   http: typeof http;
   jobs: typeof jobs;
+  notify: typeof notify;
 }>;
 
 /**

@@ -37,7 +37,7 @@ export default function TermsPage() {
           Castfy is in a private beta. It is still changing, may have bugs, and
           features may be added, changed or removed. Beta codes are personal:
           one per person, not to be shared or sold. A code gives unlimited demos
-          until the beta ends; after that, your account moves to the free plan
+          until the beta ends; after that, your account can no longer record
           unless you buy Castfy.
         </p>
       </LegalSection>
@@ -62,10 +62,10 @@ export default function TermsPage() {
       <LegalSection title="Plans and payment">
         <ul>
           <li>
-            <strong>Free:</strong> five demos per account, with every feature.
-            Their videos carry a small Castfy watermark. A demo counts when it
-            is recorded, in the Castfy app or by an agent outside it, and once
-            only, however often you export it.
+            <strong>Beta:</strong> a personal beta code gives unlimited demos
+            without the watermark while the beta runs. There is no free plan: an
+            account without a beta code or a purchase cannot record, in the
+            Castfy app or by an agent outside it.
           </li>
           <li>
             <strong>Castfy:</strong> a one-time purchase for unlimited demos
@@ -94,8 +94,8 @@ export default function TermsPage() {
         <p>
           Do not use Castfy to break the law, to access systems you are not
           allowed to, to record or publish other people's private data without
-          permission, or to get around the free limit or beta codes. We may
-          suspend accounts that do.
+          permission, or to get around plan checks or beta codes. We may suspend
+          accounts that do.
         </p>
       </LegalSection>
 

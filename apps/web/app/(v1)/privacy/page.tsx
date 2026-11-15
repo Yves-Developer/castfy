@@ -52,9 +52,9 @@ export default function PrivacyPage() {
           <li>
             <strong>Your plan and usage:</strong> your plan, any beta code you
             redeemed, and a record of each demo you make (an ID and the time),
-            which is how the free limit is counted. Not the video or what is in
-            it. To check the limit when an agent records outside the app, the
-            app keeps a key for this on your computer, which only works for this
+            which is how your plan is checked. Not the video or what is in it.
+            To check your plan when an agent records outside the app, the app
+            keeps a key for this on your computer, which only works for this
             check and ends when you sign out.
           </li>
           <li>
