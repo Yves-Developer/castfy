@@ -3,6 +3,7 @@ import blurShot from "@/public/landing/blur.webp";
 import recordShot from "@/public/landing/record.webp";
 import studioShot from "@/public/landing/studio.webp";
 import voiceShot from "@/public/landing/voice.webp";
+import windowShot from "@/public/landing/window.webp";
 
 export type ChangeKind = "New" | "Improved" | "Fixed";
 
@@ -25,6 +26,40 @@ export interface ChangelogEntry {
  * notes); several small betas can share one.
  */
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "beta-28",
+    version: "0.1.0-beta.28",
+    date: "2026-11-16",
+    title: "Your demo in a browser window",
+    summary:
+      "Demos now play inside a browser window, with the same space all around it and a calmer camera.",
+    changes: [
+      {
+        kind: "New",
+        text: "A browser window around the recording, light or dark, with a tab and the page's address. Or no window at all.",
+      },
+      {
+        kind: "New",
+        text: "Fit window: the video takes the window's shape, so the space around it is the same on every side.",
+      },
+      {
+        kind: "New",
+        text: "Padding: small, medium or large space around the window.",
+      },
+      {
+        kind: "Improved",
+        text: "Calm zoom, the new default: it moves in gently only to read what is typed, and the window holds still otherwise. The zoom on every click is still there as Punchy, or turn zoom off.",
+      },
+      {
+        kind: "Improved",
+        text: "The Studio preview takes the exact shape of the export, whatever size you pick.",
+      },
+    ],
+    image: {
+      src: windowShot,
+      alt: "A demo in a light browser window on a blue background, zoomed in gently on an email being typed",
+    },
+  },
   {
     id: "beta-27",
     version: "0.1.0-beta.27",
