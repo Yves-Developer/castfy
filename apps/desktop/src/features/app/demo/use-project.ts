@@ -19,6 +19,7 @@ function editorSliceOf(state: ReturnType<typeof useBackgroundStore.getState>): E
     blurs: state.blurs,
     selectedAspectRatio: state.selectedAspectRatio,
     customDimensions: state.customDimensions,
+    frame: state.frame,
   };
 }
 
@@ -100,19 +101,23 @@ export function useStudioSource(
     (mode === 'result' ? bestVideo(project?.session) : editingSource(project?.session)) ?? null;
 
   const setZoomTrack = useBackgroundStore((s) => s.setZoomTrack);
+  const setStartUrl = useBackgroundStore((s) => s.setStartUrl);
+  const startUrl = project?.session?.startUrl ?? null;
   // Auto-zoom is timed to demo.mp4 itself; a cut file has moved its frames.
   const zoom = url?.includes('demo.mp4') ? (project?.session?.timeline?.zoom ?? null) : null;
 
   useEffect(() => {
     setGeneratedVideoUrl(url);
     setZoomTrack(zoom);
+    setStartUrl(startUrl);
     // Cleared on the way out, so a project that has not been recorded yet
     // cannot show the previous one's footage.
     return () => {
       setGeneratedVideoUrl(null);
       setZoomTrack(null);
+      setStartUrl(null);
     };
-  }, [url, zoom, setGeneratedVideoUrl, setZoomTrack]);
+  }, [url, zoom, startUrl, setGeneratedVideoUrl, setZoomTrack, setStartUrl]);
 
   return url;
 }

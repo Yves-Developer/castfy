@@ -31,6 +31,7 @@ import {
   getBackgroundThumbnailUrl,
 } from "@/lib/r2/r2-backgrounds";
 import { useBackgroundStore } from "@/lib/store";
+import { WindowSettings } from "./window-settings";
 
 // Shadow overlay IDs
 const OVERLAY_SHADOW_IDS = [
@@ -222,7 +223,15 @@ export function BackgroundTab() {
 
   return (
     <div className="flex h-full flex-col">
-      <Accordion collapsible defaultValue="light-shadow" type="single">
+      <Accordion collapsible defaultValue="window" type="single">
+        <AccordionItem value="window">
+          <AccordionTrigger className="text-foreground hover:no-underline data-[state=closed]:text-muted-foreground">
+            Window
+          </AccordionTrigger>
+          <AccordionContent className="h-full">
+            <WindowSettings />
+          </AccordionContent>
+        </AccordionItem>
         <AccordionItem value="light-shadow">
           <AccordionTrigger className="text-foreground hover:no-underline data-[state=closed]:text-muted-foreground">
             Light Shadow

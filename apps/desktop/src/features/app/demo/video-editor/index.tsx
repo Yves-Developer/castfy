@@ -1,7 +1,7 @@
 "use client";
 import type { PlayerRef } from "@remotion/player";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { aspectRatios } from "@/lib/constants/aspect-ratios";
+import { videoFrameSize } from "@/lib/frame-size";
 import { useBackgroundStore } from "@/lib/store";
 import { editingSource, isSegmentRecording } from "@/lib/projects";
 import { useStudioProject, useStudioSource } from "../use-project";
@@ -16,7 +16,8 @@ import StudioTimelines from "./timelines";
 const SKIP_SECONDS = 10;
 const FPS = 30;
 export default function AppVideoEditor() {
-  const { selectedAspectRatio } = useBackgroundStore();
+  const { selectedAspectRatio, customDimensions, frame, zoomTrack } =
+    useBackgroundStore();
   /**
    * Defaults to "result": the AI's clean cut, with narration — the thing that
    * gets exported, so what you watch is what you ship.
@@ -49,11 +50,16 @@ export default function AppVideoEditor() {
    */
   const tracksFit = mode === "edit" || (source !== null && source === editingSource(project?.session));
 
-  const currentRatio = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
-  const ratioValue =
-    currentRatio && currentRatio.width > 0 && currentRatio.height > 0
-      ? currentRatio.width / currentRatio.height
-      : 16 / 9;
+  // The preview's shape is the export's, "Fit window" included.
+  const frameSize = videoFrameSize({
+    selectedAspectRatio,
+    customDimensions,
+    frame,
+    videoAspect: zoomTrack
+      ? zoomTrack.viewport.width / zoomTrack.viewport.height
+      : 16 / 9,
+  });
+  const ratioValue = frameSize.width / frameSize.height;
   const [durationInFrames, setDurationInFrames] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentFrame, setCurrentFrame] = useState(0);

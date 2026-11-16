@@ -1,5 +1,6 @@
 "use client";
 import type { BlurBox } from "../../../remotion/blur";
+import { DEFAULT_FRAME, type FrameSettings } from "../../../remotion/frame";
 import type { ZoomTrack } from "../../../remotion/zoom";
 
 import { temporal } from "zundo";
@@ -34,6 +35,8 @@ export interface EditorState {
   /** Parts of the video the user hid: an email, a name, a key. */
   blurs: BlurBox[];
   customDimensions: { width: number; height: number } | null;
+  /** The browser window around the video, its margin, and how it zooms. */
+  frame: FrameSettings;
   imageOverlays: ImageOverlay[];
   selectedAspectRatio: AspectRatioKey;
 }
@@ -49,11 +52,15 @@ export interface BackgroundState extends EditorState {
   removeBlur: (id: string) => void;
   /** Not part of EditorState: it belongs to the recording, not the look. */
   generatedVideoUrl: string | null;
+  /** The page the current recording starts on, for the window's address bar. */
+  startUrl: string | null;
+  setStartUrl: (url: string | null) => void;
   /** Where auto-zoom moves to in the current recording; null for none. */
   zoomTrack: ZoomTrack | null;
   setZoomTrack: (track: ZoomTrack | null) => void;
   removeImageOverlay: (id: string) => void;
   setAspectRatio: (aspectRatio: AspectRatioKey) => void;
+  setFrame: (updates: Partial<FrameSettings>) => void;
 
   // Background methods
   setBackgroundType: (type: BackgroundType) => void;
@@ -72,8 +79,10 @@ export const DEFAULT_EDITOR: EditorState = {
   },
   imageOverlays: [],
   blurs: [],
-  selectedAspectRatio: "16:9",
+  // The window's own shape, with even padding; 16:9 and the rest stay a click away.
+  selectedAspectRatio: "fit",
   customDimensions: null,
+  frame: DEFAULT_FRAME,
 };
 
 export const useBackgroundStore = create<BackgroundState>()(
@@ -83,6 +92,7 @@ export const useBackgroundStore = create<BackgroundState>()(
     blurs: DEFAULT_EDITOR.blurs,
     selectedAspectRatio: DEFAULT_EDITOR.selectedAspectRatio,
     customDimensions: DEFAULT_EDITOR.customDimensions,
+    frame: DEFAULT_EDITOR.frame,
 
     /**
      * Opening a project must replace the look wholesale, including clearing
@@ -90,12 +100,24 @@ export const useBackgroundStore = create<BackgroundState>()(
      * project that never had any.
      */
     loadEditorState: (state: EditorState | null) => {
-      set({ ...DEFAULT_EDITOR, ...(state ?? {}) });
+      // A project saved before the window existed gets today's default look.
+      set({
+        ...DEFAULT_EDITOR,
+        ...(state ?? {}),
+        frame: { ...DEFAULT_FRAME, ...(state?.frame ?? {}) },
+      });
+    },
+    setFrame: (updates) => {
+      set((state) => ({ frame: { ...state.frame, ...updates } }));
     },
 
     generatedVideoUrl: null,
     setGeneratedVideoUrl: (url: string | null) => {
       set({ generatedVideoUrl: url });
+    },
+    startUrl: null,
+    setStartUrl: (url: string | null) => {
+      set({ startUrl: url });
     },
     zoomTrack: null,
     setZoomTrack: (track: ZoomTrack | null) => {
