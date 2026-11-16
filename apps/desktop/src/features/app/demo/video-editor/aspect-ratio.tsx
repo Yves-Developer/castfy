@@ -10,6 +10,7 @@ import { AspectRatioIcon } from "hugeicons-react";
 import { useState } from "react";
 import { AspectRatioPicker } from "@/components/aspect-ratio/aspect-ratio-picker";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
+import { FIT_WINDOW } from "@/lib/frame-size";
 import { useBackgroundStore } from "@/lib/store";
 
 export function AspectRatio() {
@@ -28,9 +29,11 @@ export function AspectRatio() {
         >
           <AspectRatioIcon size={15} />
           <span className="text-xs">
-            {currentAspectRatio
-              ? `${currentAspectRatio.width}:${currentAspectRatio.height}`
-              : "Auto"}
+            {selectedAspectRatio === FIT_WINDOW
+              ? "Fit window"
+              : currentAspectRatio
+                ? `${currentAspectRatio.width}:${currentAspectRatio.height}`
+                : "Auto"}
           </span>
         </Button>
       </DropdownMenuTrigger>

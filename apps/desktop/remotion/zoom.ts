@@ -52,27 +52,64 @@ export interface Camera {
 
 /** The steps worth a closer look: what is typed or picked is small. */
 const ZOOM_ACTIONS = new Set(["fill", "select"]);
-/** How close, and how long the result stays zoomed after the event. */
-const CLICK = { scale: 1.3, holdMs: 700 };
-const FILL = { scale: 1.5, holdMs: 1800 };
-/** How early the move in starts before the event. */
-const LEAD_MS = 600;
-/** How long the move back out takes. */
-const OUT_MS = 800;
-/** Events closer than this stay zoomed and pan between each other. */
-const MERGE_MS = 2200;
+
+/**
+ * How the camera moves (frame.tsx ZoomStyle). Punchy zooms on every click,
+ * as Castfy always did. Calm only moves in to read what is typed or picked,
+ * not as far, more slowly, and stays in while the next steps are near: the
+ * window holds still most of the time, which is what reads as smooth.
+ */
+export type ZoomStyle = "off" | "calm" | "punchy";
+
+interface ZoomStyleSpec {
+  /** How close, and how long the result stays zoomed after the event; null for no zoom. */
+  click: { scale: number; holdMs: number } | null;
+  fill: { scale: number; holdMs: number };
+  /** How early the move in starts before the event. */
+  leadMs: number;
+  /** Events closer than this stay zoomed and pan between each other. */
+  mergeMs: number;
+  /** How long the move back out takes. */
+  outMs: number;
+}
+
+const STYLES: Record<Exclude<ZoomStyle, "off">, ZoomStyleSpec> = {
+  punchy: {
+    click: { scale: 1.3, holdMs: 700 },
+    fill: { scale: 1.5, holdMs: 1800 },
+    leadMs: 600,
+    outMs: 800,
+    mergeMs: 2200,
+  },
+  calm: {
+    click: null,
+    fill: { scale: 1.25, holdMs: 2200 },
+    leadMs: 900,
+    outMs: 1000,
+    mergeMs: 3500,
+  },
+};
+
+/** The camera's timing for a shot; shots carry it so cameraAt needs no style. */
+const DEFAULT_TIMING = {
+  leadMs: STYLES.punchy.leadMs,
+  outMs: STYLES.punchy.outMs,
+};
 /** The most of the frame a target may fill when zoomed in on. */
 const FIT = 0.8;
 /** Closer than this is not worth a zoom: the target is big already. */
 const MIN_SCALE = 1.1;
 
 /** How a kind of event zooms; null for none. */
-function style(event: ZoomEvent) {
+function kindOf(event: ZoomEvent, spec: ZoomStyleSpec) {
   if (event.off || event.type !== "click") {
     return null;
   }
-  return ZOOM_ACTIONS.has(event.action ?? "") ? FILL : CLICK;
+  return ZOOM_ACTIONS.has(event.action ?? "") ? spec.fill : spec.click;
 }
+
+const isFill = (event: ZoomEvent) =>
+  !event.off && event.type === "click" && ZOOM_ACTIONS.has(event.action ?? "");
 
 /**
  * How far to zoom in on an event: its kind's zoom, but never so far that the
@@ -102,7 +139,7 @@ const ease = (t: number) => {
 export interface Shot {
   /** When the move in starts. */
   startMs: number;
-  /** When the move out starts; it ends OUT_MS later. */
+  /** When the move out starts; it ends outMs later. */
   endMs: number;
   /** The video times of the events it zooms on: what identifies it. */
   eventMs: number[];
@@ -110,19 +147,25 @@ export interface Shot {
   points: Array<{ ms: number; x: number; y: number; scale: number }>;
   /** The closest it zooms, for the timeline's label. */
   scale: number;
+  /** How long the move in may take and the move out takes, ms. */
+  outMs: number;
 }
 
-/** Groups events into continuous zoomed shots. */
-export function planShots(track: ZoomTrack | null | undefined): Shot[] {
-  if (!track?.events.length) {
+/** Groups events into continuous zoomed shots, for a zoom style (punchy when not given). */
+export function planShots(
+  track: ZoomTrack | null | undefined,
+  zoomStyle: ZoomStyle = "punchy"
+): Shot[] {
+  if (!track?.events.length || zoomStyle === "off") {
     return [];
   }
+  const spec = STYLES[zoomStyle];
   const { width, height } = track.viewport;
   const events = [...track.events].sort((a, b) => a.ms - b.ms);
   const shots: Array<Shot & { last: ZoomEvent }> = [];
 
   for (const event of events) {
-    const kind = style(event);
+    const kind = kindOf(event, spec);
     if (!kind) {
       continue;
     }
@@ -134,7 +177,7 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
     const clipEnd = event.clipEndMs ?? Number.POSITIVE_INFINITY;
     const endMs = Math.max(
       event.ms,
-      Math.min(event.ms + kind.holdMs, clipEnd - OUT_MS)
+      Math.min(event.ms + kind.holdMs, clipEnd - spec.outMs)
     );
     const point = {
       ms: event.ms,
@@ -145,7 +188,7 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
     const prev = shots.at(-1);
     // One shot across clips only for a form being filled in.
     const sameClip = prev && prev.last.clipStartMs === event.clipStartMs;
-    const formFill = prev && style(prev.last) === FILL && kind === FILL;
+    const formFill = prev && isFill(prev.last) && isFill(event);
     /**
      * Close events stay zoomed and pan. So does an event whose zoom would
      * start before the last shot is back out: two shots overlapping made the
@@ -154,8 +197,8 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
      */
     const close =
       prev &&
-      (event.ms - prev.last.ms <= MERGE_MS ||
-        event.ms - LEAD_MS <= shotEndMs(prev));
+      (event.ms - prev.last.ms <= spec.mergeMs ||
+        event.ms - spec.leadMs <= shotEndMs(prev));
     if (prev && close && (sameClip || formFill)) {
       prev.points.push(point);
       prev.eventMs.push(event.ms);
@@ -165,11 +208,12 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
     } else {
       shots.push({
         // Not into the previous clip either.
-        startMs: Math.max(0, event.ms - LEAD_MS, event.clipStartMs ?? 0),
+        startMs: Math.max(0, event.ms - spec.leadMs, event.clipStartMs ?? 0),
         endMs,
         eventMs: [event.ms],
         scale,
         points: [point],
+        outMs: spec.outMs,
         last: event,
       });
     }
@@ -179,7 +223,7 @@ export function planShots(track: ZoomTrack | null | undefined): Shot[] {
 
 /** When a shot is fully zoomed out again. */
 export function shotEndMs(shot: Shot): number {
-  return shot.endMs + OUT_MS;
+  return shot.endMs + (shot.outMs ?? DEFAULT_TIMING.outMs);
 }
 
 /**
@@ -206,7 +250,9 @@ export function cameraAt(ms: number, shots: Shot[]): Camera {
   const leadMs = Math.max(1, shot.points[0].ms - shot.startMs);
   const inProgress = ease((ms - shot.startMs) / leadMs);
   const outProgress =
-    ms > shot.endMs ? 1 - ease((ms - shot.endMs) / OUT_MS) : 1;
+    ms > shot.endMs
+      ? 1 - ease((ms - shot.endMs) / (shot.outMs ?? DEFAULT_TIMING.outMs))
+      : 1;
   const amount = Math.min(inProgress, outProgress);
 
   // Where and how close: the latest point reached, easing to the next one
@@ -216,7 +262,10 @@ export function cameraAt(ms: number, shots: Shot[]): Camera {
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
     const next = points[i];
-    const moveMs = Math.max(1, Math.min(LEAD_MS * 2, next.ms - prev.ms));
+    const moveMs = Math.max(
+      1,
+      Math.min(DEFAULT_TIMING.leadMs * 2, next.ms - prev.ms)
+    );
     const from = next.ms - moveMs;
     if (ms <= from) {
       break;

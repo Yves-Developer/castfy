@@ -645,7 +645,8 @@ function VoiceClip({
 function useZoomEdits(sessionId: string | null | undefined) {
   const track = useBackgroundStore((s) => s.zoomTrack);
   const setZoomTrack = useBackgroundStore((s) => s.setZoomTrack);
-  const shots = useMemo(() => planShots(track), [track]);
+  const zoomStyle = useBackgroundStore((s) => s.frame.zoom);
+  const shots = useMemo(() => planShots(track, zoomStyle), [track, zoomStyle]);
   const offMs = useMemo(
     () => (track?.events ?? []).filter((e) => e.off).map((e) => e.ms),
     [track]
@@ -656,9 +657,10 @@ function useZoomEdits(sessionId: string | null | undefined) {
         track && {
           ...track,
           events: track.events.map((e) => ({ ...e, off: false })),
-        }
+        },
+        zoomStyle
       ).length - shots.length,
-    [track, shots]
+    [track, shots, zoomStyle]
   );
 
   const save = useCallback(

@@ -1,5 +1,6 @@
 import { AbsoluteFill, Composition, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { type BlurBox, BlurBoxes } from './blur';
+import { BrowserWindow, type FrameSettings, windowBox } from './frame';
 import { Pointer } from './pointer';
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from './zoom';
 
@@ -65,6 +66,15 @@ export interface DemoProps extends Record<string, unknown> {
    * composition's own time, trimmed or not.
    */
   blurs?: BlurBox[];
+  /**
+   * The browser window, its margin and the zoom style (frame.tsx). Absent in
+   * specs from before it existed: those keep the plain inset video.
+   */
+  frame?: FrameSettings | null;
+  /** The page the recording starts on, for the window's address bar. */
+  address?: string | null;
+  /** The source video's width per unit of height. */
+  videoAspect?: number;
 }
 
 const FPS = 30;
@@ -133,14 +143,42 @@ export function Demo({
   zoom,
   blurs,
   watermark,
+  frame: frameSettings,
+  address,
+  videoAspect,
 }: DemoProps) {
   const frame = useCurrentFrame();
+  const { width: frameW, height: frameH } = useVideoConfig();
   const behind = overlays.filter((o) => o.layer === 'back');
   const front = overlays.filter((o) => o.layer !== 'back');
   const segments = keeps?.length ? planSegments(keeps).segments : null;
-  const shots = segments ? [] : planShots(zoom);
+  const shots = segments ? [] : planShots(zoom, frameSettings?.zoom);
   const ms = (frame / FPS) * 1000;
   const camera = cameraStyle(cameraAt(ms, shots));
+
+  // OffthreadVideo, not Video: rendering extracts frames with ffmpeg rather
+  // than relying on browser playback timing.
+  const stage = segments ? (
+    <div style={{ position: 'relative' }}>
+      {segments.map((segment) => (
+        <Sequence durationInFrames={segment.durationInFrames} from={segment.from} key={segment.id} layout="none">
+          <OffthreadVideo
+            src={staticFile(src)}
+            style={{ width: '100%', display: 'block' }}
+            trimAfter={segment.trimAfter}
+            trimBefore={segment.trimBefore}
+          />
+        </Sequence>
+      ))}
+      <BlurBoxes boxes={blurs} ms={ms} />
+    </div>
+  ) : (
+    <div style={{ ...camera, position: 'relative' }}>
+      <OffthreadVideo src={staticFile(src)} style={{ width: '100%', display: 'block' }} />
+      <BlurBoxes boxes={blurs} ms={ms} />
+      <Pointer ms={ms} track={zoom} />
+    </div>
+  );
 
   return (
     <AbsoluteFill style={{ background: backgroundCss }}>
@@ -155,45 +193,28 @@ export function Demo({
         <Overlay key={overlay.src + overlay.x} overlay={overlay} />
       ))}
 
-      <AbsoluteFill style={{ padding: `${padding}%`, justifyContent: 'center', alignItems: 'center' }}>
-        <div
-          style={{
-            width: '100%',
-            borderRadius: radius,
-            overflow: 'hidden',
-            boxShadow: '0 24px 60px rgba(0,0,0,.35)',
-          }}
+      {frameSettings ? (
+        <BrowserWindow
+          address={address}
+          box={windowBox(frameW, frameH, videoAspect ?? 16 / 9, frameSettings)}
+          settings={frameSettings}
         >
-          {/* OffthreadVideo, not Video: rendering extracts frames with ffmpeg
-              rather than relying on browser playback timing. */}
-          {segments ? (
-            <div style={{ position: 'relative' }}>
-              {segments.map((segment) => (
-                <Sequence
-                  durationInFrames={segment.durationInFrames}
-                  from={segment.from}
-                  key={segment.id}
-                  layout="none"
-                >
-                  <OffthreadVideo
-                    src={staticFile(src)}
-                    style={{ width: '100%', display: 'block' }}
-                    trimAfter={segment.trimAfter}
-                    trimBefore={segment.trimBefore}
-                  />
-                </Sequence>
-              ))}
-              <BlurBoxes boxes={blurs} ms={ms} />
-            </div>
-          ) : (
-            <div style={{ ...camera, position: 'relative' }}>
-              <OffthreadVideo src={staticFile(src)} style={{ width: '100%', display: 'block' }} />
-              <BlurBoxes boxes={blurs} ms={ms} />
-              <Pointer ms={ms} track={zoom} />
-            </div>
-          )}
-        </div>
-      </AbsoluteFill>
+          {stage}
+        </BrowserWindow>
+      ) : (
+        <AbsoluteFill style={{ padding: `${padding}%`, justifyContent: 'center', alignItems: 'center' }}>
+          <div
+            style={{
+              width: '100%',
+              borderRadius: radius,
+              overflow: 'hidden',
+              boxShadow: '0 24px 60px rgba(0,0,0,.35)',
+            }}
+          >
+            {stage}
+          </div>
+        </AbsoluteFill>
+      )}
 
       {front.map((overlay) => (
         <Overlay key={overlay.src + overlay.x} overlay={overlay} />

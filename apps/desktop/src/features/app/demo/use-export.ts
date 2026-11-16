@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { create } from 'zustand';
 import { bridge } from '@/lib/bridge';
-import { aspectRatios } from '@/lib/constants/aspect-ratios';
 import { getBackgroundStyle } from '@/lib/constants/backgrounds';
+import { videoFrameSize } from '@/lib/frame-size';
 import { getR2ImageUrl } from '@/lib/r2';
 import { useBackgroundStore } from '@/lib/store';
 
@@ -77,8 +77,16 @@ export function useExportState(sessionId: string | null | undefined): ExportStat
  * one definition of what "magic:sunset" means instead of two.
  */
 export function useExport(sessionId: string | null | undefined, title?: string) {
-  const { backgroundConfig, blurs, imageOverlays, selectedAspectRatio, customDimensions } =
-    useBackgroundStore();
+  const {
+    backgroundConfig,
+    blurs,
+    imageOverlays,
+    selectedAspectRatio,
+    customDimensions,
+    frame,
+    startUrl,
+    zoomTrack,
+  } = useBackgroundStore();
   const state = useExportState(sessionId);
 
   /**
@@ -97,17 +105,15 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
     // One export per recording: both would write the same file.
     if (useExports.getState().bySession[sessionId]?.busy) return;
 
-    const ratio = aspectRatios.find((r) => r.id === selectedAspectRatio);
-    const { width, height } =
-      selectedAspectRatio === 'custom' && customDimensions
-        ? customDimensions
-        : ratio && ratio.width > 0 && ratio.height > 0
-          ? { width: ratio.width, height: ratio.height }
-          : { width: 16, height: 9 };
-
-    // Aspect ratios are expressed as ratios, so scale them to a real frame size
-    // on the long edge rather than rendering a 16x9 pixel video.
-    const scale = 1920 / Math.max(width, height);
+    const { width, height } = videoFrameSize({
+      selectedAspectRatio,
+      customDimensions,
+      frame,
+      // The recorded page's shape; every recording so far is 16:9.
+      videoAspect: zoomTrack
+        ? zoomTrack.viewport.width / zoomTrack.viewport.height
+        : 16 / 9,
+    });
 
     const spec = {
       backgroundCss: getBackgroundStyle(backgroundConfig),
@@ -128,9 +134,11 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
           blur: o.blur ?? 0,
           layer: o.layer ?? 'front',
         })),
-      width: Math.round(width * scale),
-      height: Math.round(height * scale),
+      width,
+      height,
       blurs,
+      frame,
+      address: startUrl,
     };
 
     patchExport(sessionId, {
@@ -156,7 +164,7 @@ export function useExport(sessionId: string | null | undefined, title?: string) 
     } finally {
       patchExport(sessionId, { busy: false, status: null });
     }
-  }, [sessionId, title, backgroundConfig, blurs, imageOverlays, selectedAspectRatio, customDimensions]);
+  }, [sessionId, title, backgroundConfig, blurs, imageOverlays, selectedAspectRatio, customDimensions, frame, startUrl, zoomTrack]);
 
   const dismissLimit = useCallback(() => {
     if (sessionId) patchExport(sessionId, { limitReached: null });

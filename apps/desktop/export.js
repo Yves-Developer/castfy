@@ -226,6 +226,17 @@ function freePort() {
 }
 
 /** Blur boxes as the composition takes them: in range, and nothing else. */
+/** The window settings from the studio, or null for the old frameless look. */
+function cleanFrame(frame) {
+  if (!frame || typeof frame !== 'object') return null;
+  const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
+  return {
+    window: pick(frame.window, ['light', 'dark', 'none'], 'light'),
+    padding: pick(frame.padding, ['small', 'medium', 'large'], 'medium'),
+    zoom: pick(frame.zoom, ['off', 'calm', 'punchy'], 'calm'),
+  };
+}
+
 function cleanBlurs(blurs) {
   if (!Array.isArray(blurs)) return [];
   const unit = (n) => Math.min(1, Math.max(0, Number(n) || 0));
@@ -266,6 +277,10 @@ export async function exportRecording({
   cuts = null,
   /** Blur boxes from the studio (remotion/blur.tsx), timed in the finished video. */
   blurs = [],
+  /** The browser window, its margin and the zoom style (remotion/frame.tsx). */
+  frame = null,
+  /** The page the recording starts on, for the window's address bar. */
+  address = null,
   /** Draw the free plan's watermark (billing.beginExport says when). */
   watermark = false,
   /** The install's key for free-plan demos' clean picture (main.js cleanVideoKey). */
@@ -290,7 +305,7 @@ export async function exportRecording({
     return await renderExport({
       sessionDir, sessionId, sourceFile, renderFile: cleanCopy ?? sourceFile, entryPoint, publicRoot,
       outputFile, backgroundCss, backgroundImage, overlays, padding, radius, width, height,
-      trimming, cuts, blurs, watermark, browsersPath, onProgress,
+      trimming, cuts, blurs, frame, address, watermark, browsersPath, onProgress,
     });
   } finally {
     if (cleanCopy) await fs.rm(path.join(sessionDir, cleanCopy), { force: true });
@@ -300,10 +315,10 @@ export async function exportRecording({
 async function renderExport({
   sessionDir, sessionId, sourceFile, renderFile, entryPoint, publicRoot, outputFile,
   backgroundCss, backgroundImage, overlays, padding, radius, width, height,
-  trimming, cuts, blurs, watermark, browsersPath, onProgress,
+  trimming, cuts, blurs, frame, address, watermark, browsersPath, onProgress,
 }) {
   const source = path.join(sessionDir, renderFile);
-  const { durationInSeconds } = await getVideoMetadata(source);
+  const { durationInSeconds, width: videoWidth, height: videoHeight } = await getVideoMetadata(source);
   const durationInFrames = Math.max(1, Math.round(durationInSeconds * FPS));
   const keeps = trimming ? keepRangesFromCuts(cuts, durationInSeconds * 1000) : [];
 
@@ -348,6 +363,9 @@ async function renderExport({
     height,
     keeps,
     blurs: cleanBlurs(blurs),
+    frame: cleanFrame(frame),
+    address: typeof address === 'string' ? address.slice(0, 2048) : null,
+    videoAspect: videoWidth && videoHeight ? videoWidth / videoHeight : 16 / 9,
     watermark: watermarkAsset,
     // Auto-zoom follows the recording's own clock, so only untrimmed footage
     // from the segment recorder gets it.

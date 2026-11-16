@@ -3,6 +3,7 @@ import { Player, type PlayerRef } from "@remotion/player";
 import { MicIcon, MousePointer2Icon, ZoomInIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DotField, TOOL, ToolTile } from "@/components/brand";
+import { FIT_WINDOW, videoFrameSize } from "@/lib/frame-size";
 import { useLive, useRecordingBrowser } from "@/lib/live-view";
 import { useBackgroundStore } from "@/lib/store";
 import { LiveView } from "./live-view";
@@ -211,8 +212,29 @@ export function RemotionPlayer({
   onVolumeChange?: (volume: number) => void;
   ref: React.RefObject<PlayerRef | null>;
 }) {
-  const { backgroundConfig, blurs, generatedVideoUrl, imageOverlays, zoomTrack } =
-    useBackgroundStore();
+  const {
+    backgroundConfig,
+    blurs,
+    frame,
+    generatedVideoUrl,
+    imageOverlays,
+    startUrl,
+    zoomTrack,
+    selectedAspectRatio,
+    customDimensions,
+  } = useBackgroundStore();
+  // "Fit window" changes the frame's shape, so the preview takes it too.
+  const fit =
+    selectedAspectRatio === FIT_WINDOW
+      ? videoFrameSize({
+          selectedAspectRatio,
+          customDimensions,
+          frame,
+          videoAspect: zoomTrack
+            ? zoomTrack.viewport.width / zoomTrack.viewport.height
+            : 16 / 9,
+        })
+      : null;
   // While a run records, the page it is working on, from castfy0's live frame.
   const live = useLive();
   // Castfy's own recording browser, from the moment the run opens it.
@@ -345,8 +367,8 @@ export function RemotionPlayer({
       acknowledgeRemotionLicense
       clickToPlay
       component={StudioComposition}
-      compositionHeight={1080}
-      compositionWidth={1920}
+      compositionHeight={fit?.height ?? 1080}
+      compositionWidth={fit?.width ?? 1920}
       controls
       doubleClickToFullscreen
       durationInFrames={durationInFrames}
@@ -357,6 +379,8 @@ export function RemotionPlayer({
         imageOverlays,
         zoom: zoomTrack,
         blurs: showBlurs ? blurs : [],
+        frame,
+        address: startUrl,
       }}
       ref={ref}
       showPlaybackRateControl

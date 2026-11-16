@@ -12,6 +12,7 @@ import {
 import React from "react";
 import { getStandardDimensions } from "@/lib/aspect-ratio-utils";
 import { aspectRatios } from "@/lib/constants/aspect-ratios";
+import { FIT_WINDOW, videoFrameSize } from "@/lib/frame-size";
 import { useBackgroundStore } from "@/lib/store";
 
 interface AspectRatioPickerProps {
@@ -128,15 +129,35 @@ export const AspectRatioPicker = (
     setAspectRatio,
     customDimensions,
     setCustomDimensions,
+    frame,
+    zoomTrack,
   } = useBackgroundStore();
 
   const currentAR = aspectRatios.find((ar) => ar.id === selectedAspectRatio);
-  const currentDimensions =
-    selectedAspectRatio === "custom" && customDimensions
-      ? customDimensions
-      : currentAR
-        ? getStandardDimensions(currentAR.width, currentAR.height)
-        : { width: 1920, height: 1080 };
+  const fitSize =
+    selectedAspectRatio === FIT_WINDOW
+      ? videoFrameSize({
+          selectedAspectRatio,
+          customDimensions,
+          frame,
+          videoAspect: zoomTrack
+            ? zoomTrack.viewport.width / zoomTrack.viewport.height
+            : 16 / 9,
+        })
+      : null;
+  const fitW = fitSize?.width ?? null;
+  const fitH = fitSize?.height ?? null;
+  let currentDimensions = { width: 1920, height: 1080 };
+  if (fitSize) {
+    currentDimensions = fitSize;
+  } else if (selectedAspectRatio === "custom" && customDimensions) {
+    currentDimensions = customDimensions;
+  } else if (currentAR) {
+    currentDimensions = getStandardDimensions(
+      currentAR.width,
+      currentAR.height
+    );
+  }
 
   const [customW, setCustomW] = React.useState(
     currentDimensions.width.toString()
@@ -146,7 +167,10 @@ export const AspectRatioPicker = (
   );
 
   React.useEffect(() => {
-    if (selectedAspectRatio === "custom" && customDimensions) {
+    if (fitW !== null && fitH !== null) {
+      setCustomW(fitW.toString());
+      setCustomH(fitH.toString());
+    } else if (selectedAspectRatio === "custom" && customDimensions) {
       setCustomW(customDimensions.width.toString());
       setCustomH(customDimensions.height.toString());
     } else if (currentAR) {
@@ -154,7 +178,7 @@ export const AspectRatioPicker = (
       setCustomW(dims.width.toString());
       setCustomH(dims.height.toString());
     }
-  }, [selectedAspectRatio, currentAR, customDimensions]);
+  }, [selectedAspectRatio, currentAR, customDimensions, fitW, fitH]);
 
   const handleSelect = (id: string) => {
     setAspectRatio(id);
@@ -177,6 +201,30 @@ export const AspectRatioPicker = (
 
   return (
     <div className="max-h-[70vh] overflow-y-auto p-3">
+      {/* The window's own shape: even padding on every side. */}
+      <button
+        className={cn(
+          "mb-3 flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-all",
+          selectedAspectRatio === FIT_WINDOW
+            ? "bg-primary/10 ring-2 ring-primary"
+            : "bg-muted/40 hover:bg-accent/50"
+        )}
+        onClick={() => handleSelect(FIT_WINDOW)}
+        type="button"
+      >
+        <span className="grid h-8 w-11 shrink-0 place-items-center rounded-md border-2 border-muted-foreground/30">
+          <span className="h-4 w-7 rounded-[3px] border border-muted-foreground/50 border-t-[3px]" />
+        </span>
+        <span className="flex flex-col">
+          <span className="font-medium text-foreground text-xs">
+            Fit window
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            The video takes the window's shape, with even padding all round
+          </span>
+        </span>
+      </button>
+
       {/* Custom Dimensions */}
       <div className="mb-4 flex items-center gap-2">
         <div className="flex flex-1 items-center gap-1.5">

@@ -1,7 +1,19 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  staticFile,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import { type BlurBox, BlurBoxes } from "../../../../../remotion/blur";
+import {
+  BrowserWindow,
+  DEFAULT_FRAME,
+  type FrameSettings,
+  windowBox,
+} from "../../../../../remotion/frame";
 import { Pointer } from "../../../../../remotion/pointer";
 import { trimBeforeFor } from "./meta";
 import { cameraAt, cameraStyle, planShots, type ZoomTrack } from "../../../../../remotion/zoom";
@@ -118,12 +130,18 @@ export const StudioComposition = ({
   imageOverlays = [],
   zoom = null,
   blurs = [],
+  frame: frameSettings = DEFAULT_FRAME,
+  address = null,
 }: {
   url: string;
   backgroundConfig: BackgroundConfig;
   imageOverlays?: ImageOverlay[];
   zoom?: ZoomTrack | null;
   blurs?: BlurBox[];
+  /** The window around the video, its margin and the zoom style. */
+  frame?: FrameSettings;
+  /** The page the recording starts on, for the address bar. */
+  address?: string | null;
 }) => {
   const frame = useCurrentFrame();
   const timelineMs = ((frame + trimBeforeFor(url)) / FPS) * 1000;
@@ -140,9 +158,11 @@ export const StudioComposition = ({
       ))}
 
       {/* Video layer - top */}
-      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+      <AbsoluteFill>
         <VideoStage
+          address={address}
           blurs={blurs}
+          frameSettings={frameSettings}
           timelineMs={timelineMs}
           url={url}
           zoom={zoom}
@@ -186,18 +206,32 @@ function VideoStage({
   zoom,
   blurs,
   timelineMs,
+  frameSettings,
+  address,
 }: {
   url: string;
   zoom: ZoomTrack | null;
   blurs: BlurBox[];
   timelineMs: number;
+  frameSettings: FrameSettings;
+  address: string | null;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const ms = useVideoTime(videoRef, timelineMs);
-  const shots = useMemo(() => planShots(zoom), [zoom]);
+  const shots = useMemo(
+    () => planShots(zoom, frameSettings.zoom),
+    [zoom, frameSettings.zoom]
+  );
   const camera = cameraStyle(cameraAt(ms, shots));
+  const { width, height } = useVideoConfig();
+  // The recording's shape: the recorded viewport, else the video's own.
+  const [videoAspect, setVideoAspect] = useState<number | null>(null);
+  const aspect = zoom
+    ? zoom.viewport.width / zoom.viewport.height
+    : (videoAspect ?? 16 / 9);
+  const box = windowBox(width, height, aspect, frameSettings);
   return (
-    <div style={{ width: "80%", borderRadius: 12, overflow: "hidden" }}>
+    <BrowserWindow address={address} box={box} settings={frameSettings}>
       <div style={{ ...camera, position: "relative" }}>
         {/*
           A plain video, not Remotion's: Remotion seeks its video back to the
@@ -208,6 +242,12 @@ function VideoStage({
         {/* biome-ignore lint/a11y/useMediaCaption: the voiceover's captions are their own track */}
         <video
           data-preview-clock=""
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            if (v.videoWidth && v.videoHeight) {
+              setVideoAspect(v.videoWidth / v.videoHeight);
+            }
+          }}
           playsInline
           preload="auto"
           ref={videoRef}
@@ -217,6 +257,6 @@ function VideoStage({
         <BlurBoxes boxes={blurs} ms={ms} />
         <Pointer ms={ms} track={zoom} />
       </div>
-    </div>
+    </BrowserWindow>
   );
 }
