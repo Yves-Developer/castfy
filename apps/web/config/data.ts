@@ -7,6 +7,7 @@ export const navLinks = [
   { label: "Agents", href: "/#agents" },
   { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faqs" },
+  { label: "Changelog", href: "/changelog" },
 ];
 
 /**
@@ -125,6 +126,7 @@ export const footerNavs: {
       { label: "Agents", href: "/#agents" },
       { label: "Pricing", href: "/#pricing" },
       { label: "FAQ", href: "/#faqs" },
+      { label: "Changelog", href: "/changelog" },
     ],
   },
   {

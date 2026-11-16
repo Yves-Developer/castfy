@@ -6,6 +6,7 @@ import {
   EyeOffIcon,
   MousePointer2Icon,
   RouteIcon,
+  SparklesIcon,
   TerminalIcon,
   Volume2Icon,
   ZoomInIcon,
@@ -91,6 +92,13 @@ const MENU: Entry[] = [
         icon: <FaDiscord />,
         color: "bg-[#5865F2]",
         external: true,
+      },
+      {
+        title: "Changelog",
+        text: "Every release, as it ships",
+        href: "/changelog",
+        icon: <SparklesIcon />,
+        color: "bg-brand",
       },
       {
         title: "X",
