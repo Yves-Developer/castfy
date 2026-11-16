@@ -5,6 +5,7 @@ import {
   ChevronDownIcon,
   EyeOffIcon,
   MousePointer2Icon,
+  PlayIcon,
   RouteIcon,
   SparklesIcon,
   TerminalIcon,
@@ -92,6 +93,13 @@ const MENU: Entry[] = [
         icon: <FaDiscord />,
         color: "bg-[#5865F2]",
         external: true,
+      },
+      {
+        title: "Demos",
+        text: "Real demos made with Castfy, with their prompts",
+        href: "/demos",
+        icon: <PlayIcon />,
+        color: "bg-[#ff5c8a]",
       },
       {
         title: "Changelog",
