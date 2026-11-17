@@ -57,8 +57,8 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
       "Re-run any flow when your UI changes",
       "A year of updates, and the version you bought keeps working forever",
     ],
-    cta: "Join the waitlist",
-    note: "Buying opens soon. Until then, Castfy is in private beta: join the waitlist for a beta code. Recordings run on your own Claude, Codex or Cursor subscription, so a demo spends quota you already pay for, not money.",
+    cta: "Buy Castfy",
+    note: "Sign in with Google and pay once; your purchase unlocks the app when you sign in there with the same account. Recordings run on your own Claude, Codex or Cursor subscription, so a demo spends quota you already pay for, not money.",
   },
 };
 
@@ -110,7 +110,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Is it available yet?",
     answer:
-      "Yes, in private beta, for macOS, Windows and Linux. Join the waitlist to get a personal beta code, which makes Castfy free and unlimited for the beta. There is no free tier: after the beta, Castfy is one payment, $29 for the first 20 buyers.",
+      "Yes, Castfy 1.0 is out for macOS, Windows and Linux. Buy it once: $29 for the first 20 buyers, then $49. While the private beta runs, you can also join the waitlist for a free beta code. There is no free tier.",
   },
 ];
 

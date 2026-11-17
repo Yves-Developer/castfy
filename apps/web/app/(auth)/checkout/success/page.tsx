@@ -1,5 +1,6 @@
 import { CircleCheckIcon } from "lucide-react";
 import type { Metadata } from "next";
+import { DownloadButton } from "@/components/download-button";
 
 export const metadata: Metadata = {
   title: "Payment received",
@@ -16,9 +17,13 @@ export default function CheckoutSuccessPage() {
       <div className="flex flex-col gap-1.5">
         <h1 className="font-medium text-xl">You're all set</h1>
         <p className="text-balance text-muted-foreground text-sm">
-          Your plan is active. Go back to the Castfy app — it updates on its own
-          within a few seconds.
+          Your plan is active. If you bought from the Castfy app, go back to it:
+          it updates on its own within a few seconds. New to Castfy? Download it
+          and sign in with the same Google account.
         </p>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2.5">
+        <DownloadButton />
       </div>
     </div>
   );
