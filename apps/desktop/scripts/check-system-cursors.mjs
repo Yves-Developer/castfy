@@ -128,7 +128,7 @@ console.log(`${process.platform}: ${names.length ? names.join(", ") : "none (Cas
 for (const [name, c] of Object.entries(cursors)) {
   const png = Buffer.from(c.src.split(",")[1], "base64");
   const [pw, ph] = readPng(png);
-  console.log(`  ${name}: ${c.width}x${c.height}, hot spot ${c.hotX},${c.hotY}, ${pw}x${ph} px`);
+  console.log(`  ${name}: ${c.width}x${c.height}, hot spot ${c.hotX},${c.hotY}, ${pw}x${ph} px${c.source ? `, from ${c.source}` : ""}`);
   assert.ok(pw > 0 && ph > 0, `${name} is a PNG`);
   assert.ok(c.hotX >= 0 && c.hotX <= c.width && c.hotY >= 0 && c.hotY <= c.height, `${name} hot spot inside`);
   await fs.writeFile(path.join(outDir, `${process.platform}-${name}.png`), png);
