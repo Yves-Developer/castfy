@@ -1,10 +1,12 @@
 import type { StaticImageData } from "next/image";
+import excalidrawPoster from "@/public/demos/excalidraw-diagram/poster.webp";
 import plausiblePoster from "@/public/demos/plausible-dashboard/poster.webp";
 
 export const DEMO_CATEGORIES = [
   "SaaS",
   "Forms",
   "Dashboards",
+  "Diagrams",
   "Behind a login",
   "Localhost",
 ] as const;
@@ -43,6 +45,28 @@ export interface Demo {
  * export, never estimated.
  */
 export const demos: Demo[] = [
+  {
+    slug: "excalidraw-diagram",
+    app: "Excalidraw",
+    appUrl: "https://excalidraw.com",
+    title: "Sketching an app's architecture",
+    description:
+      "A blank Excalidraw canvas becomes a three-part diagram: browser, API and database, each drawn in one stroke, labelled and joined by arrows.",
+    categories: ["Diagrams"],
+    agent: "Claude Code",
+    voice: "Aria",
+    url: "https://excalidraw.com",
+    prompt:
+      "On Excalidraw, sketch a simple web app architecture: three labelled boxes, Browser, API and Database, joined left to right by arrows.",
+    rawSeconds: 226,
+    finalSeconds: 45.1,
+    steps: { total: 21, succeeded: 20 },
+    media: {
+      poster: excalidrawPoster,
+      preview: "/demos/excalidraw-diagram/preview.mp4",
+      video: "/demos/excalidraw-diagram/demo.mp4",
+    },
+  },
   {
     slug: "plausible-dashboard",
     app: "Plausible",
