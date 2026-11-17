@@ -1,0 +1,41 @@
+name: Desktop cursors check
+
+# Reads each system's own cursors the way the app does (system-cursors.js),
+# on macOS, Windows and Linux, and keeps the images for a person to look at.
+
+on:
+  pull_request:
+    paths:
+      - "apps/desktop/system-cursors.js"
+      - "apps/desktop/scripts/check-system-cursors.mjs"
+      - ".github/workflows/desktop-cursors-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cursors:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Read the system cursors
+        run: node apps/desktop/scripts/check-system-cursors.mjs cursors-out
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cursors-${{ matrix.os }}
+          path: cursors-out
+          if-no-files-found: ignore
