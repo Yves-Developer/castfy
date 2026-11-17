@@ -58,8 +58,8 @@ export const demos: Demo[] = [
     url: "https://excalidraw.com",
     prompt:
       "On Excalidraw, sketch a simple web app architecture: three labelled boxes, Browser, API and Database, joined left to right by arrows.",
-    rawSeconds: 42,
-    finalSeconds: 30.4,
+    rawSeconds: 43,
+    finalSeconds: 30.6,
     steps: { total: 18, succeeded: 18 },
     media: {
       poster: excalidrawPoster,
@@ -80,8 +80,8 @@ export const demos: Demo[] = [
     url: "https://plausible.io/plausible.io",
     prompt:
       "On Plausible's live demo dashboard, switch the date range to the last 7 days, filter to visitors from Google, then show which countries they come from. Don't change anything else.",
-    rawSeconds: 163,
-    finalSeconds: 17.4,
+    rawSeconds: 20,
+    finalSeconds: 16,
     steps: { total: 8, succeeded: 8 },
     media: {
       poster: plausiblePoster,
