@@ -169,7 +169,7 @@ export function Pointer({
     key: string | number
   ) => (
     <CursorImage
-      cursor={track.cursors?.[shape]}
+      cursor={shape === "arrow" ? undefined : track.cursors?.[shape]}
       height={height}
       key={key}
       opacity={opacity}
