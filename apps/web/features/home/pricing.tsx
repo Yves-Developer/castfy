@@ -17,7 +17,6 @@ import { CursorLogo } from "@/components/cursor-logo";
 import { DownloadButton } from "@/components/download-button";
 import { SiteButton } from "@/components/site-button";
 import { pricing, pricingKicker } from "@/config/data";
-import { siteConfig } from "@/config/site";
 import type { PricingTier } from "@/types";
 
 /** A feature's icon, as a small tile in one of the Studio's colours. */
@@ -223,12 +222,7 @@ export function PricingCards() {
           </div>
           <Price dark tier={paid} />
           <Agents />
-          <SiteButton
-            arrow
-            className="w-full"
-            external
-            href={siteConfig.waitlistUrl}
-          >
+          <SiteButton arrow className="w-full" href="/buy">
             {paid.cta}
           </SiteButton>
           <Features dark icons={ICONS.paid} tier={paid} />
