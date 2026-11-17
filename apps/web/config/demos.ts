@@ -58,9 +58,9 @@ export const demos: Demo[] = [
     url: "https://excalidraw.com",
     prompt:
       "On Excalidraw, sketch a simple web app architecture: three labelled boxes, Browser, API and Database, joined left to right by arrows.",
-    rawSeconds: 226,
-    finalSeconds: 45.1,
-    steps: { total: 21, succeeded: 20 },
+    rawSeconds: 42,
+    finalSeconds: 30.4,
+    steps: { total: 18, succeeded: 18 },
     media: {
       poster: excalidrawPoster,
       preview: "/demos/excalidraw-diagram/preview.mp4",
