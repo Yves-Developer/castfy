@@ -39,6 +39,13 @@ const TRAIL = [
   { ms: 14, opacity: 0.22 },
   { ms: 28, opacity: 0.1 },
 ] as const;
+/**
+ * During a drag the page draws what the pointer pulls (a box growing) about
+ * this much after the pointer gets there: Chrome takes the move, then paints.
+ * Measured at 40-55 ms on Excalidraw. The drawn cursor follows its path this
+ * much later, so it stays on the box's corner instead of leading it.
+ */
+const DRAG_LAG_MS = 45;
 /** Faster than this (recorded px per ms) leaves a trail. */
 const TRAIL_SPEED = 1.1;
 
@@ -77,8 +84,9 @@ export function pointerAt(
     if (e.ms > ms) {
       break;
     }
-    if (e.type === "move" && e.durationMs && ms < e.ms + e.durationMs) {
-      return alongMove(e, (ms - e.ms) / e.durationMs);
+    const lag = e.drag ? DRAG_LAG_MS : 0;
+    if (e.type === "move" && e.durationMs && ms < e.ms + lag + e.durationMs) {
+      return alongMove(e, (ms - e.ms - lag) / e.durationMs);
     }
     at = { x: e.x, y: e.y };
   }
@@ -274,6 +282,8 @@ function CursorImage({
           width: pct(w, width),
           height: "auto",
           opacity,
+          // macOS draws a soft shadow under its cursors; the images have none.
+          filter: shadow,
           transform: pressed ? "scale(0.85)" : undefined,
           transformOrigin: `${(hotX / w) * 100}% ${(hotY / (cursor.height * SYSTEM_SCALE)) * 100}%`,
         }}

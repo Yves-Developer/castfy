@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import blurShot from "@/public/landing/blur.webp";
+import cursorShot from "@/public/landing/cursor.webp";
 import recordShot from "@/public/landing/record.webp";
 import studioShot from "@/public/landing/studio.webp";
 import voiceShot from "@/public/landing/voice.webp";
@@ -26,6 +27,48 @@ export interface ChangelogEntry {
  * notes); several small betas can share one.
  */
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "v1-0",
+    version: "1.0.0",
+    date: "2026-11-17",
+    title: "Castfy 1.0: demos that look directed",
+    summary:
+      "Out of beta. The agent now performs each action once and precisely, the voice flows across the demo, and the cursor looks like your computer's own.",
+    changes: [
+      {
+        kind: "New",
+        text: "Your computer's own cursors: the hand over buttons, the text cursor while typing and the crosshair while drawing, taken from macOS or Windows itself.",
+      },
+      {
+        kind: "New",
+        text: "Precise drawing and clicking: the agent draws a shape in one smooth stroke, clicks an exact spot and double-clicks, so canvases and editors look natural.",
+      },
+      {
+        kind: "Improved",
+        text: "Shorter demos with no dead air: the voice carries on over quick actions instead of freezing the picture, and there is no pause between steps that belong together. Our Excalidraw demo went from 45 to 30 seconds.",
+      },
+      {
+        kind: "Improved",
+        text: "The cursor moves like a hand, on a gentle curve, and is a little bigger.",
+      },
+      {
+        kind: "Improved",
+        text: "The agent checks its work off camera and plans its shots, so checks, retries and repeated key presses no longer show in the video.",
+      },
+      {
+        kind: "Fixed",
+        text: "A video no longer opens on a leftover from an earlier take when the agent tidied up first.",
+      },
+      {
+        kind: "Fixed",
+        text: "Typing into a rich editor no longer waits 30 seconds before giving up.",
+      },
+    ],
+    image: {
+      src: cursorShot,
+      alt: "An Excalidraw diagram being drawn by Castfy, with the macOS hand cursor on the arrow tool",
+    },
+  },
   {
     id: "beta-28",
     version: "0.1.0-beta.28",
