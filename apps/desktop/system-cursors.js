@@ -20,8 +20,8 @@ import zlib from "node:zlib";
 
 const execFileAsync = promisify(execFile);
 
-/** The shapes the editor draws from the system; the arrow is Castfy's own. */
-export const SYSTEM_CURSORS = ["hand", "text", "crosshair"];
+/** The shapes the editor draws from the system. */
+export const SYSTEM_CURSORS = ["arrow", "hand", "text", "crosshair"];
 
 /** Rendered this many times their logical size, so they stay sharp zoomed in. */
 const MAC_SCALE = 4;
@@ -64,6 +64,7 @@ $.NSApplication.sharedApplication;
 const scale = ${MAC_SCALE};
 const dir = '${MAC_CURSOR_DIR}';
 const specs = {
+  arrow: ['arrowCursor', []],
   hand: ['pointingHandCursor', ['pointinghand']],
   text: ['IBeamCursor', ['ibeamhorizontal', 'ibeam']],
   crosshair: ['crosshairCursor', ['crosshair', 'cross']],
@@ -148,6 +149,7 @@ async function macCursors() {
 
 /** The registry value for each shape, and the file Windows uses when it is empty. */
 const WINDOWS_CURSORS = {
+  arrow: { value: "Arrow", file: "aero_arrow.cur" },
   hand: { value: "Hand", file: "aero_link.cur" },
   text: { value: "IBeam", file: "beam_r.cur" },
   crosshair: { value: "Crosshair", file: "cross_r.cur" },
