@@ -36,9 +36,24 @@ export interface ZoomEvent {
   /** CSS pixels in the recorded viewport; for a move, where it ends. */
   x: number;
   y: number;
+  /** Moves: the page's cursor where the move ends (castfy0 0.4); absent for the arrow. */
+  cursor?: string;
+  /** Moves: a drag, drawn straight because the page follows it. */
+  drag?: boolean;
+}
+
+/** A cursor image from the system, sized in logical pixels (system-cursors.js). */
+export interface SystemCursor {
+  height: number;
+  hotX: number;
+  hotY: number;
+  src: string;
+  width: number;
 }
 
 export interface ZoomTrack {
+  /** The system's hand, text cursor and crosshair, when they could be read. */
+  cursors?: Partial<Record<"hand" | "text" | "crosshair", SystemCursor>>;
   events: ZoomEvent[];
   viewport: { width: number; height: number };
 }

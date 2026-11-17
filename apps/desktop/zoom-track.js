@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { systemCursors } from './system-cursors.js';
 
 /** The zooms the user removed on the timeline, kept with the recording. */
 const ZOOM_EDITS_FILE = 'zoom-edits.json';
@@ -43,7 +44,9 @@ export async function readZoomTrack(dir) {
     }));
   });
   if (events.length === 0) return null;
-  return { viewport: manifest.viewport, events };
+  // The system's own cursor shapes, for the editor to draw (system-cursors.js).
+  const cursors = await systemCursors();
+  return { viewport: manifest.viewport, events, ...(Object.keys(cursors).length ? { cursors } : {}) };
 }
 
 /**
