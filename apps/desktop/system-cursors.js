@@ -75,7 +75,7 @@ function fromCursor(selector) {
   const image = cursor.image;
   if (nil(image)) return null;
   const hot = cursor.hotSpot;
-  return { image, hotX: hot.x, hotY: hot.y };
+  return { image, hotX: hot.x, hotY: hot.y, source: 'NSCursor' };
 }
 function fromFiles(folders) {
   for (const folder of folders) {
@@ -83,11 +83,11 @@ function fromFiles(folders) {
     if (nil(image)) continue;
     const info = $.NSDictionary.dictionaryWithContentsOfFile(dir + folder + '/info.plist');
     const read = (key) => (nil(info) || nil(info.objectForKey(key)) ? 0 : Number(ObjC.unwrap(info.objectForKey(key))));
-    return { image, hotX: read('hotx'), hotY: read('hoty') };
+    return { image, hotX: read('hotx'), hotY: read('hoty'), source: folder };
   }
   return null;
 }
-function draw({ image, hotX, hotY }) {
+function draw({ image, hotX, hotY, source }) {
   const size = image.size;
   const w = Math.round(size.width * scale), h = Math.round(size.height * scale);
   const rep = $.NSBitmapImageRep.alloc.initWithBitmapDataPlanesPixelsWidePixelsHighBitsPerSampleSamplesPerPixelHasAlphaIsPlanarColorSpaceNameBytesPerRowBitsPerPixel(null, w, h, 8, 4, true, false, 'NSDeviceRGBColorSpace', 0, 0);
@@ -97,13 +97,15 @@ function draw({ image, hotX, hotY }) {
   image.drawInRectFromRectOperationFraction($.NSMakeRect(0, 0, size.width, size.height), $.NSMakeRect(0, 0, 0, 0), 2, 1);
   $.NSGraphicsContext.restoreGraphicsState;
   const png = rep.representationUsingTypeProperties($.NSBitmapImageFileTypePNG, $());
-  return { png: ObjC.unwrap(png.base64EncodedStringWithOptions(0)), width: size.width, height: size.height, hotX, hotY };
+  return { png: ObjC.unwrap(png.base64EncodedStringWithOptions(0)), width: size.width, height: size.height, hotX, hotY, source };
 }
 const out = { errors: {} };
 for (const name in specs) {
   const [selector, folders] = specs[name];
   try {
-    const found = fromCursor(selector) || fromFiles(folders);
+    // macOS's cursor files first: what the screen really shows, and vector.
+    // NSCursor's image is a smaller, simplified stand-in.
+    const found = fromFiles(folders) || fromCursor(selector);
     if (found) out[name] = draw(found);
     else out.errors[name] = 'no image from NSCursor or ' + folders.join(', ');
   } catch (e) {
@@ -138,6 +140,7 @@ async function macCursors() {
       height: c.height,
       hotX: c.hotX,
       hotY: c.hotY,
+      source: c.source,
     };
   }
   return result;
