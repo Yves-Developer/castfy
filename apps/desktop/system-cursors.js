@@ -53,14 +53,41 @@ function readSystemCursors(platform) {
 // ---------------------------------------------------------------------------
 // macOS: NSCursor's own images, drawn at MAC_SCALE through AppKit (JXA).
 
+/** macOS's own cursor files, the fallback when NSCursor gives no image. */
+const MAC_CURSOR_DIR =
+  "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/HIServices.framework/Versions/A/Resources/cursors/";
+
 const MAC_SCRIPT = `
 ObjC.import('AppKit');
+// Cursor images load with the app session; a script outside one has none.
+$.NSApplication.sharedApplication;
 const scale = ${MAC_SCALE};
-const out = {};
-const cursors = { hand: $.NSCursor.pointingHandCursor, text: $.NSCursor.IBeamCursor, crosshair: $.NSCursor.crosshairCursor };
-for (const name in cursors) {
-  const cursor = cursors[name];
+const dir = '${MAC_CURSOR_DIR}';
+const specs = {
+  hand: ['pointingHandCursor', ['pointinghand']],
+  text: ['IBeamCursor', ['ibeamhorizontal', 'ibeam']],
+  crosshair: ['crosshairCursor', ['crosshair', 'cross']],
+};
+const nil = (o) => !o || (typeof o.isNil === 'function' && o.isNil());
+function fromCursor(selector) {
+  const cursor = $.NSCursor[selector];
+  if (nil(cursor)) return null;
   const image = cursor.image;
+  if (nil(image)) return null;
+  const hot = cursor.hotSpot;
+  return { image, hotX: hot.x, hotY: hot.y };
+}
+function fromFiles(folders) {
+  for (const folder of folders) {
+    const image = $.NSImage.alloc.initWithContentsOfFile(dir + folder + '/cursor.pdf');
+    if (nil(image)) continue;
+    const info = $.NSDictionary.dictionaryWithContentsOfFile(dir + folder + '/info.plist');
+    const read = (key) => (nil(info) || nil(info.objectForKey(key)) ? 0 : Number(ObjC.unwrap(info.objectForKey(key))));
+    return { image, hotX: read('hotx'), hotY: read('hoty') };
+  }
+  return null;
+}
+function draw({ image, hotX, hotY }) {
   const size = image.size;
   const w = Math.round(size.width * scale), h = Math.round(size.height * scale);
   const rep = $.NSBitmapImageRep.alloc.initWithBitmapDataPlanesPixelsWidePixelsHighBitsPerSampleSamplesPerPixelHasAlphaIsPlanarColorSpaceNameBytesPerRowBitsPerPixel(null, w, h, 8, 4, true, false, 'NSDeviceRGBColorSpace', 0, 0);
@@ -70,8 +97,18 @@ for (const name in cursors) {
   image.drawInRectFromRectOperationFraction($.NSMakeRect(0, 0, size.width, size.height), $.NSMakeRect(0, 0, 0, 0), 2, 1);
   $.NSGraphicsContext.restoreGraphicsState;
   const png = rep.representationUsingTypeProperties($.NSBitmapImageFileTypePNG, $());
-  const hot = cursor.hotSpot;
-  out[name] = { png: ObjC.unwrap(png.base64EncodedStringWithOptions(0)), width: size.width, height: size.height, hotX: hot.x, hotY: hot.y };
+  return { png: ObjC.unwrap(png.base64EncodedStringWithOptions(0)), width: size.width, height: size.height, hotX, hotY };
+}
+const out = { errors: {} };
+for (const name in specs) {
+  const [selector, folders] = specs[name];
+  try {
+    const found = fromCursor(selector) || fromFiles(folders);
+    if (found) out[name] = draw(found);
+    else out.errors[name] = 'no image from NSCursor or ' + folders.join(', ');
+  } catch (e) {
+    out.errors[name] = String(e);
+  }
 }
 JSON.stringify(out);
 `;
@@ -86,6 +123,9 @@ async function macCursors() {
     }
   );
   const parsed = JSON.parse(stdout.trim());
+  for (const [name, error] of Object.entries(parsed.errors ?? {})) {
+    console.warn(`[cursors] macOS ${name}: ${error}`);
+  }
   const result = {};
   for (const name of SYSTEM_CURSORS) {
     const c = parsed[name];
