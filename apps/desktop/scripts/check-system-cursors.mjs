@@ -134,6 +134,6 @@ for (const [name, c] of Object.entries(cursors)) {
   await fs.writeFile(path.join(outDir, `${process.platform}-${name}.png`), png);
 }
 if (process.platform === "darwin" || process.platform === "win32") {
-  assert.deepEqual(names.sort(), ["crosshair", "hand", "text"], "all three read from the system");
+  assert.deepEqual(names.sort(), ["arrow", "crosshair", "hand", "text"], "all four read from the system");
 }
 console.log("check-system-cursors: all passed");

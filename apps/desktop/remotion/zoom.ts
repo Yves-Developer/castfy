@@ -52,8 +52,8 @@ export interface SystemCursor {
 }
 
 export interface ZoomTrack {
-  /** The system's hand, text cursor and crosshair, when they could be read. */
-  cursors?: Partial<Record<"hand" | "text" | "crosshair", SystemCursor>>;
+  /** The system's arrow, hand, text cursor and crosshair, when they could be read. */
+  cursors?: Partial<Record<"arrow" | "hand" | "text" | "crosshair", SystemCursor>>;
   events: ZoomEvent[];
   viewport: { width: number; height: number };
 }
