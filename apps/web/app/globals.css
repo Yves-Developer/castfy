@@ -8,6 +8,13 @@
 
 html {
   @apply font-inter font-medium;
+  /*
+   * Castfy's own arrow, the one drawn in every demo it records. The hot spot
+   * is its tip. Links and buttons keep the system's hand, as in the app.
+   */
+  cursor:
+    url("/cursors/arrow.svg") 2 1,
+    default;
 }
 
 /* Decoration may bleed past the screen's edges (the hero's side frames). */

@@ -1,23 +1,22 @@
 "use client";
 
-import { PlayIcon } from "lucide-react";
+import { MousePointer2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { PanelEdge } from "./patterns";
+import { GrainPanel } from "@/features/changelog/grain-panel";
 
 /**
- * The hero: Castfy recorded making a real demo (a Typeform survey), from the
- * prompt to the exported video. It waits on a still of the finished demo
+ * The hero: Castfy recorded making a real demo (an Excalidraw diagram), from the
+ * prompt to the exported video. It waits on a still of the live run
  * until played; the chapter title shows on the stage above the window, and
  * the chapters below follow the playback and jump to their part.
  */
 const CHAPTERS = [
   { at: 0, title: "Paste a URL, say what to show" },
-  { at: 11.87, title: "Your agent clicks through it, live", speed: "30×" },
-  { at: 30.13, title: "Dead time cut, zoom on every click" },
-  { at: 35.13, title: "A finished demo, voice in sync" },
-  { at: 47.33, title: "Blur what shouldn’t be seen" },
-  { at: 52.13, title: "Export on your machine", speed: "20×" },
-  { at: 63.93, title: "The result" },
+  { at: 12.03, title: "Your agent clicks through it, live", speed: "8×" },
+  { at: 25.2, title: "Pick a background, the window looks real" },
+  { at: 33.97, title: "Dead time cut, calm zoom on every click" },
+  { at: 48.57, title: "Export on your machine", speed: "30×" },
+  { at: 55.9, title: "The result" },
 ] as const;
 
 function chapterAt(time: number) {
@@ -89,61 +88,60 @@ export function HeroVideo() {
 
   return (
     <div className="relative flex flex-col gap-5" id="demo">
-      {/* The stage: brand-blue dots lit from behind, the app inset on it. */}
+      {/*
+        The stage: Castfy's blue satin and grain (as on the changelog and
+        demos), the app inset on it. While the page scrolls in, it slides up
+        into place and the app follows a beat behind (hero-scroll.tsx).
+      */}
       <div
-        className="relative z-10 origin-top text-[#e3f2ff] transition-[scale] duration-75 ease-out [scale:calc(0.9+var(--p,1)*0.1)] dark:text-[#10243a]"
+        className="relative z-10 [opacity:calc(0.85+var(--p,1)*0.15)] [translate:0_calc((1-var(--p,1))*140px)]"
         data-hero-stage
       >
-        <div className="relative overflow-hidden rounded-t-2xl bg-current px-3 pt-3 pb-3 md:rounded-t-3xl md:px-14 md:pt-5 md:pb-14">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 [background-image:radial-gradient(color-mix(in_oklab,var(--color-brand)_35%,transparent)_1.2px,transparent_1.2px)] [background-size:20px_20px] dark:[background-image:radial-gradient(color-mix(in_oklab,var(--color-brand)_18%,transparent)_1px,transparent_1px)]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute top-1/3 left-1/2 h-2/3 w-3/4 -translate-x-1/2 rounded-full bg-brand/30 blur-[100px]"
-          />
+        <GrainPanel className="rounded-2xl px-3 pt-3 pb-3 md:rounded-3xl md:px-14 md:pt-5 md:pb-14">
           <p
             aria-live="polite"
-            className="relative mb-3 text-center font-medium text-base text-foreground tracking-[-0.01em] md:mb-5 md:text-2xl"
+            className="relative mb-3 text-center font-medium text-base text-white tracking-[-0.01em] [text-shadow:0_1px_10px_rgba(0,40,110,0.35)] md:mb-5 md:text-2xl"
           >
             {started
               ? chapter.title
               : "Watch Castfy make a demo, start to finish"}
           </p>
-          <div className="relative overflow-hidden rounded-xl border border-black/10 bg-black shadow-[0_30px_80px_-30px_rgba(10,30,70,0.55)]">
-            <video
-              aria-label="Castfy making a demo of a Typeform survey, from the prompt to the exported video"
-              className="block aspect-[1440/876] w-full cursor-pointer"
-              loop
-              muted
-              onClick={toggle}
-              playsInline
-              poster="/hero/castfy-hero-poster.webp"
-              preload="metadata"
-              ref={video}
-            >
-              <source src="/hero/castfy-hero.mp4" type="video/mp4" />
-              <source src="/hero/castfy-hero.webm" type="video/webm" />
-            </video>
-            {playing ? null : (
-              <button
-                aria-label="Play the video"
-                className="absolute top-1/2 left-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-[0_12px_40px_-8px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 md:size-24"
+          {/* A glass ring around the window, lit from the panel behind it. */}
+          <div className="rounded-2xl bg-white/15 p-1.5 shadow-[0_30px_80px_-30px_rgba(10,30,70,0.55),inset_0_1px_0_rgba(255,255,255,0.45)] ring-1 ring-white/35 backdrop-blur-md [translate:0_calc((1-var(--p,1))*56px)] md:rounded-[1.25rem] md:p-2">
+            <div className="relative overflow-hidden rounded-xl bg-white">
+              <video
+                aria-label="Castfy making a demo of an Excalidraw diagram, from the prompt to the exported video"
+                className="block aspect-[1440/876] w-full cursor-pointer"
+                loop
+                muted
                 onClick={toggle}
-                type="button"
+                playsInline
+                poster="/hero/castfy-hero-poster.webp"
+                preload="metadata"
+                ref={video}
               >
-                <PlayIcon className="ml-1 size-7 fill-current md:size-10" />
-              </button>
-            )}
-            {playing && "speed" in chapter ? (
-              <span className="absolute right-3 bottom-3 rounded-full bg-black/80 px-3 py-1 font-mono text-white text-xs">
-                {chapter.speed} speed
-              </span>
-            ) : null}
+                <source src="/hero/castfy-hero.mp4" type="video/mp4" />
+                <source src="/hero/castfy-hero.webm" type="video/webm" />
+              </video>
+              {playing ? null : (
+                <button
+                  aria-label="Play the video"
+                  className="absolute top-1/2 left-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand text-white shadow-[0_10px_30px_-8px_rgba(0,90,200,0.55)] transition-transform duration-200 hover:scale-105 md:size-20"
+                  onClick={toggle}
+                  type="button"
+                >
+                  {/* Castfy's logo arrow, turned to point the way play does. */}
+                  <MousePointer2Icon className="size-7 rotate-[135deg] fill-current md:size-8" />
+                </button>
+              )}
+              {playing && "speed" in chapter ? (
+                <span className="absolute right-3 bottom-3 rounded-full bg-black/80 px-3 py-1 font-mono text-white text-xs">
+                  {chapter.speed} speed
+                </span>
+              ) : null}
+            </div>
           </div>
-        </div>
-        <PanelEdge style="waveform" />
+        </GrainPanel>
       </div>
 
       <ol
