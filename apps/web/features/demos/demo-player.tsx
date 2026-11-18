@@ -1,7 +1,8 @@
 "use client";
 
-import { PlayIcon, Volume2Icon, VolumeXIcon } from "lucide-react";
+import { Volume2Icon, VolumeXIcon } from "lucide-react";
 import { useRef, useState } from "react";
+import { PlayButton } from "@/components/play-button";
 
 /**
  * A demo's full video. It starts muted when played; the sound button turns
@@ -59,14 +60,7 @@ export function DemoPlayer({
         style={{ aspectRatio }}
       />
       {started ? null : (
-        <button
-          aria-label="Play the demo"
-          className="absolute top-1/2 left-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-[0_12px_40px_-8px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 md:size-20"
-          onClick={play}
-          type="button"
-        >
-          <PlayIcon className="ml-1 size-7 fill-current md:size-8" />
-        </button>
+        <PlayButton aria-label="Play the demo" onClick={play} />
       )}
       <button
         aria-label={muted ? "Turn the voiceover on" : "Mute"}

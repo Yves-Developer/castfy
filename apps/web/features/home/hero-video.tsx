@@ -1,7 +1,7 @@
 "use client";
 
-import { MousePointer2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { PlayButton } from "@/components/play-button";
 import { GrainPanel } from "@/features/changelog/grain-panel";
 
 /**
@@ -124,15 +124,7 @@ export function HeroVideo() {
                 <source src="/hero/castfy-hero.webm" type="video/webm" />
               </video>
               {playing ? null : (
-                <button
-                  aria-label="Play the video"
-                  className="absolute top-1/2 left-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand text-white shadow-[0_10px_30px_-8px_rgba(0,90,200,0.55)] transition-transform duration-200 hover:scale-105 md:size-20"
-                  onClick={toggle}
-                  type="button"
-                >
-                  {/* Castfy's logo arrow, turned to point the way play does. */}
-                  <MousePointer2Icon className="size-7 rotate-[135deg] fill-current md:size-8" />
-                </button>
+                <PlayButton aria-label="Play the video" onClick={toggle} />
               )}
               {playing && "speed" in chapter ? (
                 <span className="absolute right-3 bottom-3 rounded-full bg-black/80 px-3 py-1 font-mono text-white text-xs">
