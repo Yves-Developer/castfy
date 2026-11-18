@@ -7,7 +7,7 @@ import { HeroSides } from "./hero-sides";
 
 export function HomeHero() {
   return (
-    <div className="relative z-[6] flex flex-col items-center gap-8 text-center [filter:blur(calc(var(--p,0)*6px))] [opacity:calc(1-var(--p,0)*1.15)] lg:sticky lg:top-28">
+    <div className="relative z-[6] flex flex-col items-center gap-8 text-center [opacity:calc(1-var(--p,0)*1.15)] [translate:0_calc(var(--p,0)*-40px)] lg:sticky lg:top-28">
       <HeroSides />
       <span className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-1.5 text-muted-foreground text-sm">
         <AgentLogos />

@@ -3,10 +3,11 @@
 import { type ReactNode, useEffect, useRef } from "react";
 
 /**
- * "Zoom on the click": while the page scrolls from the top until the video's
- * stage reaches the header, the headline stays put and fades out, the side
- * cards drift away, and the stage grows to full size, the way Castfy's
- * camera moves into a click. After that the page scrolls as usual.
+ * A calm slide in: while the page scrolls from the top until the video's
+ * stage reaches the header, the headline rises and fades, the side cards
+ * slide away to the sides, and the stage slides up into place with the app a
+ * beat behind, as calm as Castfy's own camera. After that the page scrolls as
+ * usual.
  *
  * Progress is written to the --p CSS variable (0 to 1) on the section; the
  * parts read it in their styles. Wide screens only, and never for people

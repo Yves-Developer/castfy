@@ -53,7 +53,7 @@ export function HeroSides() {
   return (
     <div aria-hidden>
       <div
-        className={`${side} ${card} top-40 -left-[116px] w-64 -rotate-3 p-3.5 text-left [translate:calc(var(--p,0)*-140px)_calc(var(--p,0)*-30px)]`}
+        className={`${side} ${card} top-40 -left-[116px] w-64 -rotate-3 p-3.5 text-left [opacity:calc(1-var(--p,0))] [translate:calc(var(--p,0)*-160px)_0]`}
       >
         <div className="flex items-center justify-between text-xs">
           <span className="font-medium">Agent actions</span>
@@ -85,7 +85,7 @@ export function HeroSides() {
         </div>
       </div>
       <div
-        className={`${side} ${card} top-36 -right-[108px] w-60 rotate-3 p-3.5 text-left [translate:calc(var(--p,0)*140px)_calc(var(--p,0)*-40px)]`}
+        className={`${side} ${card} top-36 -right-[108px] w-60 rotate-3 p-3.5 text-left [opacity:calc(1-var(--p,0))] [translate:calc(var(--p,0)*160px)_0]`}
       >
         <div className="flex items-center justify-between text-xs">
           <span className="font-medium">Exporting</span>
@@ -102,7 +102,7 @@ export function HeroSides() {
         </div>
       </div>
       <div
-        className={`${side} ${card} top-[22rem] -right-2 w-52 -rotate-2 p-3 text-left [translate:calc(var(--p,0)*120px)_calc(var(--p,0)*20px)] xl:-right-[52px]`}
+        className={`${side} ${card} top-[22rem] -right-2 w-52 -rotate-2 p-3 text-left [opacity:calc(1-var(--p,0))] [translate:calc(var(--p,0)*140px)_0] xl:-right-[52px]`}
       >
         <div className="flex items-center gap-2 text-xs">
           <span className="grid size-6 place-items-center rounded-md bg-[#1f9d6b] text-white [&_svg]:size-3">
