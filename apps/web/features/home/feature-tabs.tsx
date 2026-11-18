@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useState } from "react";
 import blurShot from "@/public/landing/blur.webp";
 import changeShot from "@/public/landing/change.webp";
-import recordShot from "@/public/landing/record.webp";
+import realScreenShot from "@/public/landing/real-screen.webp";
+import recordShot from "@/public/landing/record-1-0.webp";
 import voiceShot from "@/public/landing/voice.webp";
 import { Band } from "./band";
 
@@ -16,7 +17,15 @@ const FEATURES = [
     title: "Record with your agent",
     text: "Paste a URL and say what to show. A real browser on your machine works through the flow, signed in, localhost included.",
     image: recordShot,
-    alt: "The agent filling in a survey live, its steps listed beside it",
+    alt: "The agent drawing a diagram in Excalidraw live, its steps listed beside it",
+  },
+  {
+    tab: "Real screen",
+    color: "bg-[#7c5cff]",
+    title: "Looks like a real screen",
+    text: "The page sits in a browser window on a macOS wallpaper, with the system's own cursors: the hand, the text cursor, the crosshair. The camera zooms in calmly where something happens.",
+    image: realScreenShot,
+    alt: "An exported demo: Excalidraw in a browser window on a macOS wallpaper, the crosshair cursor finishing an arrow",
   },
   {
     tab: "Voice",

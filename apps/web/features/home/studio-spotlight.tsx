@@ -5,7 +5,7 @@ import {
   ZoomInIcon,
 } from "lucide-react";
 import Image from "next/image";
-import studioShot from "@/public/landing/studio.webp";
+import studioShot from "@/public/landing/studio-1-0.webp";
 import { Spotlight } from "./spotlight";
 
 export function StudioSpotlight() {
@@ -39,7 +39,7 @@ export function StudioSpotlight() {
     >
       <div className="mx-auto max-w-5xl overflow-hidden rounded-xl border border-black/10 bg-black shadow-[0_30px_80px_-30px_rgba(0,40,90,0.55)]">
         <Image
-          alt="The Castfy Studio: the finished demo playing, with its timeline of cuts, zooms, voice and captions"
+          alt="The Castfy Studio: the finished demo playing on a macOS wallpaper, with its timeline of cuts, zooms, voice and captions"
           className="block h-auto w-full"
           placeholder="blur"
           sizes="(min-width: 1024px) 1000px, 100vw"
