@@ -3,6 +3,7 @@
 import { Button } from "@castfy/ui/components/button";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
@@ -39,8 +40,19 @@ export function BuyRedirect() {
   const go = useCallback(async (userId: string) => {
     setError(null);
     try {
-      window.location.assign(await startCheckout(userId));
+      const url = await startCheckout(userId);
+      // Sent before leaving: the page unloads as checkout opens.
+      posthog.capture(
+        "checkout_started",
+        { from: "website", product: PRODUCT_SLUG },
+        { send_instantly: true }
+      );
+      window.location.assign(url);
     } catch (e) {
+      posthog.capture("checkout_failed", {
+        from: "website",
+        product: PRODUCT_SLUG,
+      });
       started.current = false;
       setError(e instanceof Error ? e.message : "Couldn't open checkout.");
     }

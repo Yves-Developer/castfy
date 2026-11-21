@@ -1583,15 +1583,21 @@ ipcMain.handle('billing:plan', async () => {
 ipcMain.handle('billing:checkout', async (_e, slug) => {
   try {
     await account.checkout(slug);
+    analytics?.capture('checkout_started', { from: 'app', product: slug });
     return { ok: true };
   } catch (error) {
+    analytics?.capture('checkout_failed', { from: 'app', product: slug });
     return { ok: false, error: error?.message ?? String(error) };
   }
 });
 ipcMain.handle('billing:redeemBetaCode', async (_e, code) => {
   try {
-    return (await account.redeemBetaCode(code)) ?? { ok: false, error: 'Sign in first.' };
+    const result = (await account.redeemBetaCode(code)) ?? { ok: false, error: 'Sign in first.' };
+    // Whether it worked, never the code itself.
+    analytics?.capture(result.ok ? 'beta_code_redeemed' : 'beta_code_failed');
+    return result;
   } catch (error) {
+    analytics?.capture('beta_code_failed');
     return { ok: false, error: error?.message ?? String(error) };
   }
 });
@@ -1619,7 +1625,12 @@ ipcMain.handle('agents:list', async () => ({
 
 ipcMain.handle('settings:get', () => settings.state);
 ipcMain.handle('settings:set', async (_e, patch) => {
+  // The plan step of onboarding, answered once (onboarding/choose-plan.tsx).
+  const planAnswered = patch?.planChosen === true && !settings.state.planChosen;
   await settings.set(patch ?? {});
+  if (planAnswered) {
+    analytics?.capture('plan_step_finished');
+  }
   return settings.state;
 });
 
@@ -1641,13 +1652,19 @@ ipcMain.handle('setup:browsers', () =>
   browserStatus({ mcpEntry: mcpEntry(), browsersPath: browsersPath() })
 );
 
-ipcMain.handle('setup:installBrowsers', () =>
-  installBrowsers({
+ipcMain.handle('setup:installBrowsers', async () => {
+  const startedAt = Date.now();
+  const result = await installBrowsers({
     mcpEntry: mcpEntry(),
     browsersPath: browsersPath(),
     onProgress: (progress) => ui?.send('setup:progress', progress),
-  })
-);
+  });
+  // The recorder download is an onboarding step people can get stuck on.
+  analytics?.capture(result?.ok ? 'recorder_ready' : 'recorder_setup_failed', {
+    setup_s: Math.round((Date.now() - startedAt) / 1000),
+  });
+  return result;
+});
 
 // --- new demo ----------------------------------------------------------------
 
