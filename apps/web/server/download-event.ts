@@ -2,7 +2,8 @@
  * Records a desktop download in PostHog, from the server, so ad blockers do
  * not hide it. Anonymous: the platform, the file and release, the page the
  * button was on, its utm_ campaign tags, and the country. No person profile
- * is made. Without a PostHog token (local development) nothing is sent.
+ * is made unless the visitor has the site's cookie. Without a PostHog token
+ * (local development) nothing is sent.
  */
 
 const TOKEN = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
@@ -28,8 +29,12 @@ const NOT_A_PERSON =
 /** Gives up on PostHog after this long; the visitor has their file already. */
 const TIMEOUT_MS = 3000;
 
-/** The visitor's PostHog id from the site's cookie, so the download joins their visit. */
-function distinctId(request: Request) {
+/**
+ * The visitor's PostHog id from the site's cookie, so the download joins their
+ * visit, and through it their app use and purchase once they sign in. Null
+ * when there is no cookie (a direct link, a blocked cookie).
+ */
+function visitorId(request: Request): string | null {
   const cookies = request.headers.get("cookie") ?? "";
   const name = `ph_${TOKEN}_posthog=`;
   const raw = cookies
@@ -46,7 +51,7 @@ function distinctId(request: Request) {
       // A cookie that does not parse is treated as no cookie.
     }
   }
-  return crypto.randomUUID();
+  return null;
 }
 
 /** The page the button was on, and its campaign tags, from the Referer. */
@@ -90,6 +95,7 @@ export async function recordDownload(
   }
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const tags = origin(request);
+  const visitor = visitorId(request);
   try {
     await fetch(`${captureHost()}/i/v0/e/`, {
       method: "POST",
@@ -97,7 +103,7 @@ export async function recordDownload(
       body: JSON.stringify({
         api_key: TOKEN,
         event: "download",
-        distinct_id: distinctId(request),
+        distinct_id: visitor ?? crypto.randomUUID(),
         timestamp: new Date().toISOString(),
         properties: {
           ...download,
@@ -108,7 +114,8 @@ export async function recordDownload(
           country: request.headers.get("x-vercel-ip-country") ?? undefined,
           $ip: ip,
           $raw_user_agent: agent,
-          $process_person_profile: false,
+          // A known visitor's download joins their person; a stranger's makes none.
+          $process_person_profile: visitor !== null,
           $lib: "castfy-web-server",
         },
       }),
