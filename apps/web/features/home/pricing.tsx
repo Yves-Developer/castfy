@@ -150,7 +150,7 @@ const COMPARE: {
     paid: "No watermark",
   },
   {
-    label: "From Claude Code, Codex or Cursor",
+    label: "From Claude Code, OpenCode, Codex or Cursor",
     icon: <TerminalIcon />,
     color: "bg-[#1f9d6b]",
     free: true,

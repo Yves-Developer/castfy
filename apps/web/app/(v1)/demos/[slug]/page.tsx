@@ -40,12 +40,17 @@ export default async function DemoPage(props: PageProps<"/demos/[slug]">) {
   const stats = [
     { label: "Agent worked", value: formatDuration(demo.rawSeconds) },
     { label: "Finished demo", value: formatDuration(demo.finalSeconds) },
-    {
-      label: "Steps that worked",
-      value: `${demo.steps.succeeded} of ${demo.steps.total}`,
-    },
+    // Only shown when the run's step log was kept with the demo.
+    ...(demo.steps
+      ? [
+          {
+            label: "Steps that worked",
+            value: `${demo.steps.succeeded} of ${demo.steps.total}`,
+          },
+        ]
+      : [{ label: "Agent turns", value: String(demo.turns ?? "") }]),
     { label: "Voice", value: demo.voice },
-  ];
+  ].filter((s) => s.value);
 
   return (
     <div className="relative flex flex-col">

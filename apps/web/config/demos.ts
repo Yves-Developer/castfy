@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import excalidrawPoster from "@/public/demos/excalidraw-diagram/poster.webp";
+import orbitosPoster from "@/public/demos/orbitos-tour/poster.webp";
 import plausiblePoster from "@/public/demos/plausible-dashboard/poster.webp";
 
 export const DEMO_CATEGORIES = [
@@ -9,6 +10,7 @@ export const DEMO_CATEGORIES = [
   "Diagrams",
   "Behind a login",
   "Localhost",
+  "Web apps",
 ] as const;
 
 export type DemoCategory = (typeof DEMO_CATEGORIES)[number];
@@ -31,8 +33,10 @@ export interface Demo {
   /** How long the agent's run took, start to end, in seconds. */
   rawSeconds: number;
   slug: string;
-  /** Steps the agent took, and how many worked first time. */
-  steps: { total: number; succeeded: number };
+  /** Steps the agent took, and how many worked first time, from steps.json. */
+  steps?: { total: number; succeeded: number };
+  /** The agent's turns, when the steps were not kept (a demo made by a user). */
+  turns?: number;
   title: string;
   /** The page the run started on. */
   url: string;
@@ -45,6 +49,30 @@ export interface Demo {
  * export, never estimated.
  */
 export const demos: Demo[] = [
+  {
+    slug: "orbitos-tour",
+    app: "OrbitOS",
+    appUrl: "https://about.orbitos.lol",
+    title: "A tour of a phone OS in the browser",
+    description:
+      "OrbitOS, a phone-style OS that runs in a browser tab: the home screen, Weather, the app drawer, a game from its store, desktop mode with windows and a taskbar, and its built-in agent.",
+    categories: ["Web apps"],
+    agent: "Claude Code",
+    voice: "Aria",
+    url: "https://orbitos.lol",
+    prompt:
+      "Make a 45–60 second narrated demo of https://orbitos.lol, a phone-style OS that runs in the browser with no install or account. Show: the home screen, open 2–3 apps, launch one of the 39 games, switch to desktop mode (windows + taskbar), and open Orbit Agent. End on \"free, no account, runs in your browser — orbitos.lol\".",
+    // The run as the app reported it: 12m 25s and 138 turns. The gallery
+    // copy is the export with 7 silent seconds near the end cut out.
+    rawSeconds: 745,
+    finalSeconds: 73.9,
+    turns: 138,
+    media: {
+      poster: orbitosPoster,
+      preview: "/demos/orbitos-tour/preview.mp4",
+      video: "/demos/orbitos-tour/demo.mp4",
+    },
+  },
   {
     slug: "excalidraw-diagram",
     app: "Excalidraw",

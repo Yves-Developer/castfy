@@ -198,9 +198,32 @@ async function materialiseAsset(publicRoot, sessionDir, assetPath) {
  * quarter faster: 115s down to 87s for a 28s demo on 4 cores. One core stays
  * free for the app. Capped, as each one is a browser tab holding frames.
  */
-function renderConcurrency() {
-  const cores = os.availableParallelism?.() ?? os.cpus().length;
-  return Math.max(1, Math.min(cores - 1, 8));
+/**
+ * Memory caps it too. A 1080p export measured about 1.4 GB per tab (3 tabs
+ * took 4.3 GB), so one per core on an 8 GB laptop asked for twice its memory
+ * and the machine swapped: minutes became hours. 1.5 GB per tab, after 3 GB
+ * for the system and the app.
+ */
+export function renderConcurrency({
+  cores = os.availableParallelism?.() ?? os.cpus().length,
+  totalMemBytes = os.totalmem(),
+} = {}) {
+  const gb = totalMemBytes / 1024 ** 3;
+  const byMemory = Math.floor((gb - 3) / 1.5);
+  return Math.max(1, Math.min(cores - 1, 8, byMemory));
+}
+
+/**
+ * "42% · about 3 min left": the time left from the pace so far, once there is
+ * enough of it to go on, so a long export says how long rather than only
+ * creeping.
+ */
+export function progressLabel(progress, elapsedMs) {
+  const pct = `${Math.round(progress * 100)}%`;
+  if (progress < 0.05 || elapsedMs < 10_000 || progress >= 1) return pct;
+  const leftS = (elapsedMs / progress - elapsedMs) / 1000;
+  const left = leftS < 60 ? 'less than a minute left' : `about ${Math.round(leftS / 60)} min left`;
+  return `${pct} · ${left}`;
 }
 
 /**
@@ -382,6 +405,8 @@ async function renderExport({
   });
 
   const outputLocation = path.join(sessionDir, outputFile);
+  const concurrency = renderConcurrency();
+  const renderStart = Date.now();
 
   await renderMedia({
     composition,
@@ -391,8 +416,8 @@ async function renderExport({
     inputProps,
     browserExecutable,
     port: await freePort(),
-    concurrency: renderConcurrency(),
-    onProgress: onProgress ? ({ progress }) => onProgress(`${Math.round(progress * 100)}%`) : undefined,
+    concurrency,
+    onProgress: onProgress ? (p) => onProgress(progressLabel(p.progress, Date.now() - renderStart)) : undefined,
   });
 
   const { size } = await fs.stat(outputLocation);
@@ -408,6 +433,7 @@ async function renderExport({
     width,
     height,
     hasBackgroundImage: Boolean(bgAsset),
+    concurrency,
     overlays: overlaySpecs.length,
   };
 }

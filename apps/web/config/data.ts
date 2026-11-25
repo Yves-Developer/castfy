@@ -58,7 +58,7 @@ export const pricing: { free: PricingTier; paid: PricingTier } = {
       "A year of updates, and the version you bought keeps working forever",
     ],
     cta: "Buy Castfy",
-    note: "Sign in with Google and pay once; your purchase unlocks the app when you sign in there with the same account. Recordings run on your own Claude, Codex or Cursor subscription, so a demo spends quota you already pay for, not money.",
+    note: "Sign in with Google and pay once; your purchase unlocks the app when you sign in there with the same account. Recordings run on your own Claude, OpenCode, Codex or Cursor plan, so a demo spends quota you already pay for, not money.",
   },
 };
 
@@ -75,7 +75,7 @@ export const faqs: FAQItem[] = [
   {
     question: "Do I need a coding agent?",
     answer:
-      "You need one installed and signed in. Claude Code is the one Castfy is tested with and recommended; Codex and the Cursor CLI work too, but are still experimental. You do not operate it — Castfy writes the job and runs it headless, so you see a step timeline rather than a chat. It uses that subscription, not an API key.",
+      "You need one installed and signed in. Claude Code is the one Castfy is tested with and recommended; OpenCode, Codex and the Cursor CLI work too, but are still experimental. With OpenCode you can use any model you connected to it, its free ones included. You do not operate it: Castfy writes the job and runs it in the background, and you can watch its steps, or its whole thread of messages and tool calls in the Agent view. It uses your subscription or your own key, and Castfy shows what each demo used.",
   },
   {
     question: "How is this different from a hosted demo tool?",

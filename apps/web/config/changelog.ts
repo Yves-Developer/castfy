@@ -1,4 +1,5 @@
 import type { StaticImageData } from "next/image";
+import agentViewShot from "@/public/landing/agent-view.webp";
 import blurShot from "@/public/landing/blur.webp";
 import cursorShot from "@/public/landing/cursor.webp";
 import recordShot from "@/public/landing/record.webp";
@@ -27,6 +28,52 @@ export interface ChangelogEntry {
  * notes); several small betas can share one.
  */
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "v1-0-1",
+    version: "1.0.1",
+    date: "2026-11-25",
+    title: "Watch your agent work, and bring OpenCode",
+    summary:
+      "See every message and tool call your agent makes while it records, pick its model, see what a demo used of your plan, and record with OpenCode.",
+    changes: [
+      {
+        kind: "New",
+        text: "Agent view: switch the studio from the live browser to your agent's own thread, with its messages and every tool call, what it sent and what came back, as it happens. It is kept with the demo, so you can see later why it did something.",
+      },
+      {
+        kind: "New",
+        text: "Pick the model your agent records with: Opus, Sonnet or Haiku for Claude Code, or any model you connected in OpenCode.",
+      },
+      {
+        kind: "New",
+        text: "What a demo used: the model, turns, time and tokens, the agent's own price for the run, and how much of your Claude plan's 5-hour limit it took.",
+      },
+      {
+        kind: "New",
+        text: "OpenCode (experimental): record with OpenCode and the model of your choice, including its free ones. Castfy adds the recorder for the run without touching your OpenCode settings.",
+      },
+      {
+        kind: "Improved",
+        text: "Details on a step opens the tool call behind it in the Agent view.",
+      },
+      {
+        kind: "Improved",
+        text: "Exports no longer crawl on laptops with less memory: Castfy now picks how many frames to render at once from your memory as well as your processor, instead of filling it and slowing the whole computer down.",
+      },
+      {
+        kind: "Improved",
+        text: "The recording browser always runs in the background, and the live view lost its black border.",
+      },
+      {
+        kind: "Fixed",
+        text: "When OpenCode's model stops with an error (a used-up free tier, a wrong key), the run ends and tells you why instead of waiting forever.",
+      },
+    ],
+    image: {
+      src: agentViewShot,
+      alt: "Castfy's Agent view during a recording: the agent's messages and tool calls, one highlighted, with a Stop button below",
+    },
+  },
   {
     id: "v1-0",
     version: "1.0.0",
