@@ -27,23 +27,82 @@ const ICON = "size-3.5";
  * How each castfy0 action reads in the timeline, its icon, and its tile's
  * colour: the tool colours the website uses (components/brand).
  */
-const ACTIONS: Record<string, { label: string; icon: ReactNode; color: string }> = {
-  navigate: { label: "Open page", icon: <Globe className={ICON} />, color: TOOL.page },
-  click: { label: "Click", icon: <MousePointer className={ICON} />, color: TOOL.click },
-  fill: { label: "Type", icon: <Keyboard className={ICON} />, color: TOOL.type },
-  select: { label: "Choose", icon: <ChevronDown className={ICON} />, color: TOOL.click },
+const ACTIONS: Record<
+  string,
+  { label: string; icon: ReactNode; color: string }
+> = {
+  navigate: {
+    label: "Open page",
+    icon: <Globe className={ICON} />,
+    color: TOOL.page,
+  },
+  click: {
+    label: "Click",
+    icon: <MousePointer className={ICON} />,
+    color: TOOL.click,
+  },
+  fill: {
+    label: "Type",
+    icon: <Keyboard className={ICON} />,
+    color: TOOL.type,
+  },
+  select: {
+    label: "Choose",
+    icon: <ChevronDown className={ICON} />,
+    color: TOOL.click,
+  },
   hover: { label: "Hover", icon: <Move className={ICON} />, color: TOOL.click },
-  scroll: { label: "Scroll", icon: <ArrowUpDown className={ICON} />, color: TOOL.page },
-  presskey: { label: "Press key", icon: <Type className={ICON} />, color: TOOL.type },
-  press_key: { label: "Press key", icon: <Type className={ICON} />, color: TOOL.type },
+  scroll: {
+    label: "Scroll",
+    icon: <ArrowUpDown className={ICON} />,
+    color: TOOL.page,
+  },
+  presskey: {
+    label: "Press key",
+    icon: <Type className={ICON} />,
+    color: TOOL.type,
+  },
+  press_key: {
+    label: "Press key",
+    icon: <Type className={ICON} />,
+    color: TOOL.type,
+  },
   drag: { label: "Drag", icon: <Move className={ICON} />, color: TOOL.click },
-  upload: { label: "Upload", icon: <UploadIcon className={ICON} />, color: TOOL.page },
-  wait: { label: "Wait", icon: <Clock3Icon className={ICON} />, color: TOOL.neutral },
-  assert: { label: "Check", icon: <ShieldCheck className={ICON} />, color: TOOL.voice },
-  screenshot: { label: "Screenshot", icon: <CameraIcon className={ICON} />, color: TOOL.zoom },
-  newtab: { label: "New tab", icon: <PanelTopIcon className={ICON} />, color: TOOL.page },
-  switchtab: { label: "Switch tab", icon: <PanelTopIcon className={ICON} />, color: TOOL.page },
-  closetab: { label: "Close tab", icon: <PanelTopIcon className={ICON} />, color: TOOL.page },
+  upload: {
+    label: "Upload",
+    icon: <UploadIcon className={ICON} />,
+    color: TOOL.page,
+  },
+  wait: {
+    label: "Wait",
+    icon: <Clock3Icon className={ICON} />,
+    color: TOOL.neutral,
+  },
+  assert: {
+    label: "Check",
+    icon: <ShieldCheck className={ICON} />,
+    color: TOOL.voice,
+  },
+  screenshot: {
+    label: "Screenshot",
+    icon: <CameraIcon className={ICON} />,
+    color: TOOL.zoom,
+  },
+  newtab: {
+    label: "New tab",
+    icon: <PanelTopIcon className={ICON} />,
+    color: TOOL.page,
+  },
+  switchtab: {
+    label: "Switch tab",
+    icon: <PanelTopIcon className={ICON} />,
+    color: TOOL.page,
+  },
+  closetab: {
+    label: "Close tab",
+    icon: <PanelTopIcon className={ICON} />,
+    color: TOOL.page,
+  },
 };
 
 /** Terminal colour codes (ESC[2m and the like) that error text can carry. */
@@ -97,12 +156,15 @@ function StepRow({
   latest,
   startedAt,
   onChange,
+  onShow,
 }: {
   step: AgentStep;
   latest: boolean;
   startedAt: number | null;
   /** Asks for this step to change in a new take; absent while recording. */
   onChange?: () => void;
+  /** Shows the agent's tool call behind this step, in the Agent view. */
+  onShow?: () => void;
 }) {
   const { label, icon, color } = describeAction(step.action);
   const failed = step.status === "error";
@@ -113,7 +175,8 @@ function StepRow({
       <ToolTile
         className={cn(
           "relative z-10",
-          latest && "ring-2 ring-[#0099ff]/50 ring-offset-1 ring-offset-background",
+          latest &&
+            "ring-2 ring-[#0099ff]/50 ring-offset-1 ring-offset-background",
           step.excluded && "opacity-40"
         )}
         color={failed ? "bg-destructive" : color}
@@ -135,11 +198,23 @@ function StepRow({
               {elapsed}
             </span>
           ) : null}
-          {onChange ? (
+          {onShow ? (
             <button
               className={cn(
                 "text-[11px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
                 !elapsed && "ml-auto"
+              )}
+              onClick={onShow}
+              type="button"
+            >
+              Details
+            </button>
+          ) : null}
+          {onChange ? (
+            <button
+              className={cn(
+                "text-[11px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100",
+                !(elapsed || onShow) && "ml-auto"
               )}
               onClick={onChange}
               type="button"
@@ -180,9 +255,12 @@ export function StepsTimeline({
   steps,
   live = false,
   onChangeStep,
+  onShowStep,
 }: {
   steps: AgentStep[];
   live?: boolean;
+  /** Opens the Agent view on the tool call behind a step. */
+  onShowStep?: (step: AgentStep) => void;
   /** Offers "Change" on each step of a finished recording. */
   onChangeStep?: (index: number, step: AgentStep) => void;
 }) {
@@ -223,6 +301,7 @@ export function StepsTimeline({
                   ? () => onChangeStep(index, step)
                   : undefined
               }
+              onShow={onShowStep ? () => onShowStep(step) : undefined}
               startedAt={startedAt}
               step={step}
             />

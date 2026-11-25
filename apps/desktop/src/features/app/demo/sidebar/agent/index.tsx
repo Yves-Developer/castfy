@@ -2,6 +2,7 @@
 "use client";
 
 import { Button } from "@castfy/ui/components/button";
+import { cn } from "@castfy/ui/lib/utils";
 import {
   Field,
   FieldError,
@@ -14,12 +15,6 @@ import {
   InputGroupInput,
   InputGroupTextarea,
 } from "@castfy/ui/components/input-group";
-import { Switch } from "@castfy/ui/components/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@castfy/ui/components/tooltip";
 import { useForm, useStore } from "@tanstack/react-form";
 import {
   AlertTriangle,
@@ -55,6 +50,8 @@ import {
   pickInitialVideo,
   readActiveJobId,
 } from "./generate";
+import { callForStep, useAgentLog } from "../../agent-thread/agent-log";
+import { useAgentModel } from "../../agent-thread/agent-models";
 import { SelectModel } from "./models";
 import { describeAction, PackagingProgress, StepsTimeline } from "./step";
 import { RunUsageLine } from "./usage";
@@ -63,12 +60,17 @@ import { SelectVoice, useVoiceChoice } from "./voice";
 const formSchema = z.object({
   webUrl: z.url("Please enter a valid URL."),
   aiPrompt: z.string().min(5, "AI prompt must be at least 5 characters."),
-  headless: z.boolean(),
 });
 
-export function AgentTab() {
+/**
+ * The agent panel: the URL and prompt, the run's progress, and what to change
+ * in a new take. `compact` is the same panel under the Agent view's thread,
+ * where the thread itself shows the steps.
+ */
+export function AgentTab({ compact = false }: { compact?: boolean }) {
   const [selectedModel, setSelectedModel] = useState<AIProvider>("anthropic");
   const [voice, setVoice] = useVoiceChoice();
+  const [agentModel, setAgentModel] = useAgentModel(selectedModel);
 
   const [status, setStatus] = useState<
     "idle" | "generating" | "completed" | "error"
@@ -208,7 +210,6 @@ export function AgentTab() {
     defaultValues: {
       webUrl: "",
       aiPrompt: "",
-      headless: true,
     },
     validators: {
       onSubmit: formSchema,
@@ -221,7 +222,7 @@ export function AgentTab() {
    * last one: the agent gets that take's steps and what to change.
    */
   function startRun(
-    value: { webUrl: string; aiPrompt: string; headless: boolean },
+    value: { webUrl: string; aiPrompt: string },
     retake?: { change: string; previousSteps: string[] }
   ) {
     setStatus("generating");
@@ -238,7 +239,6 @@ export function AgentTab() {
     const params = new URLSearchParams({
       url: value.webUrl,
       promptGoal: value.aiPrompt,
-      headless: String(value.headless),
       provider: selectedModel,
       voice: voice ?? "",
       // Links the recording this produces back to the open project, so the
@@ -284,7 +284,7 @@ export function AgentTab() {
     );
     setChangeDraft("");
     startRun(
-      { webUrl: known.url, aiPrompt: known.goal, headless: values.headless },
+      { webUrl: known.url, aiPrompt: known.goal },
       { change, previousSteps }
     );
   };
@@ -315,17 +315,26 @@ export function AgentTab() {
   const isSubmitDisabled = !(webUrlValue.trim() || aiPromptValue.trim());
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className={cn(
+        "flex flex-col",
+        !compact && "h-full",
+        // Under the thread, the run's status sits in a card like the prompt box.
+        compact &&
+          (status === "generating" || status === "error") &&
+          "rounded-xl border bg-background px-3 pb-2"
+      )}
+    >
       {status === "idle" && (
         <form
-          className="h-full flex-1"
+          className={cn(!compact && "h-full flex-1")}
           id="agent-demo-form"
           onSubmit={(e) => {
             e.preventDefault();
             form.handleSubmit();
           }}
         >
-          <FieldGroup className="h-full">
+          <FieldGroup className={cn(compact ? "gap-2" : "h-full")}>
             <form.Field
               children={(field) => {
                 const isInvalid =
@@ -363,7 +372,12 @@ export function AgentTab() {
               }}
               name="webUrl"
             />
-            <div className="relative flex h-full flex-1 flex-col items-center justify-center gap-3 overflow-hidden text-center text-muted-foreground">
+            <div
+              className={cn(
+                "relative flex h-full flex-1 flex-col items-center justify-center gap-3 overflow-hidden text-center text-muted-foreground",
+                compact && "hidden"
+              )}
+            >
               <DotField />
               <ToolTile
                 className="relative size-9 rounded-xl [&_svg]:size-4.5"
@@ -397,7 +411,7 @@ export function AgentTab() {
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
                           placeholder="Generate demo..."
-                          rows={6}
+                          rows={compact ? 3 : 6}
                           value={field.state.value}
                         />
 
@@ -418,6 +432,8 @@ export function AgentTab() {
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <SelectModel
+                      model={agentModel}
+                      onModelChange={setAgentModel}
                       selectedModel={selectedModel}
                       setSelectedModelAction={(id) => {
                         setSelectedModel(id as AIProvider);
@@ -426,53 +442,6 @@ export function AgentTab() {
                     <SelectVoice onChange={setVoice} voice={voice} />
                   </div>
                   <div className="flex flex-none items-center gap-2">
-                    <form.Field
-                      children={(field) => {
-                        const isInvalid =
-                          field.state.meta.isTouched &&
-                          !field.state.meta.isValid;
-                        return (
-                          <Field
-                            data-invalid={isInvalid}
-                            orientation="horizontal"
-                          >
-                            <FieldLabel
-                              className="sr-only"
-                              htmlFor={field.name}
-                            >
-                              Headless
-                            </FieldLabel>
-
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  <Switch
-                                    aria-invalid={isInvalid}
-                                    checked={field.state.value}
-                                    id={field.name}
-                                    name={field.name}
-                                    onCheckedChange={field.handleChange}
-                                  />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  If enabled, the browser will run in the
-                                  background. Disable this if you want to
-                                  visually observe the browser actions on
-                                  screen.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </Field>
-                        );
-                      }}
-                      name="headless"
-                    />
-
                     <Button
                       aria-disabled={isSubmitDisabled}
                       className="rounded-full"
@@ -496,7 +465,14 @@ export function AgentTab() {
         // content without it, so overflow-y-auto alone never scrolls and a long
         // step timeline just runs off the bottom of the panel.
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <div className="border-b py-2">
+          <div
+            className={cn(
+              "py-2",
+              !compact && "border-b",
+              // Under the thread a finished run needs only "Change something".
+              compact && status === "completed" && "hidden"
+            )}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-xs">
@@ -517,13 +493,14 @@ export function AgentTab() {
                     </>
                   )}
                   {status === "completed" &&
+                    !compact &&
                     "Deliverables have been successfully saved."}
                   {status === "error" &&
                     (errorMessage === STOPPED
                       ? "The steps it took are below."
                       : "An error occurred during execution.")}
                 </p>
-                {status === "completed" && usage ? (
+                {status === "completed" && usage && !compact ? (
                   <RunUsageLine usage={usage} />
                 ) : null}
               </div>
@@ -556,7 +533,12 @@ export function AgentTab() {
             </div>
           </div>
 
-          <div className="space-y-6 pt-6">
+          <div
+            className={cn(
+              compact ? "space-y-3" : "space-y-6 pt-6",
+              compact && status !== "completed" && "pt-3"
+            )}
+          >
             {/* Real-time steps, then packaging once castfy0_end starts */}
             {question && status === "generating" ? (
               <AnswerCard
@@ -573,15 +555,23 @@ export function AgentTab() {
                 ref={changeInput}
               />
             ) : null}
-            <StepsTimeline
-              live={status === "generating"}
-              onChangeStep={status === "completed" ? changeStep : undefined}
-              steps={steps}
-            />
-            <PackagingProgress
-              finished={status === "completed"}
-              stages={stages}
-            />
+            {compact ? null : (
+              <StepsTimeline
+                live={status === "generating"}
+                onChangeStep={status === "completed" ? changeStep : undefined}
+                onShowStep={(step) => {
+                  const log = useAgentLog.getState();
+                  log.highlight(callForStep(log.events, step));
+                }}
+                steps={steps}
+              />
+            )}
+            {compact && status === "completed" ? null : (
+              <PackagingProgress
+                finished={status === "completed"}
+                stages={stages}
+              />
+            )}
 
             {/* Error Message display */}
             {status === "error" && errorMessage === STOPPED && (
@@ -618,7 +608,7 @@ export function AgentTab() {
             )}
 
             {/* Video Player Display */}
-            {status === "completed" && videoUrl && (
+            {!compact && status === "completed" && videoUrl && (
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <h3 className="font-medium text-xs">Recorded Video</h3>
                 {Object.keys(videos).length > 1 && (

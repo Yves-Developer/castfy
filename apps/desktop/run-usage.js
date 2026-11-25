@@ -14,8 +14,8 @@ export const RUN_USAGE_FILE = 'run-usage.json';
  * stdout as text, as before.
  */
 export function readClaudeResult(stdout) {
-  const result = parseLastObject(stdout);
-  if (result?.type !== 'result') return null;
+  const result = parseLastResult(stdout);
+  if (!result) return null;
   const models = Object.entries(result.modelUsage ?? {});
   const sum = (key) => models.reduce((total, [, usage]) => total + (Number(usage[key]) || 0), 0);
   return {
@@ -30,18 +30,24 @@ export function readClaudeResult(stdout) {
       outputTokens: sum('outputTokens'),
       cacheReadTokens: sum('cacheReadInputTokens'),
       cacheWriteTokens: sum('cacheCreationInputTokens'),
+      costUsd: typeof result.total_cost_usd === 'number' ? result.total_cost_usd : null,
     },
   };
 }
 
-/** The last line of `text` that is a JSON object, parsed; null if none is. */
-function parseLastObject(text) {
+/**
+ * The last result object in `text`, parsed; null if there is none. With
+ * stream-json more lines can follow it (a closing summary), so it is looked
+ * for by type rather than taken from the end.
+ */
+function parseLastResult(text) {
   const lines = text.trim().split('\n').reverse();
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed.startsWith('{')) continue;
     try {
-      return JSON.parse(trimmed);
+      const parsed = JSON.parse(trimmed);
+      if (parsed?.type === 'result') return parsed;
     } catch {
       // Not the result line; keep looking.
     }

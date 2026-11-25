@@ -1,3 +1,4 @@
+import type { AgentEvent } from "@/features/app/demo/agent-thread/types";
 import type { PlanKey, PlanLimits, ProductSlug } from '@castfy/plans';
 import type { ZoomTrack } from '../../remotion/zoom';
 export type SessionStatus = 'complete' | 'recording' | 'failed' | 'abandoned';
@@ -22,6 +23,10 @@ export interface RunUsage {
   outputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  /** The agent's own price at API rates. */
+  costUsd?: number | null;
+  /** Share of a Claude subscription's 5-hour limit, when the agent reported it. */
+  limit?: { used: number; now: number; resetsAt: number | null } | null;
 }
 
 export interface Session {
@@ -109,6 +114,8 @@ export interface AppSettings {
   voice?: string | null;
   /** Sends usage events (analytics.js); on unless turned off. */
   analytics?: boolean;
+  /** The model each agent runs with (its --model); absent or null for its own default. */
+  agentModels?: Record<string, string | null>;
 }
 
 /** The updater's state (updater.js): ready means downloaded, waiting for a restart. */
@@ -206,8 +213,6 @@ export interface DemoInput {
   projectId?: string | null;
   /** Overrides the saved choice for this run. */
   agentId?: string | null;
-  /** False shows the recording browser on screen; otherwise it is hidden. */
-  headless?: boolean;
   /** The voiceover's Edge voice ("en-US-AriaNeural"); none when absent. */
   voice?: string | null;
   /**
@@ -342,6 +347,8 @@ export interface CastfyBridge {
   openExternal(url: string): Promise<void>;
   agents(): Promise<{ agents: AgentRow[]; activeAgent: string | null }>;
   selectAgent(id: string): Promise<string | null>;
+  /** Models the agent can run with beyond the built-in list (OpenCode's own list). */
+  agentModels?(id: string): Promise<string[]>;
   settings(): Promise<AppSettings>;
   setSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
 
@@ -412,6 +419,10 @@ export interface CastfyBridge {
   /** Answers the recorder's question; a null value cancels it. */
   answerInput(sessionId: string, id: string, value: string | null): Promise<boolean>;
   onLog(cb: (chunk: string) => void): () => void;
+  /** The agent's messages and tool calls as they happen; reset starts a new run. */
+  onAgent?(cb: (p: { runId: string; reset: boolean; events: AgentEvent[] }) => void): () => void;
+  /** A recording's saved thread; null when it was made before threads were kept. */
+  agentLog?(sessionId: string): Promise<AgentEvent[] | null>;
   /** Live events from the recording being made, as castfy0 writes them. */
   onProgress(cb: (p: { sessionId: string; events: ProgressEvent[] }) => void): () => void;
   /** The recording browser, while a run has one open; null once it closes. */

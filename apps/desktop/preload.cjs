@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('castfy', {
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   agents: () => ipcRenderer.invoke('agents:list'),
   selectAgent: (id) => ipcRenderer.invoke('agents:select', id),
+  agentModels: (id) => ipcRenderer.invoke('agents:models', id),
   settings: () => ipcRenderer.invoke('settings:get'),
   setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
 
@@ -82,6 +83,9 @@ contextBridge.exposeInMainWorld('castfy', {
   onLog: on('demo:log'),
   onDone: on('demo:done'),
   onProgress: on('demo:progress'),
+  // the agent's own messages and tool calls (agent-events.js)
+  onAgent: on('demo:agent'),
+  agentLog: (sessionId) => ipcRenderer.invoke('demo:agentLog', sessionId),
 
   // the recording browser, live in the studio
   onRecordingState: on('recording:state'),

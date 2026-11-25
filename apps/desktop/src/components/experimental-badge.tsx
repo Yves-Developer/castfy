@@ -5,7 +5,7 @@ import { Badge } from "@castfy/ui/components/badge";
  * one recordings are proven on; these work in principle and are marked so
  * testers know what to expect.
  */
-const EXPERIMENTAL_AGENTS = new Set(["codex", "cursor"]);
+const EXPERIMENTAL_AGENTS = new Set(["codex", "cursor", "opencode"]);
 
 export function isExperimentalAgent(id: string): boolean {
   return EXPERIMENTAL_AGENTS.has(id);
