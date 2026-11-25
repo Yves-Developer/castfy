@@ -45,6 +45,15 @@ export const CursorIcon: IconType = (props: IconProps) => (
   </svg>
 );
 
+/** OpenCode: a terminal prompt (not its logo, which we do not copy). */
+export const OpenCodeIcon: IconType = (props: IconProps) => (
+  <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <title>OpenCode</title>
+    <rect height="18" rx="3" width="18" x="3" y="3" />
+    <path d="m7.5 9.5 3 2.5-3 2.5M12.5 15h4" />
+  </svg>
+);
+
 /** The Model Context Protocol mark. */
 export const McpIcon = SiModelcontextprotocol;
 
@@ -53,4 +62,5 @@ export const CLIENT_ICONS: Record<string, IconType> = {
   'claude-desktop': ClaudeIcon,
   cursor: CursorIcon,
   codex: CodexIcon,
+  opencode: OpenCodeIcon,
 };

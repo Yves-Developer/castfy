@@ -12,6 +12,11 @@ import { BlurLayer } from "../blur/layer";
 import { useBlurTool } from "../blur/tool";
 import { EditorFooter } from "./footer";
 import StudioTimelines from "./timelines";
+import { useLive, useRecordingBrowser } from "@/lib/live-view";
+import { useAgentLog } from "../agent-thread/agent-log";
+import { AgentThread } from "../agent-thread/agent-thread";
+import { LiveStage } from "../agent-thread/live-stage";
+import { AgentTab } from "../sidebar/agent";
 
 const SKIP_SECONDS = 10;
 const FPS = 30;
@@ -48,7 +53,9 @@ export default function AppVideoEditor() {
    * mode it always is; in result mode only when the result is that same file,
    * as a segment recording's demo.mp4 is.
    */
-  const tracksFit = mode === "edit" || (source !== null && source === editingSource(project?.session));
+  const tracksFit =
+    mode === "edit" ||
+    (source !== null && source === editingSource(project?.session));
 
   // The preview's shape is the export's, "Fit window" included.
   const frameSize = videoFrameSize({
@@ -67,6 +74,16 @@ export default function AppVideoEditor() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
+  const liveSession = useLive().sessionId;
+  const recordingBrowser = useRecordingBrowser();
+  const live = Boolean(liveSession || recordingBrowser);
+  /** Nothing to play yet (a first run): the controls and timeline step aside. */
+  const hasVideo =
+    Boolean(useBackgroundStore((s) => s.generatedVideoUrl)) && !live;
+  const loadAgentLog = useAgentLog((s) => s.load);
+  useEffect(() => {
+    loadAgentLog(project?.sessionId ?? null);
+  }, [loadAgentLog, project?.sessionId]);
 
   const playerRef = useRef<PlayerRef>(null);
   /** Last frame skipped to, so a bad landing cannot become a seek loop. */
@@ -148,7 +165,10 @@ export default function AppVideoEditor() {
     const firstKept = nextPlayablePosition(0, cutsApi.cuts);
     if (firstKept === null) return;
 
-    const frame = Math.min(Math.ceil((firstKept / 1000) * FPS), durationInFrames - 1);
+    const frame = Math.min(
+      Math.ceil((firstKept / 1000) * FPS),
+      durationInFrames - 1
+    );
     playerRef.current?.seekTo(frame);
   }, [slug, durationInFrames, previewCuts, cutsApi.cuts, mode]);
 
@@ -211,67 +231,125 @@ export default function AppVideoEditor() {
 
   return (
     <>
-      <div className="flex h-full flex-col gap-4 px-2.5 py-4">
-        <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
-          <div
-            className="relative flex items-center justify-center overflow-hidden rounded-lg"
-            style={{
-              aspectRatio: `${ratioValue}`,
-              height: "100%",
-              maxHeight: "70vh",
-            }}
-          >
-            <RemotionPlayer
-              onDurationInFrames={handleDurationInFrames}
-              onFrameChange={handleFrameChange}
-              onMuteChange={setIsMuted}
-              onPlaybackChange={setIsPlaying}
-              onVolumeChange={setVolume}
-              ref={playerRef}
-              showBlurs={mode === "result"}
-            />
-            <BlurLayer />
-          </div>
-        </div>
-        <EditorFooter
-          currentTime={currentTime}
-          duration={duration}
-          isMuted={isMuted}
-          isPlaying={isPlaying}
-          onPlayPause={handleTogglePlay}
-          onSkipBack={skipBackward}
-          onSkipForward={skipForward}
-          onToggleMute={handleToggleMute}
-          onVolumeChange={handleVolumeChange}
-          volume={volume}
+      <div className="flex h-full min-h-0 flex-col gap-4 px-2.5 py-4">
+        <LiveStage
+          agent={<AgentPanel />}
+          browser={
+            <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
+              <div
+                className="relative flex items-center justify-center overflow-hidden rounded-lg"
+                style={{
+                  aspectRatio: `${ratioValue}`,
+                  height: "100%",
+                  maxHeight: "70vh",
+                }}
+              >
+                <RemotionPlayer
+                  onDurationInFrames={handleDurationInFrames}
+                  onFrameChange={handleFrameChange}
+                  onMuteChange={setIsMuted}
+                  onPlaybackChange={setIsPlaying}
+                  onVolumeChange={setVolume}
+                  ref={playerRef}
+                  showBlurs={mode === "result"}
+                />
+                <BlurLayer />
+              </div>
+            </div>
+          }
+          live={live}
+          status={
+            <StageStatus duration={hasVideo ? duration : 0} live={live} />
+          }
         />
+        {hasVideo ? (
+          <EditorFooter
+            currentTime={currentTime}
+            duration={duration}
+            isMuted={isMuted}
+            isPlaying={isPlaying}
+            onPlayPause={handleTogglePlay}
+            onSkipBack={skipBackward}
+            onSkipForward={skipForward}
+            onToggleMute={handleToggleMute}
+            onVolumeChange={handleVolumeChange}
+            volume={volume}
+          />
+        ) : null}
       </div>
-      <footer className="mt-auto flex flex-col gap-2 border-t p-2.5">
-        <CutBar
-          canEdit={canEditCuts}
-          cutsApi={cutsApi}
-          hasResult={Boolean(
-            project?.session?.videos.audioClean ?? project?.session?.videos.audio
-          )}
-          mode={mode}
-          onModeChange={setMode}
-          visible={Boolean(timeline)}
-        />
-        <StudioTimelines
-          currentFrame={currentFrame}
-          cutsApi={mode === "edit" ? cutsApi : undefined}
-          durationInFrames={durationInFrames}
-          onSeek={seekToFrame}
-          sessionId={project?.sessionId ?? null}
-          /**
-           * Tracks only over the video they are measured on: they are
-           * positioned in raw-footage time, and a clean variant is a different
-           * length — drawing them over it would put every cut and step in the
-           * wrong place.
-           */
-          timeline={tracksFit ? timeline : undefined}
-        />
-      </footer>
+      {hasVideo ? (
+        <footer className="mt-auto flex flex-col gap-2 border-t p-2.5">
+          <CutBar
+            canEdit={canEditCuts}
+            cutsApi={cutsApi}
+            hasResult={Boolean(
+              project?.session?.videos.audioClean ??
+                project?.session?.videos.audio
+            )}
+            mode={mode}
+            onModeChange={setMode}
+            visible={Boolean(timeline)}
+          />
+          <StudioTimelines
+            currentFrame={currentFrame}
+            cutsApi={mode === "edit" ? cutsApi : undefined}
+            durationInFrames={durationInFrames}
+            onSeek={seekToFrame}
+            sessionId={project?.sessionId ?? null}
+            /**
+             * Tracks only over the video they are measured on: they are
+             * positioned in raw-footage time, and a clean variant is a different
+             * length — drawing them over it would put every cut and step in the
+             * wrong place.
+             */
+            timeline={tracksFit ? timeline : undefined}
+          />
+        </footer>
+      ) : null}
     </>
   );
+}
+
+/** The agent's thread, with the agent panel under it as the prompt box. */
+function AgentPanel() {
+  const events = useAgentLog((s) => s.events);
+  const live = useAgentLog((s) => s.live);
+  const highlightId = useAgentLog((s) => s.highlightId);
+  const sessionId = useAgentLog((s) => s.sessionId);
+  return (
+    <AgentThread
+      composer={
+        <div className="max-h-80 overflow-y-auto">
+          <AgentTab compact />
+        </div>
+      }
+      emptyText={
+        sessionId
+          ? "This demo was recorded before Castfy kept the agent's thread. Record it again to see it here."
+          : "Paste a URL and say what to show. The agent's messages and tool calls show here as it works."
+      }
+      events={events}
+      highlightId={highlightId}
+      live={live}
+    />
+  );
+}
+
+function clock(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/** Beside the toggle: what the agent is doing, or how long the demo is. */
+function StageStatus({ live, duration }: { live: boolean; duration: number }) {
+  const { step } = useLive();
+  if (live) {
+    return (
+      <>
+        <span className="size-1.5 flex-none rounded-full bg-red-500" />
+        <span className="truncate">Recording{step ? ` · ${step}` : ""}</span>
+      </>
+    );
+  }
+  return duration > 0 ? <span>Recorded · {clock(duration)}</span> : null;
 }

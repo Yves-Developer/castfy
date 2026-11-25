@@ -205,7 +205,7 @@ export function LiveView({ sessionId }: { sessionId: string | null }) {
   };
 
   return (
-    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border bg-black">
+    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/10">
       {shown ? (
         // biome-ignore lint/a11y: a live browser surface; its contents are the page's own controls.
         <div

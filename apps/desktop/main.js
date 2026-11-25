@@ -18,11 +18,18 @@ import {
 } from 'electron';
 import chokidar from 'chokidar';
 import { Account } from './account.js';
-import { buildCommand, detectAgents, pickAgent } from './agents.js';
+import { buildCommand, detectAgents, modelFor, pickAgent } from './agents.js';
+import { ClaudeStream, OpenCodeStream, readAgentLog, saveAgentLog, TextStream } from './agent-events.js';
 import { RUN_USAGE_FILE, saveRunUsage } from './run-usage.js';
 import { buildReport } from './report.js';
 import { browserStatus, installBrowsers } from './browsers.js';
-import { connectClient, detectClients, disconnectClient, writeRunMcpConfig } from './clients.js';
+import {
+  connectClient,
+  detectClients,
+  disconnectClient,
+  openCodeRunConfig,
+  writeRunMcpConfig,
+} from './clients.js';
 import { ProjectStore } from './projects.js';
 import { ensureSourceVideo } from './ensure-source.js';
 import { agentEnv, openLogin, signedIn } from './agent-auth.js';
@@ -1634,6 +1641,49 @@ ipcMain.handle('settings:set', async (_e, patch) => {
   return settings.state;
 });
 
+/** OpenCode's model ids, as its own CLI lists them ("provider/model"). */
+const OPENCODE_MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*\/\S+$/;
+let openCodeModels = null;
+
+/**
+ * The models an agent can run with, beyond the fixed list the renderer
+ * knows. OpenCode's depend on which providers the user connected, so its own
+ * `opencode models` is asked, once per launch.
+ */
+ipcMain.handle('agents:models', async (_e, id) => {
+  if (id !== 'opencode') return [];
+  if (openCodeModels) return openCodeModels;
+  const command = await buildCommand('opencode');
+  if (!command) return [];
+  const launch = agentSpawn(command.binary, ['models']);
+  const out = await new Promise((resolve) => {
+    let text = '';
+    const child = spawn(launch.file, launch.args, {
+      shell: launch.shell,
+      stdio: ['ignore', 'pipe', 'ignore'],
+      env: agentEnv('opencode', process.env),
+    });
+    const timer = setTimeout(() => child.kill(), 30_000);
+    child.stdout.on('data', (d) => {
+      text += d.toString();
+    });
+    child.on('close', () => {
+      clearTimeout(timer);
+      resolve(text);
+    });
+    child.on('error', () => {
+      clearTimeout(timer);
+      resolve('');
+    });
+  });
+  const models = out
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => OPENCODE_MODEL_ID.test(l));
+  if (models.length > 0) openCodeModels = models;
+  return models;
+});
+
 ipcMain.handle('agents:select', async (_e, id) => {
   await settings.set({ activeAgent: id });
   return settings.state.activeAgent;
@@ -1819,9 +1869,11 @@ ipcMain.handle('demo:run', async (_e, input) => {
           expectedRegistration()
         ).catch(() => null)
       : null;
+  const model = modelFor(settings.state, agentId);
   const command = await buildCommand(agentId, {
     allowUnsandboxed: Boolean(settings.state.allowUnsandboxed),
     mcpConfig,
+    model,
   });
   if (!command) return { ok: false, error: `${agentId} is no longer installed.` };
 
@@ -1829,9 +1881,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
     ...process.env,
     CASTFY0_OUTPUT_DIR: libraryRoot(),
     PLAYWRIGHT_BROWSERS_PATH: browsersPath(),
-    // The composer's switch: in the background (a hidden window, shown live
-    // in the studio) unless the user wants to watch the browser itself.
-    CASTFY0_BROWSER_WINDOW: input.headless === false ? 'visible' : 'hidden',
+    // Always in the background: the studio shows it live (Browser view), and
+    // a window of its own only got in the way of the app.
+    CASTFY0_BROWSER_WINDOW: 'hidden',
     // The app's own run: castfy0 keeps a free-plan demo's clean picture for
     // the export, which draws the watermark where zoom cannot crop it.
     CASTFY0_HOST_APP: 'castfy',
@@ -1840,6 +1892,25 @@ ipcMain.handle('demo:run', async (_e, input) => {
   });
   delete env.CASTFY0_HOST_CDP;
   delete env.CASTFY0_HOST_PAGE;
+  if (agentId === 'opencode') {
+    // castfy0 for this run only, on top of the user's own OpenCode config
+    // (and of any inline config they already set).
+    let own = {};
+    try {
+      own = env.OPENCODE_CONFIG_CONTENT ? JSON.parse(env.OPENCODE_CONFIG_CONTENT) : {};
+    } catch {
+      own = {};
+    }
+    const ours = openCodeRunConfig(expectedRegistration());
+    env.OPENCODE_CONFIG_CONTENT = JSON.stringify({
+      ...own,
+      mcp: { ...(own.mcp ?? {}), ...ours.mcp },
+      permission:
+        typeof own.permission === 'object' && own.permission
+          ? { ...own.permission, ...ours.permission }
+          : ours.permission,
+    });
+  }
 
   // A signed-out agent fails a minute in with an exit code; asking first means
   // the user gets a Sign in button instead.
@@ -1862,7 +1933,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
         host: win,
         runId: Date.now().toString(36),
         viewport: { width: 1280, height: 720 },
-        visible: input.headless === false,
+        visible: false,
       })
     : null;
   if (recording) {
@@ -1898,7 +1969,7 @@ ipcMain.handle('demo:run', async (_e, input) => {
   analytics?.capture('demo_started', {
     agent: agentId,
     voice: Boolean(input.voice),
-    watched: input.headless === false,
+    model: model ?? 'default',
   });
 
   /**
@@ -1916,7 +1987,48 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
   let stderr = '';
   let stdout = '';
-  const settle = async (code, error) => {
+  /**
+   * The Agent view's thread. Claude Code's stream-json is read as it comes
+   * and not kept whole: its tool results carry screenshots, and a long run's
+   * raw output runs to tens of megabytes.
+   */
+  const agentStream =
+    command.stream === 'claude'
+      ? new ClaudeStream()
+      : command.stream === 'opencode'
+        ? new OpenCodeStream({ model })
+        : new TextStream();
+  /** JSON events, read as they come and not kept whole (see above). */
+  const structured = !(agentStream instanceof TextStream);
+  /**
+   * A model error the agent only logged (OpenCode: a used-up free tier, a
+   * rejected key). OpenCode keeps waiting after one, so the run is stopped
+   * and this is what the user is told.
+   */
+  let agentFailure = null;
+  const sendAgent = (events, reset = false) => {
+    if (reset || events.length > 0) send('demo:agent', { runId: run.id, reset, events });
+  };
+  const prompt0 = {
+    kind: 'prompt',
+    id: 'prompt',
+    t: Date.now(),
+    text: [input.goal, input.change ? `Change: ${input.change}` : null].filter(Boolean).join('\n\n'),
+    url: input.url,
+  };
+  sendAgent([prompt0], true);
+  /** What readResult, failure explanations and the problem report read. */
+  const agentOutput = () => {
+    if (agentStream instanceof ClaudeStream) {
+      return `${agentStream.text}${agentStream.result ? JSON.stringify(agentStream.result) : ''}`;
+    }
+    if (agentStream instanceof OpenCodeStream) return `${agentStream.text}${agentStream.lastText}`;
+    return stdout;
+  };
+  const settle = async (code, failure) => {
+    const error = failure ?? agentFailure;
+    sendAgent(agentStream.end());
+    stdout = agentOutput();
     running = null;
     closeRecording();
     await removeHostFile();
@@ -1930,7 +2042,10 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
     // An agent that reports a result object (Claude Code) said its last words
     // in it; that is what the log shows and what a failure is explained from.
-    const result = command.readResult?.(stdout) ?? null;
+    const result =
+      agentStream instanceof OpenCodeStream
+        ? agentStream.result()
+        : (command.readResult?.(stdout) ?? null);
     if (result?.text) send('demo:log', `${result.text}\n`);
     const said = result ? result.text : stdout;
 
@@ -1971,8 +2086,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
         : {}),
     });
     if (run.projectId && sessionId) projects.linkSession(run.projectId, sessionId);
+    const limit = agentStream instanceof ClaudeStream ? agentStream.limit() : null;
     if (sessionId && result?.usage) {
-      await saveRunUsage(path.join(libraryRoot(), sessionId), result.usage).catch(() => {});
+      await saveRunUsage(path.join(libraryRoot(), sessionId), { ...result.usage, limit }).catch(() => {});
     }
     // Kept with the recording, and always as the last run's output too: a
     // run that recorded nothing has no folder, and its output is what a
@@ -1983,6 +2099,9 @@ ipcMain.handle('demo:run', async (_e, input) => {
       await saveAgentOutput(path.join(libraryRoot(), keptIn), output).catch(() => {});
     }
     await saveAgentOutput(app.getPath('userData'), output, LAST_RUN_OUTPUT).catch(() => {});
+    if (keptIn) {
+      await saveAgentLog(path.join(libraryRoot(), keptIn), [prompt0, ...agentStream.all()]).catch(() => {});
+    }
 
     send('demo:done', {
       cancelled,
@@ -1999,19 +2118,50 @@ ipcMain.handle('demo:run', async (_e, input) => {
 
   send('demo:log', `$ ${command.label} — starting recording…\n\n`);
   running.stdout.on('data', (d) => {
-    stdout += d.toString();
+    const chunk = d.toString();
+    sendAgent(agentStream.push(chunk));
+    if (structured) return;
+    stdout += chunk;
     // A result object is shown once it is whole, as its message; see settle.
-    if (!command.readResult) send('demo:log', d.toString());
+    if (!command.readResult) send('demo:log', chunk);
   });
   running.stderr.on('data', (d) => {
     stderr += d.toString();
     send('demo:log', d.toString());
+    if (agentStream instanceof OpenCodeStream && !agentFailure) {
+      const failed = stderr.match(OPENCODE_MODEL_ERROR);
+      if (failed) {
+        agentFailure = readableOpenCodeError(failed[1]);
+        sendAgent(agentStream.fail(agentFailure));
+        // It would wait forever: give its own exit a moment, then stop it.
+        setTimeout(() => {
+          if (running) killRunTree(running, spawn);
+        }, 3000);
+      }
+    }
   });
   running.on('close', (code) => settle(code));
   running.on('error', (err) => settle(-1, err.message));
 
   return { ok: true, agentId, runId: run.id };
 });
+
+/** A recording's saved Agent view thread, or null for one made before it existed. */
+ipcMain.handle('demo:agentLog', async (_e, sessionId) => {
+  if (typeof sessionId !== 'string') return null;
+  const dir = resolveWithin(libraryRoot(), sessionId);
+  if (!dir || dir === libraryRoot()) return null;
+  return readAgentLog(dir);
+});
+
+/** OpenCode's log line for a failed model call: `message="stream error" ... error.error="…"`. */
+const OPENCODE_MODEL_ERROR = /level=ERROR[^\n]*message="stream error"[^\n]*?error\.error="([^"\n]*)/;
+
+/** "AI_APICallError: Free usage limit reached. …" -> the part a person reads. */
+function readableOpenCodeError(text) {
+  const message = text.replace(/^[A-Za-z_]+Error:\s*/, '').trim();
+  return `OpenCode's model returned an error: ${message || 'no details'}`;
+}
 
 /** castfy0_ask_user names its questions with Date.now() in base 36. */
 const INPUT_ID = /^[a-z0-9]{1,16}$/;

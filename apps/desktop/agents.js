@@ -41,22 +41,33 @@ export const AGENTS = [
     /**
      * -p is headless, and the prompt arrives on stdin. --allowedTools matters
      * because a headless run cannot show an approval prompt: an un-allowlisted
-     * tool call just stalls. The JSON output carries the run's turns, time and
-     * tokens next to its last message (run-usage.js).
+     * tool call just stalls.
+     *
+     * stream-json (which needs --verbose with -p) prints each message, tool
+     * call and result as it happens, for the studio's Agent view
+     * (agent-events.js), and still ends with the result object that carries
+     * the run's turns, time, tokens and cost (run-usage.js).
+     *
+     * --model takes Claude Code's aliases (opus, sonnet, haiku) or a full id;
+     * without it the user's own Claude Code setting decides.
      *
      * With a run config (writeRunMcpConfig), castfy0 comes from it and only
      * from it: the recorder is there even when the user's own settings lack
      * it, and their other MCP servers cannot slow the run's start or fail it.
      */
-    buildArgs: ({ mcpConfig } = {}) => [
+    buildArgs: ({ mcpConfig, model } = {}) => [
       '-p',
       '--output-format',
-      'json',
+      'stream-json',
+      '--verbose',
+      ...(model ? ['--model', model] : []),
       '--allowedTools',
       'mcp__castfy0',
       ...(mcpConfig ? ['--mcp-config', mcpConfig, '--strict-mcp-config'] : []),
     ],
     readResult: readClaudeResult,
+    /** How its stdout becomes the Agent view's events (agent-events.js). */
+    stream: 'claude',
   },
   {
     id: 'codex',
@@ -85,6 +96,44 @@ export const AGENTS = [
         : ['exec', '-'],
   },
   {
+    id: 'opencode',
+    label: 'OpenCode',
+    /**
+     * The install script puts it in ~/.opencode/bin; npm, bun and Homebrew in
+     * their own bin folders; otherwise it is looked up on PATH.
+     */
+    binaries: [
+      path.join(home, '.opencode/bin/opencode.exe'),
+      path.join(home, '.opencode/bin/opencode'),
+      path.join(appData, 'npm/opencode.cmd'),
+      path.join(home, '.bun/bin/opencode'),
+      path.join(home, 'scoop/shims/opencode.exe'),
+      '/opt/homebrew/bin/opencode',
+      '/usr/local/bin/opencode',
+      'opencode',
+    ],
+    /**
+     * `opencode run` with no message reads the prompt from stdin. --format
+     * json prints one event per line (agent-events.js OpenCodeStream).
+     * Errors from the model (a used-up free tier, a bad key) are only
+     * logged, so the run prints its ERROR log lines to stderr, where main.js
+     * watches for them: OpenCode keeps waiting after one instead of exiting.
+     *
+     * castfy0 and its permission come from OPENCODE_CONFIG_CONTENT, set per
+     * run (main.js), not from the user's own config.
+     */
+    buildArgs: ({ model } = {}) => [
+      'run',
+      '--format',
+      'json',
+      '--print-logs',
+      '--log-level',
+      'ERROR',
+      ...(model ? ['--model', model] : []),
+    ],
+    stream: 'opencode',
+  },
+  {
     id: 'cursor',
     label: 'Cursor',
     binaries: [
@@ -95,6 +144,15 @@ export const AGENTS = [
     buildArgs: () => ['-p'],
   },
 ];
+
+/** Model names an agent's --model can take: aliases, ids, provider/model. */
+const MODEL_NAME = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,79}$/;
+
+/** The model saved for an agent, if it is one we can safely pass on. */
+export function modelFor(settingsState, agentId) {
+  const model = settingsState?.agentModels?.[agentId];
+  return typeof model === 'string' && MODEL_NAME.test(model) ? model : null;
+}
 
 /** GUI-only clients: connectable, never drivable. */
 export const GUI_ONLY = new Set(['claude-desktop']);
@@ -171,6 +229,7 @@ export async function buildCommand(agentId, options = {}) {
     args: agent.buildArgs(options),
     label: agent.label,
     readResult: agent.readResult ?? null,
+    stream: agent.stream ?? 'text',
   };
 }
 

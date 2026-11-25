@@ -91,7 +91,6 @@ async function mutation<T = any>(ref: FunctionRef, args: Args): Promise<T> {
         goal: String(args.promptGoal ?? ''),
         projectId: args.projectId ? String(args.projectId) : null,
         agentId: args.provider ? String(args.provider) : null,
-        headless: args.headless !== 'false' && args.headless !== false,
         voice: args.voice ? String(args.voice) : null,
         change: args.change ? String(args.change) : null,
         previousSteps: Array.isArray(args.previousSteps)

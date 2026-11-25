@@ -50,6 +50,21 @@ export const CLIENTS = [
     },
   },
   {
+    id: 'opencode',
+    label: 'OpenCode',
+    // Its own JSON shape: an "mcp" map of { type, command[], environment }.
+    kind: 'opencode',
+    // OpenCode reads ~/.config/opencode on every OS, Windows included.
+    file: path.join(home, '.config/opencode/opencode.json'),
+    requiresDir: path.join(home, '.config/opencode'),
+    install: {
+      cli: true,
+      command: 'npm install -g opencode-ai',
+      url: 'https://opencode.ai',
+      note: 'Terminal agent, any model. Castfy can start recordings with it.',
+    },
+  },
+  {
     id: 'codex',
     label: 'Codex',
     kind: 'toml',
@@ -114,6 +129,27 @@ async function inspect(client, expected, cliInstalled) {
 
   const raw = await readIfExists(client.file);
   if (raw === null) return { status: 'disconnected' };
+
+  if (client.kind === 'opencode') {
+    let cfg;
+    try {
+      cfg = JSON.parse(raw);
+    } catch {
+      return { status: 'unreadable' };
+    }
+    const srv = openCodeEntry(cfg);
+    if (!srv) return { status: 'disconnected' };
+    const [command, entryPath = null] = Array.isArray(srv.command) ? srv.command : [];
+    if (entryPath && !(await exists(entryPath))) return { status: 'stale', entryPath };
+    if (!srv.environment?.CASTFY0_OUTPUT_DIR) return { status: 'needs-env', entryPath };
+    if (!samePath(entryPath, mcpEntry)) return { status: 'other-entry', entryPath };
+    const sameCommand = path.isAbsolute(launch.command)
+      ? samePath(command, launch.command)
+      : command === launch.command;
+    const outdated =
+      !sameCommand || !samePath(srv.environment?.PLAYWRIGHT_BROWSERS_PATH, browsersPath);
+    return { status: outdated ? 'needs-env' : 'connected', entryPath };
+  }
 
   if (client.kind === 'json') {
     let cfg;
@@ -199,6 +235,36 @@ export async function writeRunMcpConfig(file, opts) {
   return file;
 }
 
+/**
+ * castfy0 as OpenCode configures a local MCP server. This is the shape every
+ * OpenCode 1.x reads; newer ones also accept it under "mcp.servers".
+ */
+export function serverBlockOpenCode(opts) {
+  return {
+    type: 'local',
+    command: [posix(opts.launch.command), posix(opts.mcpEntry)],
+    environment: serverEnv(opts),
+    enabled: true,
+  };
+}
+
+/** castfy0's entry in an OpenCode config, in either place it may be. */
+function openCodeEntry(cfg) {
+  return cfg?.mcp?.castfy0 ?? cfg?.mcp?.servers?.castfy0 ?? null;
+}
+
+/**
+ * The config one OpenCode run gets on top of the user's own
+ * (OPENCODE_CONFIG_CONTENT): castfy0, and permission for its tools, which a
+ * run with nobody to ask could otherwise stall on.
+ */
+export function openCodeRunConfig(opts) {
+  return {
+    mcp: { castfy0: serverBlockOpenCode(opts) },
+    permission: { 'castfy0_*': 'allow' },
+  };
+}
+
 function serverBlockJson(opts) {
   return {
     type: 'stdio',
@@ -274,6 +340,25 @@ export async function connectClient(id, opts) {
   const raw = await readIfExists(client.file);
   if (raw !== null) await fs.writeFile(`${client.file}.castfy-backup`, raw, 'utf8');
 
+  if (client.kind === 'opencode') {
+    let cfg = {};
+    if (raw) {
+      try {
+        cfg = JSON.parse(raw);
+      } catch {
+        throw new Error(`${client.file} is not plain JSON — not overwriting it`);
+      }
+    }
+    cfg.$schema ??= 'https://opencode.ai/config.json';
+    if (cfg.mcp?.servers) {
+      cfg.mcp.servers.castfy0 = serverBlockOpenCode(opts);
+    } else {
+      cfg.mcp = { ...(cfg.mcp ?? {}), castfy0: serverBlockOpenCode(opts) };
+    }
+    await fs.writeFile(client.file, `${JSON.stringify(cfg, null, 2)}\n`, 'utf8');
+    return { ok: true, file: client.file, backedUp: raw !== null };
+  }
+
   if (client.kind === 'json') {
     const cfg = raw ? JSON.parse(raw) : {};
     cfg.mcpServers = cfg.mcpServers || {};
@@ -321,6 +406,20 @@ export async function disconnectClient(id) {
   if (raw === null) return { ok: true, changed: false, file: client.file };
 
   await fs.writeFile(`${client.file}.castfy-backup`, raw, 'utf8');
+
+  if (client.kind === 'opencode') {
+    let cfg;
+    try {
+      cfg = JSON.parse(raw);
+    } catch {
+      throw new Error(`${client.file} is not plain JSON — not touching it`);
+    }
+    if (!openCodeEntry(cfg)) return { ok: true, changed: false, file: client.file };
+    if (cfg.mcp?.servers?.castfy0) delete cfg.mcp.servers.castfy0;
+    if (cfg.mcp?.castfy0) delete cfg.mcp.castfy0;
+    await fs.writeFile(client.file, `${JSON.stringify(cfg, null, 2)}\n`, 'utf8');
+    return { ok: true, changed: true, file: client.file };
+  }
 
   if (client.kind === 'json') {
     let cfg;

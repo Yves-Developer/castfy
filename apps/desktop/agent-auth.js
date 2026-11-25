@@ -14,6 +14,8 @@ import { execFile, spawn } from "node:child_process";
 const LOGIN_ARGS = {
   "claude-code": ["auth", "login"],
   codex: ["login"],
+  // Connects a model provider (an API key or a subscription), in its own flow.
+  opencode: ["auth", "login"],
   cursor: ["login"],
 };
 

@@ -3,6 +3,7 @@ import { Button } from "@castfy/ui/components/button";
 import { Tabs, TabsContent } from "@castfy/ui/components/tabs";
 import { cn } from "@castfy/ui/lib/utils";
 import { useEffect, useState } from "react";
+import { useStageView } from "../agent-thread/stage-view";
 import { useBlurTool } from "../blur/tool";
 import { AgentTab } from "./agent";
 import { BackgroundTab } from "./background";
@@ -14,7 +15,14 @@ const tabs = [
   { value: "blur", label: "Blur" },
 ] as const;
 export default function DemoSidebar({ className }: { className?: string }) {
-  const [activeTab, setActiveTab] = useState("agent");
+  const [chosenTab, setActiveTab] = useState("agent");
+  // With the agent's thread on stage, its prompt and steps live there.
+  const agentOnStage = useStageView((s) => s.view === "agent");
+  const shownTabs = agentOnStage
+    ? tabs.filter((t) => t.value !== "agent")
+    : tabs;
+  const activeTab =
+    agentOnStage && chosenTab === "agent" ? "background" : chosenTab;
   // Boxes can be drawn and moved on the video while the Blur panel is open.
   useEffect(() => {
     useBlurTool.getState().set({
@@ -37,7 +45,7 @@ export default function DemoSidebar({ className }: { className?: string }) {
       >
         <div className="flex h-13 items-center border-b px-2.5">
           <div className="flex items-center gap-1 bg-transparent">
-            {tabs.map((tab) => (
+            {shownTabs.map((tab) => (
               <Button
                 className={cn(
                   "rounded-lg text-xs",
