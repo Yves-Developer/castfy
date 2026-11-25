@@ -68,7 +68,7 @@ const MENU: Entry[] = [
       },
       {
         title: "Agents",
-        text: "Run Castfy from Claude Code, Codex or Cursor",
+        text: "Run Castfy from Claude Code, OpenCode, Codex or Cursor",
         href: "/#agents",
         icon: <TerminalIcon />,
         color: "bg-[#0b0d12]",

@@ -11,7 +11,7 @@ export function HomeHero() {
       <HeroSides />
       <span className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-1.5 text-muted-foreground text-sm">
         <AgentLogos />
-        Agent-first: record from Claude Code, Codex or Cursor
+        Agent-first: record from Claude Code, OpenCode, Codex or Cursor
       </span>
       <div className="flex flex-col items-center gap-5">
         <h1 className="max-w-200 text-balance font-medium text-4xl leading-9 tracking-[-0.04em] md:text-[52px] md:leading-13 lg:text-[64px] lg:leading-16">
@@ -38,8 +38,8 @@ export function HomeHero() {
       </div>
       <OtherDownloads className="-mt-4 text-muted-foreground text-sm" />
       <p className="text-muted-foreground text-sm">
-        <span className="text-foreground">Requires:</span> Claude Code (Codex
-        and Cursor CLI experimental)
+        <span className="text-foreground">Requires:</span> Claude Code (OpenCode,
+        Codex and Cursor CLI experimental)
       </p>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import agentViewShot from "@/public/landing/agent-view.webp";
 import blurShot from "@/public/landing/blur.webp";
 import changeShot from "@/public/landing/change.webp";
 import realScreenShot from "@/public/landing/real-screen.webp";
@@ -18,6 +19,14 @@ const FEATURES = [
     text: "Paste a URL and say what to show. A real browser on your machine works through the flow, signed in, localhost included.",
     image: recordShot,
     alt: "The agent drawing a diagram in Excalidraw live, its steps listed beside it",
+  },
+  {
+    tab: "Agent view",
+    color: "bg-[#2a2d35]",
+    title: "Watch your agent think",
+    text: "Switch from the live browser to your agent's own thread: every message and tool call, what it sent and what came back. Pick its model, and see what each demo used.",
+    image: agentViewShot,
+    alt: "The Agent view during a recording: the agent's messages and tool calls, one highlighted",
   },
   {
     tab: "Real screen",

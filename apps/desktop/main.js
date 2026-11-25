@@ -1439,10 +1439,19 @@ ipcMain.handle('export:render', async (_e, sessionId, spec) => {
       const result = await runExport(sessionId, exportSpec, (message) =>
         ui?.send('export:progress', { sessionId, message })
       );
+      const renderS = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+      // What a slow export needs explained: the machine, and how fast it went.
       analytics?.capture('export_finished', {
-        render_s: Math.round((Date.now() - startedAt) / 1000),
+        render_s: renderS,
         width: result.width,
         height: result.height,
+        frames: result.durationInFrames,
+        video_s: Math.round(result.durationInFrames / 30),
+        fps: Math.round((result.durationInFrames / renderS) * 10) / 10,
+        workers: result.concurrency,
+        cores: os.availableParallelism?.() ?? os.cpus().length,
+        ram_gb: Math.round(os.totalmem() / 1024 ** 3),
+        cpu: os.cpus()[0]?.model?.trim() ?? null,
       });
       return { ok: true, ...result };
     } finally {

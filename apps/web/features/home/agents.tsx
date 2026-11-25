@@ -1,10 +1,22 @@
-import { LibraryIcon, PlugIcon, TerminalIcon, VideoIcon } from "lucide-react";
+import {
+  LibraryIcon,
+  PlugIcon,
+  SquareTerminalIcon,
+  TerminalIcon,
+  VideoIcon,
+} from "lucide-react";
 import { SiClaude, SiOpenai } from "react-icons/si";
 import { CursorLogo } from "@/components/cursor-logo";
 import { Spotlight } from "./spotlight";
 
 const AGENTS = [
   { name: "Claude Code", icon: <SiClaude />, color: "bg-[#d97757]" },
+  {
+    name: "OpenCode",
+    // A plain terminal mark: OpenCode's own logo is not ours to redraw.
+    icon: <SquareTerminalIcon />,
+    color: "bg-[#211e1e] dark:bg-[#2a2d35]",
+  },
   { name: "Codex", icon: <SiOpenai />, color: "bg-black dark:bg-[#2a2d35]" },
   {
     name: "Cursor",
@@ -40,7 +52,7 @@ export function HomeAgents() {
       ]}
       text="Castfy is an MCP server too. Ask your agent for a demo where you already work; it lands in the same library."
       tint="text-[#dcf5e9] dark:text-[#12302a]"
-      title="Run it from Claude Code, Codex or Cursor"
+      title="Run it from Claude Code, OpenCode, Codex or Cursor"
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 md:flex-row md:items-start md:gap-8 md:py-6">
         <div className="w-full shrink-0 rounded-xl border bg-background p-4 shadow-[0_20px_50px_-25px_rgba(10,60,40,0.4)] md:mt-10 md:w-60">

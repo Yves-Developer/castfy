@@ -117,7 +117,7 @@ export default function PrivacyPage() {
         </ul>
         <p>
           Recordings are driven by the coding agent you connect (such as Claude
-          Code, Codex or the Cursor CLI). It runs under your own account with
+          Code, OpenCode, Codex or the Cursor CLI). It runs under your own account with
           that provider, which receives your instructions and the pages it reads
           under its own terms and privacy policy, not ours.
         </p>
