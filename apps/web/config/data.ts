@@ -8,6 +8,7 @@ export const navLinks = [
   { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faqs" },
   { label: "Demos", href: "/demos" },
+  { label: "Blog", href: "/blog" },
   { label: "Changelog", href: "/changelog" },
 ];
 
@@ -128,6 +129,7 @@ export const footerNavs: {
       { label: "Pricing", href: "/#pricing" },
       { label: "FAQ", href: "/#faqs" },
       { label: "Demos", href: "/demos" },
+      { label: "Blog", href: "/blog" },
       { label: "Changelog", href: "/changelog" },
     ],
   },

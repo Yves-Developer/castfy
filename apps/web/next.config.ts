@@ -1,3 +1,4 @@
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -21,4 +22,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Blog posts are MDX files in content/blog, loaded by slug from the post
+ * page (app/(v1)/blog/[slug]); mdx-components.tsx styles them.
+ */
+const withMDX = createMDX({});
+
+export default withMDX(nextConfig);
