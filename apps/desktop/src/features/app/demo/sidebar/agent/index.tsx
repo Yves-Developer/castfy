@@ -289,10 +289,9 @@ export function AgentTab({ compact = false }: { compact?: boolean }) {
     );
   };
 
-  /** "Change" on a step: starts the request with that step named. */
-  const changeStep = (index: number, step: AgentStep) => {
-    const label = describeAction(step.action).label;
-    const prefix = `Step ${index + 1} (${label}: ${step.description}): `;
+  /** "Change" on a step: starts the request with that step, as "@3". */
+  const changeStep = (index: number, _step: AgentStep) => {
+    const prefix = `@${index + 1} `;
     setChangeDraft((draft) =>
       draft.trim() ? `${draft.trim()}\n${prefix}` : prefix
     );
@@ -464,7 +463,13 @@ export function AgentTab({ compact = false }: { compact?: boolean }) {
         // min-h-0 is load-bearing: a flex child refuses to shrink below its
         // content without it, so overflow-y-auto alone never scrolls and a long
         // step timeline just runs off the bottom of the panel.
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col",
+            // Under the thread it is short, and must not clip the @ list.
+            !compact && "overflow-y-auto"
+          )}
+        >
           <div
             className={cn(
               "py-2",
@@ -547,14 +552,6 @@ export function AgentTab({ compact = false }: { compact?: boolean }) {
                 request={question}
               />
             ) : null}
-            {status === "completed" && steps.length > 0 ? (
-              <ChangeTake
-                draft={changeDraft}
-                onDraftChange={setChangeDraft}
-                onSubmit={changeTake}
-                ref={changeInput}
-              />
-            ) : null}
             {compact ? null : (
               <StepsTimeline
                 live={status === "generating"}
@@ -572,6 +569,38 @@ export function AgentTab({ compact = false }: { compact?: boolean }) {
                 stages={stages}
               />
             )}
+            {status === "completed" && steps.length > 0 ? (
+              // Kept in reach at the bottom, like the first prompt box.
+              <div
+                className={cn(
+                  !compact && "sticky bottom-0 z-20 bg-background pt-2 pb-1"
+                )}
+              >
+                <ChangeTake
+                  draft={changeDraft}
+                  onDraftChange={setChangeDraft}
+                  onSubmit={changeTake}
+                  ref={changeInput}
+                  steps={steps.map((step) => ({
+                    label: describeAction(step.action).label,
+                    description: step.description,
+                  }))}
+                  tools={
+                    <>
+                      <SelectModel
+                        model={agentModel}
+                        onModelChange={setAgentModel}
+                        selectedModel={selectedModel}
+                        setSelectedModelAction={(id) => {
+                          setSelectedModel(id as AIProvider);
+                        }}
+                      />
+                      <SelectVoice onChange={setVoice} voice={voice} />
+                    </>
+                  }
+                />
+              </div>
+            ) : null}
 
             {/* Error Message display */}
             {status === "error" && errorMessage === STOPPED && (

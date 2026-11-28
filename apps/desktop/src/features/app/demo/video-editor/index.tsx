@@ -16,6 +16,7 @@ import { useLive, useRecordingBrowser } from "@/lib/live-view";
 import { useAgentLog } from "../agent-thread/agent-log";
 import { AgentThread } from "../agent-thread/agent-thread";
 import { LiveStage } from "../agent-thread/live-stage";
+import { useStageView } from "../agent-thread/stage-view";
 import { AgentTab } from "../sidebar/agent";
 
 const SKIP_SECONDS = 10;
@@ -80,6 +81,12 @@ export default function AppVideoEditor() {
   /** Nothing to play yet (a first run): the controls and timeline step aside. */
   const hasVideo =
     Boolean(useBackgroundStore((s) => s.generatedVideoUrl)) && !live;
+  /**
+   * The controls and timeline belong to the video: with the agent's thread on
+   * stage they step aside, so the thread has the whole height to read in.
+   */
+  const agentOnStage = useStageView((s) => s.view === "agent");
+  const showEditor = hasVideo && !agentOnStage;
   const loadAgentLog = useAgentLog((s) => s.load);
   useEffect(() => {
     loadAgentLog(project?.sessionId ?? null);
@@ -262,7 +269,7 @@ export default function AppVideoEditor() {
             <StageStatus duration={hasVideo ? duration : 0} live={live} />
           }
         />
-        {hasVideo ? (
+        {showEditor ? (
           <EditorFooter
             currentTime={currentTime}
             duration={duration}
@@ -277,7 +284,7 @@ export default function AppVideoEditor() {
           />
         ) : null}
       </div>
-      {hasVideo ? (
+      {showEditor ? (
         <footer className="mt-auto flex flex-col gap-2 border-t p-2.5">
           <CutBar
             canEdit={canEditCuts}
@@ -319,7 +326,7 @@ function AgentPanel() {
   return (
     <AgentThread
       composer={
-        <div className="max-h-80 overflow-y-auto">
+        <div>
           <AgentTab compact />
         </div>
       }
