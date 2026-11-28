@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import excalidrawPoster from "@/public/demos/excalidraw-diagram/poster.webp";
+import planePoster from "@/public/demos/plane-board/poster.webp";
 import agentViewShot from "@/public/landing/agent-view.webp";
 
 export interface BlogPost {
@@ -38,8 +39,8 @@ export const posts: BlogPost[] = [
     tags: ["Comparisons"],
     minutes: 5,
     cover: {
-      src: excalidrawPoster,
-      alt: "A Castfy demo: an architecture diagram drawn in Excalidraw, in a browser window on a macOS wallpaper",
+      src: planePoster,
+      alt: "A Castfy demo of Plane: a board with the new work item Add dark mode to settings in In Progress",
     },
   },
   {
