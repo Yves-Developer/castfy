@@ -45,6 +45,22 @@ const components: MDXComponents = {
     />
   ),
   hr: () => <hr className="my-12" />,
+  table: (props) => (
+    <div className="my-8 overflow-x-auto rounded-xl border">
+      <table
+        className="w-full border-collapse text-[15px] leading-6"
+        {...props}
+      />
+    </div>
+  ),
+  thead: (props) => <thead className="bg-secondary/60 text-left" {...props} />,
+  th: (props) => <th className="border-b px-4 py-3 font-medium" {...props} />,
+  td: (props) => (
+    <td
+      className="border-b px-4 py-3 align-top [tr:last-child>&]:border-b-0"
+      {...props}
+    />
+  ),
   a: ({ href = "", ...props }: ComponentProps<"a">) =>
     href.startsWith("/") ? (
       <Link
