@@ -5,6 +5,7 @@ import {
   ChevronDownIcon,
   EyeOffIcon,
   MousePointer2Icon,
+  NewspaperIcon,
   PlayIcon,
   RouteIcon,
   SparklesIcon,
@@ -100,6 +101,13 @@ const MENU: Entry[] = [
         href: "/demos",
         icon: <PlayIcon />,
         color: "bg-[#ff5c8a]",
+      },
+      {
+        title: "Blog",
+        text: "Guides to making demos people watch",
+        href: "/blog",
+        icon: <NewspaperIcon />,
+        color: "bg-[#12b5cb]",
       },
       {
         title: "Changelog",

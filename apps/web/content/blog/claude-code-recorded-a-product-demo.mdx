@@ -1,0 +1,44 @@
+I gave Claude Code a URL and one sentence, and it recorded a narrated product demo on its own: it opened the page, looked around, planned its shots, clicked and typed through the flow, and handed back a finished video. Here is what it actually did, step by step, and what it cost.
+
+<Demo slug="excalidraw-diagram" />
+
+## The setup
+
+Castfy runs Claude Code in the background with one job: record a demo. It gives the agent a recorder with tools like `click`, `drag`, `type` and `look`, and a browser on my own machine. Claude Code decides which tool to call next; Castfy films each step, cuts the waiting and adds the voice.
+
+The prompt was one sentence:
+
+<Prompt text="Show how to draw one rectangle and type the word Hello inside it. Keep the demo very short, under 15 seconds." />
+
+## What the agent did
+
+Castfy's Agent view shows the agent's whole thread while it works: every message and every tool call, what it sent and what came back.
+
+<Shot name="agent-view" alt="Castfy's Agent view: Claude Code's messages and tool calls while it records" caption="Claude Code's thread during a re-record, with one step highlighted." />
+
+A few things stood out:
+
+- **It looks before it records.** The first calls were "look at the page": it read the toolbar and the canvas off camera, so the video starts on a step that matters.
+- **It explains itself.** "The arrow tool moved after the toolbar collapsed. Using the keyboard shortcut instead, and cutting the failed click from the video."
+- **It cleans up after itself.** When a click missed, it marked the step and left it out of the video, so the demo shows only takes that worked.
+
+## What it cost
+
+Castfy shows what each run used, from Claude Code's own report:
+
+- **Model:** Haiku
+- **Turns:** 22
+- **Time:** 1 minute 2 seconds
+- **Tokens:** about 870,000, most of them cached
+- **Price at API rates:** about $0.02
+- **On a Claude plan:** about 2% of the 5-hour limit
+
+A longer, richer demo costs more. A 74-second tour of OrbitOS took 138 turns and just over 12 minutes, and a bigger model plans more carefully at a higher price. Pick the model per demo in Castfy's agent menu.
+
+<FreeDemo post="claude-code-recorded-a-product-demo" />
+
+## Why let the agent do it
+
+The agent is good at exactly the part of a demo that is tedious for people: clicking through a known flow, again and again, without fumbling. You keep the part that needs taste: what to show, and whether the take is good. When something is off, type what to change and point at the step with @, and it records a new take.
+
+<TryCastfy post="claude-code-recorded-a-product-demo" />
