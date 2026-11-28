@@ -366,7 +366,11 @@ function leftTone(left: number) {
   };
 }
 
-const pct = (n: number) => `${Math.round(n * 100)}%`;
+/** Whole percents; a sliver of use reads "<1%", not "0%". */
+const pct = (n: number) =>
+  n > 0 && n < 0.005 ? "<1%" : `${Math.round(n * 100)}%`;
+/** This run's share: the limit is reported in whole percents, so 0 means under 1%. */
+const runPct = (n: number) => (n < 0.005 ? "<1%" : pct(n));
 
 /**
  * A Claude subscription's 5-hour limit in three parts: what was already used
@@ -400,7 +404,7 @@ function LimitMeter({ limit }: { limit: Limit }) {
         <span className="text-foreground">
           This demo used{" "}
           <span className="font-semibold text-[#0099ff] tabular-nums">
-            {Math.max(1, Math.round(run * 100))}%
+            {runPct(run)}
           </span>{" "}
           of your 5-hour limit
         </span>
@@ -428,7 +432,7 @@ function LimitMeter({ limit }: { limit: Limit }) {
                 p.key === "left" && tone.text
               )}
             >
-              {pct(p.value)}
+              {p.key === "run" ? runPct(p.value) : pct(p.value)}
             </span>
           </span>
         ))}
