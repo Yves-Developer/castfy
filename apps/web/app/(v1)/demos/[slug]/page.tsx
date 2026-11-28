@@ -30,6 +30,13 @@ export async function generateMetadata(
   };
 }
 
+/** The stats row fills the width whatever number of stats a demo has. */
+const STAT_COLUMNS: Record<number, string> = {
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-4",
+};
+
 export default async function DemoPage(props: PageProps<"/demos/[slug]">) {
   const { slug } = await props.params;
   const demo = demos.find((d) => d.slug === slug);
@@ -38,7 +45,11 @@ export default async function DemoPage(props: PageProps<"/demos/[slug]">) {
   }
   const related = demos.filter((d) => d.slug !== demo.slug).slice(0, 3);
   const stats = [
-    { label: "Agent worked", value: formatDuration(demo.rawSeconds) },
+    // A demo a user made and sent may not come with the run's numbers.
+    {
+      label: "Agent worked",
+      value: demo.rawSeconds ? formatDuration(demo.rawSeconds) : "",
+    },
     { label: "Finished demo", value: formatDuration(demo.finalSeconds) },
     // Only shown when the run's step log was kept with the demo.
     ...(demo.steps
@@ -83,7 +94,9 @@ export default async function DemoPage(props: PageProps<"/demos/[slug]">) {
           src={demo.media.video}
         />
 
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-4">
+        <dl
+          className={`grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border ${STAT_COLUMNS[stats.length] ?? "sm:grid-cols-4"}`}
+        >
           {stats.map((s) => (
             <div
               className="flex flex-col gap-1 bg-background p-4"

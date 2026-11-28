@@ -32,7 +32,7 @@ export async function generateMetadata(
       description: post.description,
       publishedTime: post.date,
       modifiedTime: post.updated ?? post.date,
-      images: [{ url: post.cover.src.src, alt: post.cover.alt }],
+      // The image itself is opengraph-image.tsx, next to this page.
     },
     twitter: { card: "summary_large_image" },
   };
