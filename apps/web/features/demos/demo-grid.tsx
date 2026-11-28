@@ -115,7 +115,7 @@ function DemoCard({ demo }: { demo: Demo }) {
           ref={video}
         />
         <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/70 px-2.5 py-1 font-mono text-[11px] text-white backdrop-blur">
-          {formatDuration(demo.rawSeconds)} →{" "}
+          {demo.rawSeconds ? `${formatDuration(demo.rawSeconds)} → ` : ""}
           {formatDuration(demo.finalSeconds)}
         </span>
       </div>

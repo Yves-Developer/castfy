@@ -1,6 +1,7 @@
 import type { StaticImageData } from "next/image";
 import excalidrawPoster from "@/public/demos/excalidraw-diagram/poster.webp";
 import orbitosPoster from "@/public/demos/orbitos-tour/poster.webp";
+import termioPoster from "@/public/demos/termio-tour/poster.webp";
 import plausiblePoster from "@/public/demos/plausible-dashboard/poster.webp";
 
 export const DEMO_CATEGORIES = [
@@ -30,8 +31,8 @@ export interface Demo {
   media: { poster: StaticImageData; preview: string; video: string };
   /** What the agent was asked, word for word. */
   prompt: string;
-  /** How long the agent's run took, start to end, in seconds. */
-  rawSeconds: number;
+  /** How long the agent's run took, start to end, in seconds; absent when not reported. */
+  rawSeconds?: number;
   slug: string;
   /** Steps the agent took, and how many worked first time, from steps.json. */
   steps?: { total: number; succeeded: number };
@@ -50,6 +51,27 @@ export interface Demo {
  */
 export const demos: Demo[] = [
   {
+    slug: "termio-tour",
+    app: "Termio",
+    appUrl: "https://about.termio.lol",
+    title: "Booting real operating systems in a browser tab",
+    description:
+      "Termio, a full 32-bit PC that runs in the browser: its library of systems, FreeDOS booting in an instant, a Linux shell answering uname -a, and the ReactOS desktop.",
+    categories: ["Web apps"],
+    agent: "Claude Code",
+    voice: "Aria",
+    url: "https://termio.lol",
+    prompt:
+      'Make a 45–60 second narrated demo of Termio, a full 32-bit PC that runs in the browser and boots real operating systems, with no install or account. Show: the system library, start FreeDOS (it boots almost instantly), then start Buildroot Linux, wait for the shell, and type `uname -a` so its answer shows. Then open the ReactOS desktop. Keep loading and boot waits out of the video. End on "real operating systems, in a browser tab — termio.lol".',
+    // Made by a user, who sent the export: the run's time and turns were not kept.
+    finalSeconds: 67.9,
+    media: {
+      poster: termioPoster,
+      preview: "/demos/termio-tour/preview.mp4",
+      video: "/demos/termio-tour/demo.mp4",
+    },
+  },
+  {
     slug: "orbitos-tour",
     app: "OrbitOS",
     appUrl: "https://about.orbitos.lol",
@@ -61,7 +83,7 @@ export const demos: Demo[] = [
     voice: "Aria",
     url: "https://orbitos.lol",
     prompt:
-      "Make a 45–60 second narrated demo of https://orbitos.lol, a phone-style OS that runs in the browser with no install or account. Show: the home screen, open 2–3 apps, launch one of the 39 games, switch to desktop mode (windows + taskbar), and open Orbit Agent. End on \"free, no account, runs in your browser — orbitos.lol\".",
+      'Make a 45–60 second narrated demo of https://orbitos.lol, a phone-style OS that runs in the browser with no install or account. Show: the home screen, open 2–3 apps, launch one of the 39 games, switch to desktop mode (windows + taskbar), and open Orbit Agent. End on "free, no account, runs in your browser — orbitos.lol".',
     // The run as the app reported it: 12m 25s and 138 turns. The gallery
     // copy is the export with 7 silent seconds near the end cut out.
     rawSeconds: 745,

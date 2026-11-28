@@ -2,25 +2,23 @@ import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { demos } from "@/config/demos";
+import changeStep from "@/public/blog/change-step.webp";
+import model from "@/public/blog/model.webp";
 import agentView from "@/public/landing/agent-view.webp";
-import blur from "@/public/landing/blur.webp";
-import change from "@/public/landing/change.webp";
 import realScreen from "@/public/landing/real-screen.webp";
 import record from "@/public/landing/record-1-0.webp";
 import studio from "@/public/landing/studio-1-0.webp";
-import voice from "@/public/landing/voice.webp";
 import { CopyPrompt } from "@/features/demos/copy-prompt";
 import { DemoPlayer } from "@/features/demos/demo-player";
 
 /** Screens from the real app a post can show, by name. */
 const SHOTS: Record<string, StaticImageData> = {
   "agent-view": agentView,
-  blur,
-  change,
+  "change-step": changeStep,
+  model,
   "real-screen": realScreen,
   record,
   studio,
-  voice,
 };
 
 /** A screenshot of the app, with its caption. */
