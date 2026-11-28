@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
  * Blog posts are MDX files in content/blog, loaded by slug from the post
  * page (app/(v1)/blog/[slug]); mdx-components.tsx styles them.
  */
-const withMDX = createMDX({});
+const withMDX = createMDX({
+  // Tables, strikethrough and autolinks in posts. Named as a string so
+  // Turbopack can load it.
+  options: { remarkPlugins: ["remark-gfm"] },
+});
 
 export default withMDX(nextConfig);

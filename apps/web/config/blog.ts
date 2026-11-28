@@ -29,6 +29,20 @@ export interface BlogPost {
  */
 export const posts: BlogPost[] = [
   {
+    slug: "castfy-vs-screen-studio",
+    title: "Castfy vs Screen Studio: which should you use for product demos?",
+    description:
+      "Screen Studio records your screen beautifully; Castfy has your coding agent record it for you. Platforms, price, voice and editing, compared fairly.",
+    date: "2026-11-28",
+    author: "Yves",
+    tags: ["Comparisons"],
+    minutes: 5,
+    cover: {
+      src: excalidrawPoster,
+      alt: "A Castfy demo: an architecture diagram drawn in Excalidraw, in a browser window on a macOS wallpaper",
+    },
+  },
+  {
     slug: "claude-code-recorded-a-product-demo",
     title: "I gave Claude Code a URL and it recorded a product demo",
     description:
