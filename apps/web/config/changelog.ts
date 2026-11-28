@@ -29,6 +29,32 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    id: "v1-0-2",
+    version: "1.0.2",
+    date: "2026-11-28",
+    title: "Point at a step, and more room to read",
+    summary:
+      "Ask for a change the way you would in a chat, pointing at the exact step with @, and read the agent's thread with the whole screen.",
+    changes: [
+      {
+        kind: "New",
+        text: "Type @ in Change something to pick a step from the list. \"Make @3 slower\" tells the agent exactly which step you mean.",
+      },
+      {
+        kind: "Improved",
+        text: "Change something is the same prompt box as your first recording, with the agent, model and voice right under it. Enter sends.",
+      },
+      {
+        kind: "Improved",
+        text: "After a recording, the Agent view uses the full height: the player and timeline step aside until you switch back to Video.",
+      },
+      {
+        kind: "Fixed",
+        text: "A demo that used less than 1% of your plan's limit no longer says 0%.",
+      },
+    ],
+  },
+  {
     id: "v1-0-1",
     version: "1.0.1",
     date: "2026-11-25",
