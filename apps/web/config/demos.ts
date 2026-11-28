@@ -2,6 +2,7 @@ import type { StaticImageData } from "next/image";
 import excalidrawPoster from "@/public/demos/excalidraw-diagram/poster.webp";
 import orbitosPoster from "@/public/demos/orbitos-tour/poster.webp";
 import termioPoster from "@/public/demos/termio-tour/poster.webp";
+import planePoster from "@/public/demos/plane-board/poster.webp";
 import plausiblePoster from "@/public/demos/plausible-dashboard/poster.webp";
 
 export const DEMO_CATEGORIES = [
@@ -50,6 +51,30 @@ export interface Demo {
  * export, never estimated.
  */
 export const demos: Demo[] = [
+  {
+    slug: "plane-board",
+    app: "Plane",
+    appUrl: "https://plane.so",
+    title: "Signing in and planning work on a board",
+    description:
+      "Plane, the open-source project tool, from its sign-in page: an email code typed as a secret, then a new work item set to High priority, assigned, and dragged into In Progress.",
+    categories: ["Behind a login", "SaaS"],
+    agent: "Claude Code",
+    voice: "Emma",
+    url: "https://app.plane.so/",
+    prompt:
+      'Show how a team plans work in Plane, starting from the sign-in. Sign in on camera: choose to continue with email, use castfy0_ask_user to ask me for my email address and type it in, and if Plane sends a code or asks for a password, ask me for it with castfy0_ask_user and type it with secret: true. Then, in the Acme workspace\'s Product project: create a new work item called "Add dark mode to settings", set its priority to High, assign it to me, and move it to In Progress. End on the board view showing it next to the others.',
+    // The run as the app reported it: Opus, 15m 1s, 158 turns. The email
+    // is blurred in this copy.
+    rawSeconds: 901,
+    finalSeconds: 59,
+    turns: 158,
+    media: {
+      poster: planePoster,
+      preview: "/demos/plane-board/preview.mp4",
+      video: "/demos/plane-board/demo.mp4",
+    },
+  },
   {
     slug: "termio-tour",
     app: "Termio",
